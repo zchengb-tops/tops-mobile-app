@@ -3,10 +3,12 @@ import {ListItem} from "@rneui/themed";
 import React, {useContext, useEffect, useState} from "react";
 import {StyleSheet} from 'react-native';
 import {GlobalContext} from "../../utils/GlobalContext";
+import {useNavigation} from "@react-navigation/native";
 
-export const Sina = ({navigation}) => {
+export const Sina = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
+    const navigation = useNavigation();
 
     useEffect(() => {
         setNews(globalState['news']['sina'])
