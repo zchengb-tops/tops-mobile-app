@@ -3,5 +3,9 @@ import React from "react";
 
 export const NewsDetailScreen = ({route}) => {
     const {url} = route.params;
-    return <WebView source={{uri: url}} style={{flex: 1}}/>;
+    return <WebView style={{flex: 1}} source={{uri: url}}
+                    allowsFullscreenVideo={false}
+                    javaScriptEnabled={true}
+                    allowsInlineMediaPlayback={true}
+    />;
 };
