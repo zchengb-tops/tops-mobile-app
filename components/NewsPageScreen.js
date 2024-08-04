@@ -145,6 +145,7 @@ export const NewsPageScreen = () => {
                 channelList.map(
                     (channel, index) =>
                         <Tab.Item
+                            key={index}
                             iconPosition="left"
                             title={channel.tabTitle}
                             titleStyle={styles.tabBarText}
@@ -158,7 +159,7 @@ export const NewsPageScreen = () => {
             {
                 channelList.map(
                     (channel, index) => {
-                        return <TabView.Item style={styles.tabView}>
+                        return <TabView.Item style={styles.tabView} key={index}>
                             {channel.component}
                         </TabView.Item>
                     }
