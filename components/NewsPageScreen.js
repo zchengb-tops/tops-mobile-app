@@ -15,7 +15,7 @@ import {Sina} from "./tabs/Sina";
 import {GlobalContext} from "../utils/GlobalContext";
 
 
-export const NewsPageScreen = ({navigation}) => {
+export const NewsPageScreen = () => {
     const [tabIndex, setTabIndex] = React.useState(0);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);

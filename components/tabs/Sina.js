@@ -4,7 +4,7 @@ import React, {useContext, useEffect, useState} from "react";
 import {StyleSheet} from 'react-native';
 import {GlobalContext} from "../../utils/GlobalContext";
 
-export const Sina = () => {
+export const Sina = ({navigation}) => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
 
