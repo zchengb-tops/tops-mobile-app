@@ -113,7 +113,6 @@ export const NewsPageScreen = () => {
     ]);
 
     useEffect(() => {
-        console.log('globalState', globalState)
         fetchNews().then(() => console.log('Successfully fetch news :)'));
     }, []);
 
@@ -123,7 +122,6 @@ export const NewsPageScreen = () => {
             const response = await fetch('https://zchengb.top/api/normal-news');
             const data = await response.json();
             setGlobalState({...globalState, news: data});
-            console.log('globalState', globalState);
         } catch (error) {
             console.error('Error fetching news:', error);
         } finally {

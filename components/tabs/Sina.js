@@ -29,7 +29,7 @@ export const Sina = () => {
             news?.map((item, index) => {
                 return <TouchableOpacity key={index}
                                          onPress={() => navigation.navigate('NewsDetail', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
-                    <ListItem style={{marginBottom: -8}}>
+                    <ListItem containerStyle={{marginBottom: -8, backgroundColor: '#F8F8F8'}}>
                         <View style={[
                             styles.rankNumCircle,
                             index < 3 && styles[`rankNumCircleTop${index + 1}`]
