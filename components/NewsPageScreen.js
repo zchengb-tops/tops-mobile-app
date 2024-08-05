@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {SafeAreaView, StyleSheet, Text} from 'react-native';
+import {RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text} from 'react-native';
 import {Tab, TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
@@ -19,6 +19,7 @@ export const NewsPageScreen = () => {
     const [tabIndex, setTabIndex] = React.useState(0);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const [channelList, setChannelList] = useState([
         {
             id: 'sina',
@@ -129,6 +130,12 @@ export const NewsPageScreen = () => {
         }
     };
 
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchNews();
+        setRefreshing(false);
+        console.log('refresh completed.');
+    };
 
     return <SafeAreaView style={styles.container}>
         <Tab
@@ -158,7 +165,14 @@ export const NewsPageScreen = () => {
                 channelList.map(
                     (channel, index) => {
                         return <TabView.Item style={styles.tabView} key={index}>
-                            {channel.component}
+                            <ScrollView
+                                contentContainerStyle={styles.scrollView}
+                                refreshControl={
+                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                                }
+                            >
+                                {channel.component}
+                            </ScrollView>
                         </TabView.Item>
                     }
                 )
@@ -206,5 +220,8 @@ const styles = StyleSheet.create({
     tabView: {
         backgroundColor: '#F8F8F8',
         width: '100%'
-    }
+    },
+    scrollView: {
+        flexGrow: 1,
+    },
 })
