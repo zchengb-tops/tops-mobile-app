@@ -29,7 +29,7 @@ export const Sina = () => {
             news?.map((item, index) => {
                 return <TouchableOpacity key={index}
                                          onPress={() => navigation.navigate('NewsDetail', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
-                    <ListItem containerStyle={{marginBottom: -8, backgroundColor: '#F8F8F8'}}>
+                    <ListItem containerStyle={styles.newItemContainer}>
                         <View style={[
                             styles.rankNumCircle,
                             index < 3 && styles[`rankNumCircleTop${index + 1}`]
@@ -38,13 +38,13 @@ export const Sina = () => {
                                 style={index < 3 ? styles.topRankNumText : styles.rankNumText}>{item.rankNum}</Text>
                         </View>
                         <ListItem.Content>
-                            <ListItem.Title style={{fontSize: 16, color: 'rgba(0,0,0,0.85)'}}
+                            <ListItem.Title style={styles.title}
                                             numberOfLines={1}
                                             ellipsizeMode='tail'>
                                 {item.title}
                             </ListItem.Title>
                         </ListItem.Content>
-                        <Text style={{color: '#939393', fontSize: 12}}>
+                        <Text style={styles.viewerText}>
                             {prettifyNumber(item.properties.viewers)}
                         </Text>
                     </ListItem>
@@ -55,6 +55,18 @@ export const Sina = () => {
 }
 
 const styles = StyleSheet.create({
+    newItemContainer: {
+        marginBottom: -8,
+        backgroundColor: '#F8F8F8'
+    },
+    title: {
+        fontSize: 16,
+        color: 'rgba(0,0,0,0.85)'
+    },
+    viewerText: {
+        color: '#939393',
+        fontSize: 12
+    },
     rankNumCircle: {
         width: 18,
         height: 18,
