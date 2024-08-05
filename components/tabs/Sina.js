@@ -38,7 +38,9 @@ export const Sina = () => {
                                 style={index < 3 ? styles.topRankNumText : styles.rankNumText}>{item.rankNum}</Text>
                         </View>
                         <ListItem.Content>
-                            <ListItem.Title style={{fontSize: 16, color: 'rgba(0,0,0,0.85)'}}>
+                            <ListItem.Title style={{fontSize: 16, color: 'rgba(0,0,0,0.85)'}}
+                                            numberOfLines={1}
+                                            ellipsizeMode='tail'>
                                 {item.title}
                             </ListItem.Title>
                         </ListItem.Content>
