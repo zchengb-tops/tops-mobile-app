@@ -22,25 +22,28 @@ export const Zhihu = () => {
             news?.map((item, index) => {
                 return <TouchableOpacity key={index}
                                          onPress={() => navigation.navigate('NewsDetail', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
-                    <View style={styles.newItemContainer}>
-                        <View style={styles.rankContainer}>
-                            <Text
-                                style={index < 3 ? styles[`rankNumTop${index + 1}`] : styles.rankNumText}>{formatTwoDigits(item.rankNum)}</Text>
+                    <View style={styles.newsItemWrapper}>
+                        <View style={styles.newItemContainer}>
+                            <View style={styles.rankContainer}>
+                                <Text
+                                    style={index < 3 ? styles[`rankNumTop${index + 1}`] : styles.rankNumText}>{formatTwoDigits(item.rankNum)}</Text>
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.title}
+                                      numberOfLines={4}
+                                      ellipsizeMode='tail'>{item.title}</Text>
+                                <Text style={styles.viewerText}>{item.properties.metrics}</Text>
+                            </View>
+                            {
+                                item.properties.banner !== 'https://zchengb-images.oss-cn-shenzhen.aliyuncs.com/1.jpeg' &&
+                                <Image
+                                    style={styles.image}
+                                    resizeMode="cover"
+                                    source={{uri: item.properties.banner}}
+                                />
+                            }
                         </View>
-                        <View style={styles.textContainer}>
-                            <Text style={styles.title}
-                                  numberOfLines={4}
-                                  ellipsizeMode='tail'>{item.title}</Text>
-                            <Text style={styles.viewerText}>{item.properties.metrics}</Text>
-                        </View>
-                        {
-                            item.properties.banner !== 'https://zchengb-images.oss-cn-shenzhen.aliyuncs.com/1.jpeg' &&
-                            <Image
-                                style={styles.image}
-                                resizeMode="cover"
-                                source={{uri: item.properties.banner}}
-                            />
-                        }
+                        <View style={styles.borderBottom}/>
                     </View>
                 </TouchableOpacity>
             })
@@ -49,12 +52,19 @@ export const Zhihu = () => {
 }
 
 const styles = StyleSheet.create({
+    newsItemWrapper: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     newItemContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 12,
+    },
+    borderBottom: {
         borderBottomColor: 'rgba(0,0,0,0.08)',
         borderBottomWidth: 1,
+        width: '94%',
     },
     rankContainer: {
         justifyContent: 'center',
