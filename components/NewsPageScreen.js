@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text} from 'react-native';
+import {RefreshControl, SafeAreaView, ScrollView, StyleSheet} from 'react-native';
 import {Tab, TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
@@ -13,10 +13,11 @@ import NngroupIcon from "../assets/icons/nngroup.svg";
 import TiobeIcon from "../assets/icons/tiobe.svg";
 import {Sina} from "./tabs/Sina";
 import {GlobalContext} from "../utils/GlobalContext";
+import {Zhihu} from "./tabs/Zhihu";
 
 
 export const NewsPageScreen = () => {
-    const [tabIndex, setTabIndex] = React.useState(0);
+    const [tabIndex, setTabIndex] = useState(1);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -37,7 +38,7 @@ export const NewsPageScreen = () => {
             icon: <ZhihuIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '知乎TOP50热榜',
             enable: true,
-            component: <></>
+            component: <Zhihu/>
         },
         {
             id: 'sspai',
@@ -115,7 +116,6 @@ export const NewsPageScreen = () => {
 
     useEffect(() => {
         fetchNews().then(() => console.log('Successfully fetch news :)'));
-        setTabIndex(0);
     }, []);
 
     const fetchNews = async () => {

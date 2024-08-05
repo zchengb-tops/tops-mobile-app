@@ -4,7 +4,7 @@ export const GlobalContext = createContext();
 
 export const GlobalProvider = ({children}) => {
     const [globalState, setGlobalState] = useState({
-        "news": {"sina": []}
+        "news": {"sina": [], "zhihu": []}
     });
 
     return (
