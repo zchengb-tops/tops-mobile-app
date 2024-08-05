@@ -154,7 +154,7 @@ export const NewsPageScreen = () => {
                             key={index}
                             iconPosition="left"
                             title={channel.tabTitle}
-                            titleStyle={styles.tabBarText}
+                            titleStyle={tabIndex === index ? styles.selectedTabBarText : styles.tabBarText}
                             icon={channel.icon}
                         />
                 )
@@ -169,7 +169,7 @@ export const NewsPageScreen = () => {
                             <ScrollView
                                 contentContainerStyle={styles.scrollView}
                                 refreshControl={
-                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
                                 }
                             >
                                 {channel.component}
@@ -204,6 +204,12 @@ const styles = StyleSheet.create({
         height: 3,
     },
     tabBarText: {
+        marginLeft: -16,
+        fontSize: 16,
+        fontWeight: "normal",
+        color: 'rgba(0,0,0,0.85)',
+    },
+    selectedTabBarText: {
         marginLeft: -16,
         fontSize: 16,
         fontWeight: "bold",
