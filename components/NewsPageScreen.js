@@ -115,6 +115,7 @@ export const NewsPageScreen = () => {
 
     useEffect(() => {
         fetchNews().then(() => console.log('Successfully fetch news :)'));
+        setTabIndex(0);
     }, []);
 
     const fetchNews = async () => {
