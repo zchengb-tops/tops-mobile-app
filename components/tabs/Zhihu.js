@@ -1,5 +1,4 @@
 import {Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {Card} from "@rneui/themed";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
