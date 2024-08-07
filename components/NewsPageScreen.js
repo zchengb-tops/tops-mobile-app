@@ -14,10 +14,11 @@ import TiobeIcon from "../assets/icons/tiobe.svg";
 import {Sina} from "./tabs/Sina";
 import {GlobalContext} from "../utils/GlobalContext";
 import {Zhihu} from "./tabs/Zhihu";
+import {Sspai} from "./tabs/Sspai";
 
 
 export const NewsPageScreen = () => {
-    const [tabIndex, setTabIndex] = useState(1);
+    const [tabIndex, setTabIndex] = useState(2);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +48,7 @@ export const NewsPageScreen = () => {
             icon: <SspaiIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '高效工作，品质生活',
             enable: true,
-            component: <></>
+            component: <Sspai/>
         },
         {
             id: 'xiaoyuzhou',
