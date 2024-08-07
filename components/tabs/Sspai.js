@@ -20,12 +20,12 @@ export const Sspai = () => {
             let title = article.title.replace(morningPaperPrefix + "：", "");
             title = title.replace(morningPaperPrefix + ":", "");
 
-            return <Text style={styles.morningTitle} numberOfLines={2} ellipsizeMode='tail'>
+            return <Text style={styles.morningTitle} numberOfLines={3} ellipsizeMode='tail'>
                 <Text style={styles.morningTitlePrefix}>派早报：</Text>
                 {title}
             </Text>
         }
-        return <Text style={styles.normalTitle} numberOfLines={2} ellipsizeMode='tail'>{article.title}</Text>
+        return <Text style={styles.normalTitle} numberOfLines={3} ellipsizeMode='tail'>{article.title}</Text>
     }
 
     return <ScrollView>
@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 12,
+        height: 146
     },
     borderBottom: {
         borderBottomColor: 'rgba(0,0,0,0.08)',
@@ -132,8 +133,8 @@ const styles = StyleSheet.create({
         marginLeft: 4
     },
     image: {
-        width: 128,
-        height: 80,
-        marginRight: 12,
+        width: 140,
+        height: 100,
+        marginRight: 14,
     },
 })
