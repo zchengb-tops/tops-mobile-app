@@ -3,31 +3,91 @@ import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
 import PlayIcon from "../../assets/icons/play.svg";
-import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
+import TrackPlayer, {Event} from 'react-native-track-player';
+import {Capability, useTrackPlayerEvents} from "react-native-track-player";
 
 export const Xiaoyuzhou = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
-    const [sound, setSound] = useState(null);
 
     useEffect(() => {
         setNews(globalState['news']['xiaoyuzhou'])
     }, [globalState]);
 
-    useEffect(() => {
+    useTrackPlayerEvents([Event.RemotePause, Event.RemotePlay, Event.RemoteStop, Event.RemoteJumpForward, Event.RemoteJumpBackward], (event) => {
+        console.log('event', event)
+        switch (event.type) {
+            case Event.RemotePlay:
+                TrackPlayer.play();
+                break;
+            case Event.RemotePause:
+                TrackPlayer.pause();
+                break;
+            case Event.RemoteStop:
+                TrackPlayer.stop();
+                break;
+            case Event.RemoteJumpForward:
+                TrackPlayer.getProgress().then(progress => {
+                    let nextPosition = progress.position + event.interval;
+                    nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
+                    TrackPlayer.seekTo(nextPosition);
+                })
+                break;
+            case Event.RemoteJumpBackward:
+                TrackPlayer.getProgress().then(progress => {
+                    let nextPosition = progress.position - event.interval;
+                    nextPosition = nextPosition < 0 ? 0 : nextPosition;
+                    TrackPlayer.seekTo(nextPosition);
+                })
+                break;
+            default:
+                break;
+        }
+    });
 
-    }, [sound]);
-
-    const playSound = async (url, coverUrl) => {
-        const mediaUrl = "https://s3.amazonaws.com/exp-us-standard/audio/playlist-example/Comfort_Fit_-_03_-_Sorry.mp3";
+    const playSound = async (mediaItem) => {
         await TrackPlayer.setupPlayer();
 
+        await TrackPlayer.updateOptions({
+            stopWithApp: true,
+            capabilities: [
+                Capability.Play,
+                Capability.Pause,
+                Capability.Stop,
+                Capability.JumpForward,
+                Capability.JumpBackward
+            ],
+            compactCapabilities: [
+                Capability.Play,
+                Capability.Pause,
+                Capability.JumpForward,
+                Capability.JumpBackward
+            ],
+            // Control capabilities in iOS lock screen and control center
+            notificationCapabilities: [
+                Capability.Play,
+                Capability.Pause,
+                Capability.Stop,
+                Capability.JumpForward,
+                Capability.JumpBackward
+            ],
+            // Control capabilities in Android lock screen and notification
+            androidCapabilities: [
+                Capability.Play,
+                Capability.Pause,
+                Capability.Stop,
+                Capability.JumpForward,
+                Capability.JumpBackward
+            ],
+        });
+
+
         await TrackPlayer.add({
-            id: 'trackId',
-            url: mediaUrl,
-            title: 'Track Title',
-            artist: 'Track Artist',
-            artwork: coverUrl
+            url: mediaItem.mediaUrl,
+            title: mediaItem.title,
+            artist: mediaItem.author,
+            artwork: mediaItem.coverUrl,
+            duration: mediaItem.duration
         });
 
         await TrackPlayer.play();
@@ -56,7 +116,7 @@ export const Xiaoyuzhou = () => {
                         <View style={styles.operationWrapper}>
                             <TouchableOpacity
                                 style={styles.operationWrapper}
-                                onPress={() => playSound(item.coverUrl, item.coverUrl)}
+                                onPress={() => playSound(item)}
                             >
                                 <PlayIcon width={32} height={32}/>
                             </TouchableOpacity>
