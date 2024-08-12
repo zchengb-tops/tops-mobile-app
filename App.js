@@ -1,14 +1,14 @@
-import {StyleSheet} from 'react-native';
 import React from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {NewsPageScreen} from "./components/NewsPageScreen";
 import {NewsDetailScreen} from "./components/NewsDetailScreen";
-import {GlobalContext, GlobalProvider} from "./utils/GlobalContext";
+import {GlobalProvider} from "./utils/GlobalContext";
+import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 
 
 const Stack = createStackNavigator();
-
+TrackPlayer.registerPlaybackService(() => require('./service'));
 
 export default function App() {
     return (

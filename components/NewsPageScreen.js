@@ -15,10 +15,11 @@ import {Sina} from "./tabs/Sina";
 import {GlobalContext} from "../utils/GlobalContext";
 import {Zhihu} from "./tabs/Zhihu";
 import {Sspai} from "./tabs/Sspai";
+import {Xiaoyuzhou} from "./tabs/Xiaoyuzhou";
 
 
 export const NewsPageScreen = () => {
-    const [tabIndex, setTabIndex] = useState(2);
+    const [tabIndex, setTabIndex] = useState(3);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -57,7 +58,7 @@ export const NewsPageScreen = () => {
             icon: <XiaoyuzhouIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '小宇宙FM每日榜单（最热榜、锋芒榜、新星榜）',
             enable: true,
-            component: <></>
+            component: <Xiaoyuzhou/>
         },
         {
             id: 'stock',
@@ -162,7 +163,7 @@ export const NewsPageScreen = () => {
             }
         </Tab>
 
-        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" loading={loading}>
+        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" loading={loading} minSwipeRatio={0} minSwipeSpeed={100}>
             {
                 channelList.map(
                     (channel, index) => {

@@ -1,5 +1,5 @@
-import WebView from "react-native-webview";
 import React from "react";
+import {WebView} from "react-native-webview";
 
 export const NewsDetailScreen = ({route}) => {
     const {url} = route.params;
