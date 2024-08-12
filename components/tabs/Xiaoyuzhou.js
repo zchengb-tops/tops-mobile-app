@@ -14,36 +14,39 @@ export const Xiaoyuzhou = () => {
         setNews(globalState['news']['xiaoyuzhou'])
     }, [globalState]);
 
-    useTrackPlayerEvents([Event.RemotePause, Event.RemotePlay, Event.RemoteStop, Event.RemoteJumpForward, Event.RemoteJumpBackward], (event) => {
-        console.log('event', event)
-        switch (event.type) {
-            case Event.RemotePlay:
-                TrackPlayer.play();
-                break;
-            case Event.RemotePause:
-                TrackPlayer.pause();
-                break;
-            case Event.RemoteStop:
-                TrackPlayer.stop();
-                break;
-            case Event.RemoteJumpForward:
-                TrackPlayer.getProgress().then(progress => {
-                    let nextPosition = progress.position + event.interval;
-                    nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
-                    TrackPlayer.seekTo(nextPosition);
-                })
-                break;
-            case Event.RemoteJumpBackward:
-                TrackPlayer.getProgress().then(progress => {
-                    let nextPosition = progress.position - event.interval;
-                    nextPosition = nextPosition < 0 ? 0 : nextPosition;
-                    TrackPlayer.seekTo(nextPosition);
-                })
-                break;
-            default:
-                break;
-        }
-    });
+    useTrackPlayerEvents([Event.RemotePause, Event.RemotePlay, Event.RemoteStop, Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek],
+        (event) => {
+            switch (event.type) {
+                case Event.RemoteSeek:
+                    TrackPlayer.seekTo(event.position);
+                    break;
+                case Event.RemotePlay:
+                    TrackPlayer.play();
+                    break;
+                case Event.RemotePause:
+                    TrackPlayer.pause();
+                    break;
+                case Event.RemoteStop:
+                    TrackPlayer.stop();
+                    break;
+                case Event.RemoteJumpForward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position + event.interval;
+                        nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                    })
+                    break;
+                case Event.RemoteJumpBackward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position - event.interval;
+                        nextPosition = nextPosition < 0 ? 0 : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                    })
+                    break;
+                default:
+                    break;
+            }
+        });
 
     const playSound = async (mediaItem) => {
         await TrackPlayer.setupPlayer();
@@ -55,7 +58,8 @@ export const Xiaoyuzhou = () => {
                 Capability.Pause,
                 Capability.Stop,
                 Capability.JumpForward,
-                Capability.JumpBackward
+                Capability.JumpBackward,
+                Capability.SeekTo
             ],
             compactCapabilities: [
                 Capability.Play,
@@ -69,7 +73,8 @@ export const Xiaoyuzhou = () => {
                 Capability.Pause,
                 Capability.Stop,
                 Capability.JumpForward,
-                Capability.JumpBackward
+                Capability.JumpBackward,
+                Capability.SeekTo
             ],
             // Control capabilities in Android lock screen and notification
             androidCapabilities: [
