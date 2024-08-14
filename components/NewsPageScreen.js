@@ -66,7 +66,7 @@ export const NewsPageScreen = () => {
             tabTitle: '实时沪深',
             icon: <StockIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '汇集沪深股市各大板块热力图',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -75,7 +75,7 @@ export const NewsPageScreen = () => {
             tabTitle: '豆瓣',
             icon: <DoubanIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '每周最新的全球電影口碑排行榜',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -84,7 +84,7 @@ export const NewsPageScreen = () => {
             tabTitle: '哔哩哔哩',
             icon: <BilibiliIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '哔哩哔哩每周必看榜单',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -93,7 +93,7 @@ export const NewsPageScreen = () => {
             tabTitle: 'NN/g',
             icon: <NngroupIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: 'World Leaders in Research-Based User Experience',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -102,7 +102,7 @@ export const NewsPageScreen = () => {
             tabTitle: 'TIOBE',
             icon: <TiobeIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '每月最新的全球编程语言排行榜',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -111,7 +111,7 @@ export const NewsPageScreen = () => {
             tabTitle: '历史薄',
             icon: <HistoryIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '所以历史上的今天都发生了什么？🧐',
-            enable: true,
+            enable: false,
             component: <></>
         }
     ]);
@@ -150,8 +150,9 @@ export const NewsPageScreen = () => {
             scrollable
         >
             {
-                channelList.map(
-                    (channel, index) =>
+                channelList
+                    .filter(channel => channel.enable)
+                    .map((channel, index) =>
                         <Tab.Item
                             key={index}
                             iconPosition="left"
@@ -159,26 +160,29 @@ export const NewsPageScreen = () => {
                             titleStyle={tabIndex === index ? styles.selectedTabBarText : styles.tabBarText}
                             icon={channel.icon}
                         />
-                )
+                    )
             }
         </Tab>
 
-        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" loading={loading} minSwipeRatio={0} minSwipeSpeed={100}>
+        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" loading={loading} minSwipeRatio={0}
+                 minSwipeSpeed={100}>
             {
-                channelList.map(
-                    (channel, index) => {
-                        return <TabView.Item style={styles.tabView} key={index}>
-                            <ScrollView
-                                contentContainerStyle={styles.scrollView}
-                                refreshControl={
-                                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
-                                }
-                            >
-                                {channel.component}
-                            </ScrollView>
-                        </TabView.Item>
-                    }
-                )
+                channelList
+                    .filter(channel => channel.enable)
+                    .map(
+                        (channel, index) => {
+                            return <TabView.Item style={styles.tabView} key={index}>
+                                <ScrollView
+                                    contentContainerStyle={styles.scrollView}
+                                    refreshControl={
+                                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
+                                    }
+                                >
+                                    {channel.component}
+                                </ScrollView>
+                            </TabView.Item>
+                        }
+                    )
             }
         </TabView>
     </SafeAreaView>
