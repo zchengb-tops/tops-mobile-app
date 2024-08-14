@@ -5,8 +5,10 @@ import {NewsPageScreen} from "./components/NewsPageScreen";
 import {NewsDetailScreen} from "./components/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
+import {AppRegistry} from "react-native";
 
 
+AppRegistry.registerComponent("Tops", () => App);
 const Stack = createStackNavigator();
 TrackPlayer.registerPlaybackService(() => require('./service'));
 

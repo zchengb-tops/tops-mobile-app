@@ -3,52 +3,16 @@ import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
 import PlayIcon from "../../assets/icons/play.svg";
+import PauseIcon from "../../assets/icons/pause.svg";
 import TrackPlayer, {Event} from 'react-native-track-player';
 import {Capability, useTrackPlayerEvents} from "react-native-track-player";
 
 export const Xiaoyuzhou = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
+    const [playingMediaIndex, setPlayingMediaIndex] = useState(null);
 
-    useEffect(() => {
-        setNews(globalState['news']['xiaoyuzhou'])
-    }, [globalState]);
-
-    useTrackPlayerEvents([Event.RemotePause, Event.RemotePlay, Event.RemoteStop, Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek],
-        (event) => {
-            switch (event.type) {
-                case Event.RemoteSeek:
-                    TrackPlayer.seekTo(event.position);
-                    break;
-                case Event.RemotePlay:
-                    TrackPlayer.play();
-                    break;
-                case Event.RemotePause:
-                    TrackPlayer.pause();
-                    break;
-                case Event.RemoteStop:
-                    TrackPlayer.stop();
-                    break;
-                case Event.RemoteJumpForward:
-                    TrackPlayer.getProgress().then(progress => {
-                        let nextPosition = progress.position + event.interval;
-                        nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
-                        TrackPlayer.seekTo(nextPosition);
-                    })
-                    break;
-                case Event.RemoteJumpBackward:
-                    TrackPlayer.getProgress().then(progress => {
-                        let nextPosition = progress.position - event.interval;
-                        nextPosition = nextPosition < 0 ? 0 : nextPosition;
-                        TrackPlayer.seekTo(nextPosition);
-                    })
-                    break;
-                default:
-                    break;
-            }
-        });
-
-    const playSound = async (mediaItem) => {
+    const initializeTrackPlayer = async () => {
         await TrackPlayer.setupPlayer();
 
         await TrackPlayer.updateOptions({
@@ -85,7 +49,76 @@ export const Xiaoyuzhou = () => {
                 Capability.JumpBackward
             ],
         });
+    }
 
+    useEffect(() => {
+        initializeTrackPlayer().then(r => console.log('initialize track player'));
+    }, []);
+
+    useEffect(() => {
+        const newsItem = globalState['news']['xiaoyuzhou'];
+        newsItem?.forEach(newsItem => newsItem.playing = false);
+        setNews(newsItem)
+    }, [globalState]);
+
+    useTrackPlayerEvents([Event.RemotePause, Event.RemotePlay, Event.RemoteStop, Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek],
+        async (event) => {
+            switch (event.type) {
+                case Event.RemoteSeek:
+                    await TrackPlayer.seekTo(event.position);
+                    break;
+                case Event.RemotePlay:
+                    await TrackPlayer.play();
+                    break;
+                case Event.RemotePause:
+                    await TrackPlayer.pause();
+                    updatePlayingMediaStatus(false);
+                    break;
+                case Event.RemoteStop:
+                    await TrackPlayer.stop();
+                    updatePlayingMediaStatus(false);
+                    break;
+                case Event.RemoteJumpForward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position + event.interval;
+                        nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                    })
+                    break;
+                case Event.RemoteJumpBackward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position - event.interval;
+                        nextPosition = nextPosition < 0 ? 0 : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                    })
+                    break;
+                default:
+                    break;
+            }
+        });
+
+    const updatePlayingMediaStatus = (isPlaying) => {
+        const updatedNews = [...news];
+
+        if (playingMediaIndex !== null) {
+            updatedNews[playingMediaIndex].playing = isPlaying;
+        }
+
+        setNews(updatedNews);
+    }
+
+    const pauseSound = async () => {
+        await TrackPlayer.pause();
+
+        updatePlayingMediaStatus(false);
+
+        setPlayingMediaIndex(null);
+    }
+
+    const playSound = async (mediaItem, mediaItemIndex) => {
+        if (playingMediaIndex !== mediaItemIndex) {
+            await TrackPlayer.reset();
+        }
 
         await TrackPlayer.add({
             url: mediaItem.mediaUrl,
@@ -96,6 +129,10 @@ export const Xiaoyuzhou = () => {
         });
 
         await TrackPlayer.play();
+
+        mediaItem.playing = true;
+
+        setPlayingMediaIndex(mediaItemIndex);
     };
 
     return (
@@ -119,12 +156,22 @@ export const Xiaoyuzhou = () => {
                         </View>
 
                         <View style={styles.operationWrapper}>
-                            <TouchableOpacity
-                                style={styles.operationWrapper}
-                                onPress={() => playSound(item)}
-                            >
-                                <PlayIcon width={32} height={32}/>
-                            </TouchableOpacity>
+                            {
+                                item?.playing ?
+                                    <TouchableOpacity
+                                        style={styles.operationWrapper}
+                                        onPress={() => pauseSound()}
+                                    >
+                                        <PauseIcon width={32} height={32}/>
+                                    </TouchableOpacity>
+                                    :
+                                    <TouchableOpacity
+                                        style={styles.operationWrapper}
+                                        onPress={() => playSound(item, index)}
+                                    >
+                                        <PlayIcon width={32} height={32}/>
+                                    </TouchableOpacity>
+                            }
                         </View>
                     </View>
                     <View style={styles.borderBottom}/>
