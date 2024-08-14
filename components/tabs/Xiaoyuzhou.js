@@ -111,28 +111,26 @@ export const Xiaoyuzhou = () => {
         await TrackPlayer.pause();
 
         updatePlayingMediaStatus(false);
-
-        setPlayingMediaIndex(null);
     }
 
     const playSound = async (mediaItem, mediaItemIndex) => {
+        console.log('mediaItemIndex', mediaItemIndex, playingMediaIndex);
         if (playingMediaIndex !== mediaItemIndex) {
             await TrackPlayer.reset();
-        }
 
-        await TrackPlayer.add({
-            url: mediaItem.mediaUrl,
-            title: mediaItem.title,
-            artist: mediaItem.author,
-            artwork: mediaItem.coverUrl,
-            duration: mediaItem.duration
-        });
+            await TrackPlayer.add({
+                url: mediaItem.mediaUrl,
+                title: mediaItem.title,
+                artist: mediaItem.author,
+                artwork: mediaItem.coverUrl,
+                duration: mediaItem.duration
+            });
+        }
 
         await TrackPlayer.play();
 
-        mediaItem.playing = true;
-
         setPlayingMediaIndex(mediaItemIndex);
+        updatePlayingMediaStatus(true)
     };
 
     return (
