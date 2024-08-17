@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "tops-mobile-app",
-    "slug": "tops-mobile-app",
+    "displayName": "Tops - 资讯助手",
+    "slug": "tops",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +16,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.zxchengb.tops-mobile-app",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -30,8 +33,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "344d5f4d-dac8-4d33-ad74-ccb4686b89ea"
+        "projectId": "641d3952-0de1-4a28-afa6-6a0a2b2b3a74"
       }
-    }
+    },
+    "owner": "zxchengb"
   }
 }

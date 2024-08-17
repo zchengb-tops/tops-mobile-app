@@ -8,7 +8,7 @@ import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry} from "react-native";
 
 
-AppRegistry.registerComponent("Tops", () => App);
+AppRegistry.registerComponent("tops-mobile-app", () => App);
 const Stack = createStackNavigator();
 TrackPlayer.registerPlaybackService(() => require('./service'));
 
