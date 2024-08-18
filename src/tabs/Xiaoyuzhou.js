@@ -1,4 +1,4 @@
-import {Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
@@ -126,6 +126,11 @@ export const Xiaoyuzhou = () => {
         return playingTrack && newsItem.id === playingTrack.id && playStatus === State.Playing;
     }
 
+    const isCurrentItemLoading = (newsItem) => {
+        return playingTrack && newsItem.id === playingTrack.id &&
+            (playStatus === State.Loading || playStatus === State.Buffering || playStatus === State.Ready);
+    }
+
     return (
         <ScrollView>
             {news?.map((item, index) => (
@@ -149,20 +154,26 @@ export const Xiaoyuzhou = () => {
 
                         <View style={styles.operationWrapper}>
                             {
-                                isCurrentItemPlaying(item) ?
-                                    <TouchableOpacity
-                                        style={styles.operationWrapper}
-                                        onPress={() => TrackPlayer.pause()}
-                                    >
-                                        <PauseIcon width={32} height={32}/>
-                                    </TouchableOpacity>
+                                isCurrentItemLoading(item)
+                                    ?
+                                    <ActivityIndicator style={styles.operationWrapper} size="small" color={'#464646'}/>
                                     :
-                                    <TouchableOpacity
-                                        style={styles.operationWrapper}
-                                        onPress={() => playTrackPlayer(item)}
-                                    >
-                                        <PlayIcon width={32} height={32}/>
-                                    </TouchableOpacity>
+                                    (
+                                        isCurrentItemPlaying(item) ?
+                                            <TouchableOpacity
+                                                style={styles.operationWrapper}
+                                                onPress={() => TrackPlayer.pause()}
+                                            >
+                                                <PauseIcon width={32} height={32}/>
+                                            </TouchableOpacity>
+                                            :
+                                            <TouchableOpacity
+                                                style={styles.operationWrapper}
+                                                onPress={() => playTrackPlayer(item)}
+                                            >
+                                                <PlayIcon width={32} height={32}/>
+                                            </TouchableOpacity>
+                                    )
                             }
                         </View>
                     </View>

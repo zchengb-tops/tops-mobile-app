@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackProgressState, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
@@ -48,16 +48,20 @@ export const PlayerBar = () => {
                                     />
                                 </TouchableOpacity>
                             ) : (
-                                <TouchableOpacity onPress={() => {
-                                    TrackPlayer.play();
-                                }}>
-                                    <Icon
-                                        size={20}
-                                        name='play'
-                                        type='ionicon'
-                                        color='#464646'
-                                    />
-                                </TouchableOpacity>
+                                status === State.Loading || status === State.Buffering || status === State.Ready
+                                    ?
+                                    <ActivityIndicator size="small" color={'#464646'}/>
+                                    :
+                                    <TouchableOpacity onPress={() => {
+                                        TrackPlayer.play();
+                                    }}>
+                                        <Icon
+                                            size={20}
+                                            name='play'
+                                            type='ionicon'
+                                            color='#464646'
+                                        />
+                                    </TouchableOpacity>
                             )}
                             <TouchableOpacity style={styles.playForward} onPress={() => {
                                 TrackPlayer.getProgress().then((progress) => {
