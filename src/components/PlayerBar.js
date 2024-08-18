@@ -3,7 +3,7 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackProgressState, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
-import {State} from "react-native-track-player";
+import TrackPlayer, {State} from "react-native-track-player";
 
 export const PlayerBar = () => {
     const position = useTrackProgressState();
@@ -37,7 +37,9 @@ export const PlayerBar = () => {
                     currentTrack ?
                         <View style={styles.controls}>
                             {status === State.Playing ? (
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={() => {
+                                    TrackPlayer.pause();
+                                }}>
                                     <Icon
                                         size={20}
                                         name='pause'
@@ -46,7 +48,9 @@ export const PlayerBar = () => {
                                     />
                                 </TouchableOpacity>
                             ) : (
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={() => {
+                                    TrackPlayer.play();
+                                }}>
                                     <Icon
                                         size={20}
                                         name='play'

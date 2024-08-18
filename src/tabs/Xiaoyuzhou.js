@@ -4,13 +4,16 @@ import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
 import PlayIcon from "../../assets/icons/play.svg";
 import PauseIcon from "../../assets/icons/pause.svg";
-import TrackPlayer, {Capability, Event, useTrackPlayerEvents} from 'react-native-track-player';
+import TrackPlayer, {Capability, Event, State, useTrackPlayerEvents} from 'react-native-track-player';
 import {useTrackStateStore} from "../store";
+import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
 
 export const Xiaoyuzhou = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
-    const [playingMediaIndex, setPlayingMediaIndex] = useState(null);
+    const playStatus = useTrackStatus();
+    const playingTrack = useTrack();
+
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
 
@@ -60,7 +63,9 @@ export const Xiaoyuzhou = () => {
 
     useEffect(() => {
         const newsItem = globalState['news']['xiaoyuzhou'];
-        newsItem?.forEach(newsItem => newsItem.playing = false);
+        newsItem?.forEach((newsItem, index) => {
+            newsItem.id = index;
+        });
         setNews(newsItem)
     }, [globalState]);
 
@@ -71,13 +76,13 @@ export const Xiaoyuzhou = () => {
                     await TrackPlayer.seekTo(event.position);
                     break;
                 case Event.RemotePlay:
-                    await playTrackPlayer(news[playingMediaIndex], playingMediaIndex);
+                    await TrackPlayer.play();
                     break;
                 case Event.RemotePause:
-                    await pauseTrackPlayer(playingMediaIndex);
+                    await TrackPlayer.pause();
                     break;
                 case Event.RemoteStop:
-                    await stopTrackPlayer();
+                    await TrackPlayer.reset();
                     break;
                 case Event.RemoteJumpForward:
                     TrackPlayer.getProgress().then(progress => {
@@ -98,58 +103,23 @@ export const Xiaoyuzhou = () => {
             }
         });
 
-    const stopTrackPlayer = async () => {
-        await TrackPlayer.stop();
-        const updatedNews = [...news];
-        updatedNews[playingMediaIndex].playing = false;
-        setNews(updatedNews);
-        await TrackPlayer.reset();
-    }
-
-    const playTrackPlayer = async (mediaItem, mediaItemIndex) => {
-        if (playingMediaIndex !== mediaItemIndex) {
-            if (playingMediaIndex !== null) {
-                await stopTrackPlayer()
-            }
-
+    const playTrackPlayer = async (mediaItem) => {
+        if (!playingTrack || playingTrack.id !== mediaItem.id) {
+            setPlayerBarShowing();
+            await TrackPlayer.reset();
             const track = {
-                id: mediaItemIndex,
+                id: mediaItem.id,
                 url: mediaItem.mediaUrl,
                 title: mediaItem.title,
                 artist: mediaItem.author,
                 artwork: mediaItem.coverUrl,
                 duration: mediaItem.duration
             };
-            setPlayerBarShowing();
             setTrack(track);
             await TrackPlayer.add(track);
         }
 
         await TrackPlayer.play();
-
-        const updatedNews = [...news];
-
-        updatedNews[mediaItemIndex].playing = true;
-
-        setNews(updatedNews);
-        setPlayingMediaIndex(mediaItemIndex);
-    }
-
-    const pauseTrackPlayer = async (playingMediaIndex) => {
-        await TrackPlayer.pause();
-        const updatedNews = [...news];
-
-        updatedNews[playingMediaIndex].playing = false;
-
-        setNews(updatedNews);
-    }
-
-    const handlePlayPause = () => {
-        if (news[playingMediaIndex]?.playing) {
-            pauseTrackPlayer();
-        } else {
-            playTrackPlayer(news[playingMediaIndex], playingMediaIndex);
-        }
     }
 
     const handleForward = () => {
@@ -166,6 +136,10 @@ export const Xiaoyuzhou = () => {
             const newPosition = position - 15;
             TrackPlayer.seekTo(newPosition);
         });
+    }
+
+    const isCurrentItemPlaying = (newsItem) => {
+        return playingTrack && newsItem.id === playingTrack.id && playStatus === State.Playing;
     }
 
     return (
@@ -191,17 +165,17 @@ export const Xiaoyuzhou = () => {
 
                         <View style={styles.operationWrapper}>
                             {
-                                item?.playing ?
+                                isCurrentItemPlaying(item) ?
                                     <TouchableOpacity
                                         style={styles.operationWrapper}
-                                        onPress={() => pauseTrackPlayer(index)}
+                                        onPress={() => TrackPlayer.pause()}
                                     >
                                         <PauseIcon width={32} height={32}/>
                                     </TouchableOpacity>
                                     :
                                     <TouchableOpacity
                                         style={styles.operationWrapper}
-                                        onPress={() => playTrackPlayer(item, index)}
+                                        onPress={() => playTrackPlayer(item)}
                                     >
                                         <PlayIcon width={32} height={32}/>
                                     </TouchableOpacity>
