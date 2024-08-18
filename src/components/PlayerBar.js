@@ -59,7 +59,13 @@ export const PlayerBar = () => {
                                     />
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity style={styles.playForward}>
+                            <TouchableOpacity style={styles.playForward} onPress={() => {
+                                TrackPlayer.getProgress().then((progress) => {
+                                    let newPosition = progress.position + 15;
+                                    newPosition = newPosition > progress.duration ? progress.duration : newPosition;
+                                    TrackPlayer.seekTo(newPosition);
+                                })
+                            }}>
                                 <Icon
                                     size={20}
                                     name='play-forward'
