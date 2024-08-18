@@ -36,23 +36,25 @@ export const PlayerBar = () => {
                 {
                     currentTrack ?
                         <View style={styles.controls}>
-                            <TouchableOpacity>
-                                {status === State.Playing ? (
+                            {status === State.Playing ? (
+                                <TouchableOpacity>
                                     <Icon
                                         size={20}
                                         name='pause'
                                         type='ionicon'
                                         color='#464646'
                                     />
-                                ) : (
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity>
                                     <Icon
                                         size={20}
                                         name='play'
                                         type='ionicon'
                                         color='#464646'
                                     />
-                                )}
-                            </TouchableOpacity>
+                                </TouchableOpacity>
+                            )}
                             <TouchableOpacity style={{marginLeft: 12}}>
                                 <Icon
                                     size={20}
