@@ -1,11 +1,13 @@
 import React, {useEffect} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import PlayIcon from '../../assets/icons/play.svg';
-import PauseIcon from '../../assets/icons/pause.svg';
 import {useTrackProgressState} from "../hooks/useTrackProgress";
+import {useTrackState} from "../hooks/useTrack";
+import {Icon} from "@rneui/themed";
 
-export const PlayerBar = ({isShowing, isPlaying, onPlayPause, onForward, onBackward, currentTrack}) => {
+export const PlayerBar = () => {
     const position = useTrackProgressState();
+    const currentTrack = useTrackState();
 
     useEffect(() => {
         console.log('currentTrack.artwork', currentTrack)
@@ -18,19 +20,30 @@ export const PlayerBar = ({isShowing, isPlaying, onPlayPause, onForward, onBackw
     };
 
     return (
-        isShowing ?
+        currentTrack ?
             <View style={styles.playerBar}>
                 <View style={styles.trackInfo}>
-                    <Image style={styles.cover} source={{uri: currentTrack.coverUrl}}/>
+                    <Image style={styles.cover} source={{uri: currentTrack.artwork}}/>
                     <Text style={styles.title} ellipsizeMode='tail' numberOfLines={1}>{currentTrack.title}</Text>
                 </View>
                 <View style={styles.controls}>
-                    <TouchableOpacity onPress={onPlayPause}>
-                        {isPlaying ? (
-                            <PauseIcon width={32} height={32}/>
+                    <TouchableOpacity>
+                        {currentTrack ? (
+                            <Icon
+                                size={20}
+                                name='pause'
+                                type='ionicon'
+                            />
                         ) : (
                             <PlayIcon width={32} height={32}/>
                         )}
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{marginLeft: 12}}>
+                        <Icon
+                            size={20}
+                            name='play-forward'
+                            type='ionicon'
+                        />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -64,7 +77,7 @@ const styles = StyleSheet.create({
         maxWidth: '75%',
     },
     title: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '500',
         marginLeft: 8
     },

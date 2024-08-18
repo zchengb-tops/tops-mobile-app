@@ -164,59 +164,49 @@ export const Xiaoyuzhou = () => {
     }
 
     return (
-        <View>
-            <ScrollView>
-                {news?.map((item, index) => (
-                    <View style={styles.newsItemWrapper} key={index}>
-                        <View style={styles.newItemContainer}>
-                            <Image
-                                style={styles.image}
-                                resizeMode="cover"
-                                source={{uri: item.coverUrl}}
-                            />
+        <ScrollView>
+            {news?.map((item, index) => (
+                <View style={styles.newsItemWrapper} key={index}>
+                    <View style={styles.newItemContainer}>
+                        <Image
+                            style={styles.image}
+                            resizeMode="cover"
+                            source={{uri: item.coverUrl}}
+                        />
 
-                            <View style={styles.infoContainer}>
-                                <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
-                                <View style={styles.extraInfoWrapper}>
-                                    <Text style={styles.trendType}>#{item.trendType}</Text>
-                                    <AuthorIcon/>
-                                    <Text style={styles.author} numberOfLines={1}
-                                          ellipsizeMode='tail'>{item.author}</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.operationWrapper}>
-                                {
-                                    item?.playing ?
-                                        <TouchableOpacity
-                                            style={styles.operationWrapper}
-                                            onPress={() => pauseTrackPlayer(index)}
-                                        >
-                                            <PauseIcon width={32} height={32}/>
-                                        </TouchableOpacity>
-                                        :
-                                        <TouchableOpacity
-                                            style={styles.operationWrapper}
-                                            onPress={() => playTrackPlayer(item, index)}
-                                        >
-                                            <PlayIcon width={32} height={32}/>
-                                        </TouchableOpacity>
-                                }
+                        <View style={styles.infoContainer}>
+                            <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
+                            <View style={styles.extraInfoWrapper}>
+                                <Text style={styles.trendType}>#{item.trendType}</Text>
+                                <AuthorIcon/>
+                                <Text style={styles.author} numberOfLines={1}
+                                      ellipsizeMode='tail'>{item.author}</Text>
                             </View>
                         </View>
-                        <View style={styles.borderBottom}/>
+
+                        <View style={styles.operationWrapper}>
+                            {
+                                item?.playing ?
+                                    <TouchableOpacity
+                                        style={styles.operationWrapper}
+                                        onPress={() => pauseTrackPlayer(index)}
+                                    >
+                                        <PauseIcon width={32} height={32}/>
+                                    </TouchableOpacity>
+                                    :
+                                    <TouchableOpacity
+                                        style={styles.operationWrapper}
+                                        onPress={() => playTrackPlayer(item, index)}
+                                    >
+                                        <PlayIcon width={32} height={32}/>
+                                    </TouchableOpacity>
+                            }
+                        </View>
                     </View>
-                ))}
-            </ScrollView>
-            <PlayerBar
-                isShowing={playingMediaIndex != null}
-                isPlaying={playingMediaIndex != null && news[playingMediaIndex]?.playing}
-                onPlayPause={handlePlayPause}
-                onForward={handleForward}
-                onBackward={handleBackward}
-                currentTrack={playingMediaIndex != null && news[playingMediaIndex]}
-            />
-        </View>
+                    <View style={styles.borderBottom}/>
+                </View>
+            ))}
+        </ScrollView>
     );
 };
 
