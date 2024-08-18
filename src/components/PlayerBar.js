@@ -55,7 +55,7 @@ export const PlayerBar = () => {
                                     />
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity style={{marginLeft: 12}}>
+                            <TouchableOpacity style={styles.playForward}>
                                 <Icon
                                     size={20}
                                     name='play-forward'
@@ -111,4 +111,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         alignItems: 'center',
     },
+    playForward: {
+        marginLeft: 12
+    }
 });
