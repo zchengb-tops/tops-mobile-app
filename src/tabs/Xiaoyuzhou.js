@@ -122,22 +122,6 @@ export const Xiaoyuzhou = () => {
         await TrackPlayer.play();
     }
 
-    const handleForward = () => {
-        TrackPlayer.getProgress().then(progress => {
-            const position = progress.position;
-            const newPosition = position + 15;
-            TrackPlayer.seekTo(newPosition);
-        });
-    }
-
-    const handleBackward = () => {
-        TrackPlayer.getProgress().then(progress => {
-            const position = progress.position;
-            const newPosition = position - 15;
-            TrackPlayer.seekTo(newPosition);
-        });
-    }
-
     const isCurrentItemPlaying = (newsItem) => {
         return playingTrack && newsItem.id === playingTrack.id && playStatus === State.Playing;
     }
