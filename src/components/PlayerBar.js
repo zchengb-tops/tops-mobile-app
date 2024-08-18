@@ -33,6 +33,7 @@ export const PlayerBar = () => {
                                 size={20}
                                 name='pause'
                                 type='ionicon'
+                                color='#464646'
                             />
                         ) : (
                             <PlayIcon width={32} height={32}/>
@@ -43,6 +44,7 @@ export const PlayerBar = () => {
                             size={20}
                             name='play-forward'
                             type='ionicon'
+                            color='#464646'
                         />
                     </TouchableOpacity>
                 </View>
@@ -53,8 +55,8 @@ export const PlayerBar = () => {
 
 const styles = StyleSheet.create({
     playerBar: {
-        position: 'absolute',
-        bottom: 0,
+        // position: 'absolute',
+        // bottom: 0,
         width: '100%',
         height: 48,
         backgroundColor: '#fff',
@@ -68,7 +70,7 @@ const styles = StyleSheet.create({
     cover: {
         width: 32,
         height: 32,
-        borderRadius: 24
+        borderRadius: 4
     },
     trackInfo: {
         flexDirection: 'row',
