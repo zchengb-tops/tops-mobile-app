@@ -64,7 +64,6 @@ export const Xiaoyuzhou = () => {
 
     useTrackPlayerEvents([Event.RemotePause, Event.RemotePlay, Event.RemoteStop, Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek],
         async (event) => {
-            console.log('event', event)
             switch (event.type) {
                 case Event.RemoteSeek:
                     await TrackPlayer.seekTo(event.position);
@@ -106,7 +105,6 @@ export const Xiaoyuzhou = () => {
     }
 
     const playTrackPlayer = async (mediaItem, mediaItemIndex) => {
-        console.log('mediaItemIndex', mediaItemIndex, playingMediaIndex);
         if (playingMediaIndex !== mediaItemIndex) {
             if (playingMediaIndex !== null) {
                 await stopTrackPlayer()
