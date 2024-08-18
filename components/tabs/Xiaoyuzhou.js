@@ -63,20 +63,19 @@ export const Xiaoyuzhou = () => {
 
     useTrackPlayerEvents([Event.RemotePause, Event.RemotePlay, Event.RemoteStop, Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek],
         async (event) => {
+            console.log('event', event)
             switch (event.type) {
                 case Event.RemoteSeek:
                     await TrackPlayer.seekTo(event.position);
                     break;
                 case Event.RemotePlay:
-                    await TrackPlayer.play();
+                    await playTrackPlayer(news[playingMediaIndex], playingMediaIndex);
                     break;
                 case Event.RemotePause:
-                    await TrackPlayer.pause();
-                    updatePlayingMediaStatus(false);
+                    await pauseTrackPlayer(playingMediaIndex);
                     break;
                 case Event.RemoteStop:
-                    await TrackPlayer.stop();
-                    updatePlayingMediaStatus(false);
+                    await stopTrackPlayer();
                     break;
                 case Event.RemoteJumpForward:
                     TrackPlayer.getProgress().then(progress => {
@@ -97,25 +96,20 @@ export const Xiaoyuzhou = () => {
             }
         });
 
-    const updatePlayingMediaStatus = (isPlaying) => {
+    const stopTrackPlayer = async () => {
+        await TrackPlayer.stop();
         const updatedNews = [...news];
-
-        if (playingMediaIndex !== null) {
-            updatedNews[playingMediaIndex].playing = isPlaying;
-        }
-
+        updatedNews[playingMediaIndex].playing = false;
         setNews(updatedNews);
+        setPlayingMediaIndex(null);
     }
 
-    const pauseSound = async () => {
-        await TrackPlayer.pause();
-
-        updatePlayingMediaStatus(false);
-    }
-
-    const playSound = async (mediaItem, mediaItemIndex) => {
+    const playTrackPlayer = async (mediaItem, mediaItemIndex) => {
         console.log('mediaItemIndex', mediaItemIndex, playingMediaIndex);
         if (playingMediaIndex !== mediaItemIndex) {
+            if (playingMediaIndex !== null) {
+                await stopTrackPlayer()
+            }
             await TrackPlayer.reset();
 
             await TrackPlayer.add({
@@ -129,9 +123,22 @@ export const Xiaoyuzhou = () => {
 
         await TrackPlayer.play();
 
+        const updatedNews = [...news];
+
+        updatedNews[mediaItemIndex].playing = true;
+
+        setNews(updatedNews);
         setPlayingMediaIndex(mediaItemIndex);
-        updatePlayingMediaStatus(true)
-    };
+    }
+
+    const pauseTrackPlayer = async (playingMediaIndex) => {
+        await TrackPlayer.pause();
+        const updatedNews = [...news];
+
+        updatedNews[playingMediaIndex].playing = false;
+
+        setNews(updatedNews);
+    }
 
     return (
         <ScrollView>
@@ -158,14 +165,14 @@ export const Xiaoyuzhou = () => {
                                 item?.playing ?
                                     <TouchableOpacity
                                         style={styles.operationWrapper}
-                                        onPress={() => pauseSound()}
+                                        onPress={() => pauseTrackPlayer(index)}
                                     >
                                         <PauseIcon width={32} height={32}/>
                                     </TouchableOpacity>
                                     :
                                     <TouchableOpacity
                                         style={styles.operationWrapper}
-                                        onPress={() => playSound(item, index)}
+                                        onPress={() => playTrackPlayer(item, index)}
                                     >
                                         <PlayIcon width={32} height={32}/>
                                     </TouchableOpacity>
