@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {RefreshControl, SafeAreaView, ScrollView, StyleSheet} from 'react-native';
+import {RefreshControl, SafeAreaView, StyleSheet, View} from 'react-native';
 import {Tab, TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
@@ -172,14 +172,14 @@ export const NewsPageScreen = () => {
                     .map(
                         (channel, index) => {
                             return <TabView.Item style={styles.tabView} key={index}>
-                                <ScrollView
+                                <View
                                     contentContainerStyle={styles.scrollView}
                                     refreshControl={
                                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
                                     }
                                 >
                                     {channel.component}
-                                </ScrollView>
+                                </View>
                             </TabView.Item>
                         }
                     )

@@ -4,8 +4,8 @@ import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
 import PlayIcon from "../../assets/icons/play.svg";
 import PauseIcon from "../../assets/icons/pause.svg";
-import TrackPlayer, {Event} from 'react-native-track-player';
-import {Capability, useTrackPlayerEvents} from "react-native-track-player";
+import TrackPlayer, {Capability, Event, useTrackPlayerEvents} from 'react-native-track-player';
+import {PlayerBar} from "../components/PlayerBar";
 
 export const Xiaoyuzhou = () => {
     const {globalState} = useContext(GlobalContext);
@@ -16,6 +16,7 @@ export const Xiaoyuzhou = () => {
         await TrackPlayer.setupPlayer();
 
         await TrackPlayer.updateOptions({
+            progressUpdateEventInterval: 1,
             stopWithApp: true,
             capabilities: [
                 Capability.Play,
@@ -101,7 +102,7 @@ export const Xiaoyuzhou = () => {
         const updatedNews = [...news];
         updatedNews[playingMediaIndex].playing = false;
         setNews(updatedNews);
-        setPlayingMediaIndex(null);
+        await TrackPlayer.reset();
     }
 
     const playTrackPlayer = async (mediaItem, mediaItemIndex) => {
@@ -110,9 +111,9 @@ export const Xiaoyuzhou = () => {
             if (playingMediaIndex !== null) {
                 await stopTrackPlayer()
             }
-            await TrackPlayer.reset();
 
             await TrackPlayer.add({
+                id: mediaItemIndex,
                 url: mediaItem.mediaUrl,
                 title: mediaItem.title,
                 artist: mediaItem.author,
@@ -140,53 +141,91 @@ export const Xiaoyuzhou = () => {
         setNews(updatedNews);
     }
 
-    return (
-        <ScrollView>
-            {news?.map((item, index) => (
-                <View style={styles.newsItemWrapper} key={index}>
-                    <View style={styles.newItemContainer}>
-                        <Image
-                            style={styles.image}
-                            resizeMode="cover"
-                            source={{uri: item.coverUrl}}
-                        />
+    const handlePlayPause = () => {
+        if (news[playingMediaIndex]?.playing) {
+            pauseTrackPlayer();
+        } else {
+            playTrackPlayer(news[playingMediaIndex], playingMediaIndex);
+        }
+    }
 
-                        <View style={styles.infoContainer}>
-                            <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
-                            <View style={styles.extraInfoWrapper}>
-                                <Text style={styles.trendType}>#{item.trendType}</Text>
-                                <AuthorIcon/>
-                                <Text style={styles.author} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
+    const handleForward = () => {
+        TrackPlayer.getProgress().then(progress => {
+            const position = progress.position;
+            const newPosition = position + 15;
+            TrackPlayer.seekTo(newPosition);
+        });
+    }
+
+    const handleBackward = () => {
+        TrackPlayer.getProgress().then(progress => {
+            const position = progress.position;
+            const newPosition = position - 15;
+            TrackPlayer.seekTo(newPosition);
+        });
+    }
+
+    return (
+        <View>
+            <ScrollView>
+                {news?.map((item, index) => (
+                    <View style={styles.newsItemWrapper} key={index}>
+                        <View style={styles.newItemContainer}>
+                            <Image
+                                style={styles.image}
+                                resizeMode="cover"
+                                source={{uri: item.coverUrl}}
+                            />
+
+                            <View style={styles.infoContainer}>
+                                <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
+                                <View style={styles.extraInfoWrapper}>
+                                    <Text style={styles.trendType}>#{item.trendType}</Text>
+                                    <AuthorIcon/>
+                                    <Text style={styles.author} numberOfLines={1}
+                                          ellipsizeMode='tail'>{item.author}</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.operationWrapper}>
+                                {
+                                    item?.playing ?
+                                        <TouchableOpacity
+                                            style={styles.operationWrapper}
+                                            onPress={() => pauseTrackPlayer(index)}
+                                        >
+                                            <PauseIcon width={32} height={32}/>
+                                        </TouchableOpacity>
+                                        :
+                                        <TouchableOpacity
+                                            style={styles.operationWrapper}
+                                            onPress={() => playTrackPlayer(item, index)}
+                                        >
+                                            <PlayIcon width={32} height={32}/>
+                                        </TouchableOpacity>
+                                }
                             </View>
                         </View>
-
-                        <View style={styles.operationWrapper}>
-                            {
-                                item?.playing ?
-                                    <TouchableOpacity
-                                        style={styles.operationWrapper}
-                                        onPress={() => pauseTrackPlayer(index)}
-                                    >
-                                        <PauseIcon width={32} height={32}/>
-                                    </TouchableOpacity>
-                                    :
-                                    <TouchableOpacity
-                                        style={styles.operationWrapper}
-                                        onPress={() => playTrackPlayer(item, index)}
-                                    >
-                                        <PlayIcon width={32} height={32}/>
-                                    </TouchableOpacity>
-                            }
-                        </View>
+                        <View style={styles.borderBottom}/>
                     </View>
-                    <View style={styles.borderBottom}/>
-                </View>
-            ))}
-        </ScrollView>
+                ))}
+            </ScrollView>
+            <PlayerBar
+                isShowing={playingMediaIndex != null}
+                isPlaying={playingMediaIndex != null && news[playingMediaIndex]?.playing}
+                onPlayPause={handlePlayPause}
+                onForward={handleForward}
+                onBackward={handleBackward}
+                currentTrack={playingMediaIndex != null && news[playingMediaIndex]}
+            />
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
     newsItemWrapper: {
         justifyContent: 'center',
         alignItems: 'center',

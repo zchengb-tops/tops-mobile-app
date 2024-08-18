@@ -6,11 +6,12 @@ import {NewsDetailScreen} from "./src/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry} from "react-native";
+import {PlaybackService} from "./src/services/PlaybackService";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 const Stack = createStackNavigator();
-TrackPlayer.registerPlaybackService(() => require('./service'));
+TrackPlayer.registerPlaybackService(() => PlaybackService);
 
 export default function App() {
     return (
