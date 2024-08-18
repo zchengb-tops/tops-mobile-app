@@ -1,8 +1,8 @@
 import React from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
-import {NewsPageScreen} from "./components/NewsPageScreen";
-import {NewsDetailScreen} from "./components/NewsDetailScreen";
+import {NewsPageScreen} from "./src/NewsPageScreen";
+import {NewsDetailScreen} from "./src/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry} from "react-native";
