@@ -54,7 +54,7 @@ export const NewsPageScreen = () => {
         {
             id: 'xiaoyuzhou',
             title: '小宇宙',
-            tabTitle: '小宇宙',
+            tabTitle: '小宇宙FM',
             icon: <XiaoyuzhouIcon width={20} height={20} style={styles.tabBarIcon}/>,
             desc: '小宇宙FM每日榜单（最热榜、锋芒榜、新星榜）',
             enable: true,
