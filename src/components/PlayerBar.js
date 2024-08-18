@@ -1,53 +1,69 @@
 import React, {useEffect} from 'react';
 import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import PlayIcon from '../../assets/icons/play.svg';
-import {useTrackProgressState} from "../hooks/useTrackProgress";
-import {useTrackState} from "../hooks/useTrack";
+import TopsIcon from '../../assets/icons/tops-logo.svg';
+import {useTrack, useTrackProgressState, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
+import {State} from "react-native-track-player";
 
 export const PlayerBar = () => {
     const position = useTrackProgressState();
-    const currentTrack = useTrackState();
+    const currentTrack = useTrack();
+    const showing = useTrackShowing();
+    const status = useTrackStatus();
 
     useEffect(() => {
         console.log('currentTrack.artwork', currentTrack)
     }, [])
 
-    const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = Math.floor(seconds % 60);
-        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-    };
-
     return (
-        currentTrack ?
+        showing ?
             <View style={styles.playerBar}>
                 <View style={styles.trackInfo}>
-                    <Image style={styles.cover} source={{uri: currentTrack.artwork}}/>
-                    <Text style={styles.title} ellipsizeMode='tail' numberOfLines={1}>{currentTrack.title}</Text>
+                    {
+                        currentTrack?.artwork
+                            ?
+                            <Image style={styles.cover} source={{uri: currentTrack?.artwork}}/>
+                            :
+                            <TopsIcon width={32} height={32}/>
+                    }
+
+                    <View style={styles.trackTextInfo}>
+                        <Text style={styles.title} numberOfLines={1} ellipsizeMode='tail'>{currentTrack?.title}</Text>
+                        <Text style={styles.author} numberOfLines={1}
+                              ellipsizeMode='tail'>{currentTrack?.artist}</Text>
+                    </View>
                 </View>
-                <View style={styles.controls}>
-                    <TouchableOpacity>
-                        {currentTrack ? (
-                            <Icon
-                                size={20}
-                                name='pause'
-                                type='ionicon'
-                                color='#464646'
-                            />
-                        ) : (
-                            <PlayIcon width={32} height={32}/>
-                        )}
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{marginLeft: 12}}>
-                        <Icon
-                            size={20}
-                            name='play-forward'
-                            type='ionicon'
-                            color='#464646'
-                        />
-                    </TouchableOpacity>
-                </View>
+                {
+                    currentTrack ?
+                        <View style={styles.controls}>
+                            <TouchableOpacity>
+                                {status === State.Playing ? (
+                                    <Icon
+                                        size={20}
+                                        name='pause'
+                                        type='ionicon'
+                                        color='#464646'
+                                    />
+                                ) : (
+                                    <Icon
+                                        size={20}
+                                        name='play'
+                                        type='ionicon'
+                                        color='#464646'
+                                    />
+                                )}
+                            </TouchableOpacity>
+                            <TouchableOpacity style={{marginLeft: 12}}>
+                                <Icon
+                                    size={20}
+                                    name='play-forward'
+                                    type='ionicon'
+                                    color='#464646'
+                                />
+                            </TouchableOpacity>
+                        </View>
+                        : <></>
+                }
             </View>
             : <></>
     );
@@ -55,10 +71,7 @@ export const PlayerBar = () => {
 
 const styles = StyleSheet.create({
     playerBar: {
-        // position: 'absolute',
-        // bottom: 0,
         width: '100%',
-        height: 48,
         backgroundColor: '#fff',
         flexDirection: 'row',
         alignItems: 'center',
@@ -66,6 +79,7 @@ const styles = StyleSheet.create({
         borderTopColor: '#ddd',
         borderTopWidth: 1,
         paddingHorizontal: 16,
+        paddingTop: 8
     },
     cover: {
         width: 32,
@@ -78,14 +92,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         maxWidth: '75%',
     },
+    trackTextInfo: {
+        marginLeft: 12
+    },
     title: {
         fontSize: 14,
         fontWeight: '500',
-        marginLeft: 8
     },
-    slider: {
-        flex: 1,
-        marginHorizontal: 10,
+    author: {
+        color: '#939393',
+        fontSize: 14,
+        marginTop: 4
     },
     controls: {
         flexDirection: 'row',

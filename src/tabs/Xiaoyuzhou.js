@@ -5,12 +5,14 @@ import AuthorIcon from "../../assets/icons/author.svg";
 import PlayIcon from "../../assets/icons/play.svg";
 import PauseIcon from "../../assets/icons/pause.svg";
 import TrackPlayer, {Capability, Event, useTrackPlayerEvents} from 'react-native-track-player';
-import {PlayerBar} from "../components/PlayerBar";
+import {useTrackStateStore} from "../store";
 
 export const Xiaoyuzhou = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const [playingMediaIndex, setPlayingMediaIndex] = useState(null);
+    const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
+    const setTrack = useTrackStateStore.getState().setTrack;
 
     const initializeTrackPlayer = async () => {
         await TrackPlayer.setupPlayer();
@@ -110,14 +112,17 @@ export const Xiaoyuzhou = () => {
                 await stopTrackPlayer()
             }
 
-            await TrackPlayer.add({
+            const track = {
                 id: mediaItemIndex,
                 url: mediaItem.mediaUrl,
                 title: mediaItem.title,
                 artist: mediaItem.author,
                 artwork: mediaItem.coverUrl,
                 duration: mediaItem.duration
-            });
+            };
+            setPlayerBarShowing();
+            setTrack(track);
+            await TrackPlayer.add(track);
         }
 
         await TrackPlayer.play();

@@ -15,5 +15,17 @@ export const useTrackStateStore = create(
                 track: track,
             },
         })),
+        setShowing: () => set((state) => ({
+            data: {
+                ...state.data,
+                showing: true,
+            },
+        })),
+        setStatus: (status) => set((state) => ({
+            data: {
+                ...state.data,
+                status: status
+            },
+        })),
     })
 );
