@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import {useTrackStateStore} from '../store';
 
-export const useTrackProgressState = () => {
+export const useTrackProgress = () => {
     return useTrackStateStore(useCallback(state => {
         return state.data?.position || 0;
     }, []));

@@ -1,12 +1,12 @@
 import React, {useEffect} from 'react';
 import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
-import {useTrack, useTrackProgressState, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackProgress, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import TrackPlayer, {State} from "react-native-track-player";
 
 export const PlayerBar = () => {
-    const position = useTrackProgressState();
+    const position = useTrackProgress();
     const currentTrack = useTrack();
     const showing = useTrackShowing();
     const status = useTrackStatus();

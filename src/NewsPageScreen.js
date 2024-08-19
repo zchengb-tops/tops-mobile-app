@@ -20,7 +20,7 @@ import {PlayerBar} from "./components/PlayerBar";
 
 
 export const NewsPageScreen = () => {
-    const [tabIndex, setTabIndex] = useState(0);
+    const [tabIndex, setTabIndex] = useState(3);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
