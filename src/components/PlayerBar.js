@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackProgress, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
@@ -10,10 +10,6 @@ export const PlayerBar = () => {
     const currentTrack = useTrack();
     const showing = useTrackShowing();
     const status = useTrackStatus();
-
-    useEffect(() => {
-        console.log('currentTrack.artwork', currentTrack)
-    }, [])
 
     return (
         showing ?
@@ -95,7 +91,7 @@ const styles = StyleSheet.create({
         borderTopColor: '#ddd',
         borderTopWidth: 1,
         paddingHorizontal: 16,
-        paddingTop: 8
+        paddingVertical: 8,
     },
     cover: {
         width: 32,
