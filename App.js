@@ -14,6 +14,7 @@ import SelectedSettingsIcon from "./assets/icons/selected-settings.svg";
 import SelectedProfileIcon from "./assets/icons/selected-profile.svg";
 import SettingsIcon from "./assets/icons/settings.svg";
 import ProfileIcon from "./assets/icons/profile.svg";
+import {Icon} from "@rneui/themed";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -68,11 +69,53 @@ const CustomNavBar = () => {
     const renderIcon = (screenName) => {
         switch (screenName) {
             case routeMapping.HOME:
-                return currentRoute === screenName ? <SelectedDiscoveryIcon/> : <DiscoveryIcon/>;
+                return currentRoute === screenName
+                    ?
+                    <Icon
+                        size={24}
+                        name='navigate-circle-outline'
+                        type='ionicon'
+                        color='#f5f5f5'
+                    />
+                    :
+                    <Icon
+                        size={24}
+                        name='navigate-circle-outline'
+                        type='ionicon'
+                        color='#949494'
+                    />;
             case routeMapping.PROFILE:
-                return currentRoute === screenName ? <SelectedProfileIcon/> : <ProfileIcon/>;
+                return currentRoute === screenName
+                    ?
+                    <Icon
+                        size={24}
+                        name='person-circle-outline'
+                        type='ionicon'
+                        color='#F5F5F5'
+                    />
+                    :
+                    <Icon
+                        size={24}
+                        name='person-circle-outline'
+                        type='ionicon'
+                        color='#949494'
+                    />;
             case routeMapping.SETTING:
-                return currentRoute === screenName ? <SelectedSettingsIcon/> : <SettingsIcon/>;
+                return currentRoute === screenName
+                    ?
+                    <Icon
+                        size={20}
+                        name='logo-rss'
+                        type='ionicon'
+                        color='#f5f5f5'
+                    />
+                    :
+                    <Icon
+                        size={20}
+                        name='logo-rss'
+                        type='ionicon'
+                        color='#949494'
+                    />;
         }
     }
 
@@ -90,7 +133,7 @@ const CustomNavBar = () => {
     }
 
     return (
-        <SafeAreaView style={{backgroundColor:'#F5F5F5'}}>
+        <SafeAreaView style={{backgroundColor: '#F5F5F5'}}>
             <View style={styles.navBar}>
                 <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
                 <TouchableOpacity
