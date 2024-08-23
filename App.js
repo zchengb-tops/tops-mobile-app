@@ -1,13 +1,19 @@
-import React from "react";
-import {NavigationContainer} from "@react-navigation/native";
+import React, {useRef, useState} from "react";
+import {NavigationContainer, useNavigation} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {NewsPageScreen} from "./src/NewsPageScreen";
 import {NewsDetailScreen} from "./src/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {AppRegistry, Text} from "react-native";
+import {Animated, AppRegistry, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
+import DiscoveryIcon from "./assets/icons/discovery.svg";
+import SelectedDiscoveryIcon from "./assets/icons/selected-discovery.svg";
+import SelectedSettingsIcon from "./assets/icons/selected-settings.svg";
+import SelectedProfileIcon from "./assets/icons/selected-profile.svg";
+import SettingsIcon from "./assets/icons/settings.svg";
+import ProfileIcon from "./assets/icons/profile.svg";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -36,33 +42,142 @@ const SettingsScreen = () => {
     return <Text>设置页</Text>;
 }
 
-const AccountScreen = () => {
+const ProfileScreen = () => {
     return <Text>账号</Text>;
 }
+
+const CustomNavBar = () => {
+    const routeMapping = {
+        HOME: 'HomeScreen',
+        SETTING: 'SettingsScreen',
+        PROFILE: 'ProfileScreen',
+    }
+    const navigation = useNavigation();
+    const [currentRoute, setCurrentRoute] = useState(routeMapping.HOME);
+    const translateAnim = useRef(new Animated.Value(0)).current;
+    const tabRefs = useRef({});  // Store references to the tab layout info
+
+    const handleLayout = (screenName, layout) => {
+        tabRefs.current[screenName] = layout;
+    };
+
+    const renderLabel = (screenName, label) => {
+        return <Text style={[styles.navText, currentRoute === screenName && styles.selectedNavText]}>{label}</Text>;
+    };
+
+    const renderIcon = (screenName) => {
+        switch (screenName) {
+            case routeMapping.HOME:
+                return currentRoute === screenName ? <SelectedDiscoveryIcon/> : <DiscoveryIcon/>;
+            case routeMapping.PROFILE:
+                return currentRoute === screenName ? <SelectedProfileIcon/> : <ProfileIcon/>;
+            case routeMapping.SETTING:
+                return currentRoute === screenName ? <SelectedSettingsIcon/> : <SettingsIcon/>;
+        }
+    }
+
+    const goto = (routeName, index) => {
+        const {x, width} = tabRefs.current[routeName];
+        console.log('x', x, 'width', width)
+
+        Animated.spring(translateAnim, {
+            toValue: x - 30,
+            useNativeDriver: true,
+        }).start();
+
+        setCurrentRoute(routeName);
+        // navigation.navigate(routeName);
+    }
+
+    return (
+        <SafeAreaView style={{backgroundColor:'#F5F5F5'}}>
+            <View style={styles.navBar}>
+                <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
+                <TouchableOpacity
+                    style={styles.navButton}
+                    onPress={() => goto(routeMapping.HOME, 0)}
+                    onLayout={(event) => handleLayout(routeMapping.HOME, event.nativeEvent.layout)}
+                >
+                    {renderIcon(routeMapping.HOME)}
+                    {renderLabel(routeMapping.HOME, '发现')}
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.navButton}
+                    onPress={() => goto(routeMapping.SETTING, 1)}
+                    onLayout={(event) => handleLayout(routeMapping.SETTING, event.nativeEvent.layout)}
+                >
+                    {renderIcon(routeMapping.SETTING)}
+                    {renderLabel(routeMapping.SETTING, '订阅')}
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.navButton}
+                    onPress={() => goto(routeMapping.PROFILE, 2)}
+                    onLayout={(event) => handleLayout(routeMapping.PROFILE, event.nativeEvent.layout)}
+                >
+                    {renderIcon(routeMapping.PROFILE)}
+                    {renderLabel(routeMapping.PROFILE, '账号')}
+                </TouchableOpacity>
+            </View>
+
+        </SafeAreaView>
+    );
+};
 
 
 export default function App() {
     return (
         <GlobalProvider>
             <NavigationContainer>
-                <Tab.Navigator initialRouteName="Discover" screenOptions={{headerShown: false}}>
-                    <Tab.Screen
-                        name="Discover"
-                        component={NewsStack}
-                        options={{title: "发现"}}
-                    />
-                    <Tab.Screen
-                        name="Settings"
-                        component={SettingsScreen}
-                        options={{title: "设置"}}
-                    />
-                    <Tab.Screen
-                        name="Account"
-                        component={AccountScreen}
-                        options={{title: "账号"}}
-                    />
-                </Tab.Navigator>
+                <View style={{flex: 1}}>
+                    <Stack.Navigator
+                        screenOptions={{
+                            headerShown: false,
+                        }}
+                    >
+                        <Stack.Screen name="HomeScreen" component={NewsStack}/>
+                        <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
+                        <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
+                    </Stack.Navigator>
+                    <CustomNavBar/>
+                </View>
             </NavigationContainer>
         </GlobalProvider>
     );
 }
+
+const styles = StyleSheet.create({
+    navBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: "center",
+        backgroundColor: '#F5F5F5',
+        position: 'relative',
+        paddingVertical: 12
+    },
+    navButton: {
+        flexDirection: 'row',
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    navButtonSelected: {
+        position: 'absolute',
+        height: 36,
+        backgroundColor: '#404040',
+        justifyContent: 'center',
+        borderRadius: 20,
+        width: 104,
+        left: 12,
+    },
+    navText: {
+        fontSize: 14,
+        color: '#464646',
+        fontWeight: "normal",
+        marginLeft: 8
+    },
+    selectedNavText: {
+        fontSize: 14,
+        color: '#fff',
+        fontWeight: 500,
+        marginLeft: 8
+    }
+});
