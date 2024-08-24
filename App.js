@@ -8,12 +8,6 @@ import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {Animated, AppRegistry, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
-import DiscoveryIcon from "./assets/icons/discovery.svg";
-import SelectedDiscoveryIcon from "./assets/icons/selected-discovery.svg";
-import SelectedSettingsIcon from "./assets/icons/selected-settings.svg";
-import SelectedProfileIcon from "./assets/icons/selected-profile.svg";
-import SettingsIcon from "./assets/icons/settings.svg";
-import ProfileIcon from "./assets/icons/profile.svg";
 import {Icon} from "@rneui/themed";
 
 
