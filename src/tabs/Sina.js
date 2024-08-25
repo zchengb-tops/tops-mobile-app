@@ -57,7 +57,6 @@ export const Sina = () => {
 const styles = StyleSheet.create({
     newItemContainer: {
         marginBottom: -8,
-        backgroundColor: '#F8F8F8'
     },
     title: {
         fontSize: 16,
