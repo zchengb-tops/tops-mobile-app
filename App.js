@@ -5,16 +5,20 @@ import {NewsPageScreen} from "./src/NewsPageScreen";
 import {NewsDetailScreen} from "./src/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {Animated, AppRegistry, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Animated, AppRegistry, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
-import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {Icon} from "@rneui/themed";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
+
+Text.defaultProps = Text.defaultProps || {};
+Text.defaultProps.allowFontScaling = false;
+
+TextInput.defaultProps = TextInput.defaultProps || {};
+TextInput.defaultProps.allowFontScaling = false;
 
 function NewsStack() {
     return (
