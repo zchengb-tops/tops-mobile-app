@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#404040',
         justifyContent: 'center',
         borderRadius: 20,
-        width: 104,
+        width: 102,
         left: 12,
     },
     navText: {

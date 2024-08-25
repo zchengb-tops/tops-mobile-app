@@ -6,6 +6,7 @@ import TrackPlayer, {Capability, Event, State, useProgress, useTrackPlayerEvents
 import {useTrackStateStore} from "../store";
 import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
+import {AnimatedCircularProgress} from "react-native-circular-progress";
 
 export const Xiaoyuzhou = () => {
     const {globalState} = useContext(GlobalContext);
@@ -138,9 +139,11 @@ export const Xiaoyuzhou = () => {
     const triggerTrackPlayerToPlay = async (mediaItem) => {
         if (!playingTrack || playingTrack?.id !== mediaItem.id) {
             setPlayerBarShowing();
+            console.log('setPlayerBarShowing')
             let tracks = await TrackPlayer.getQueue();
+            console.log('tracks', tracks);
             const trackIndex = tracks.findIndex(item => item.id === mediaItem.id)
-
+            console.log('trackIndex', trackIndex, mediaItem);
             const track = {
                 id: mediaItem.id,
                 url: mediaItem.mediaUrl,
@@ -149,6 +152,7 @@ export const Xiaoyuzhou = () => {
                 artwork: mediaItem.coverUrl,
                 duration: mediaItem.duration
             };
+            console.log('track', track);
             setTrack(track);
 
             if (trackIndex !== -1) {
@@ -226,92 +230,71 @@ export const Xiaoyuzhou = () => {
                             <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
                             <View style={styles.extraInfoWrapper}>
                                 <AuthorIcon/>
-                                <Text style={styles.author} numberOfLines={1}
-                                      ellipsizeMode='tail'>{item.author}</Text>
+                                <Text style={styles.author} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
                             </View>
-                            <View style={styles.operationWrapper}>
-                                {
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            handlePlayButtonClick(index)
-                                        }}
-                                        style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            backgroundColor: '#feeedd',
-                                            borderRadius: 10,
-                                            alignSelf: 'flex-start',
-                                            paddingHorizontal: 10,
-                                            paddingVertical: 4,
-                                        }}
-                                    >
-                                        {
-                                            isCurrentItemLoading(item)
-                                                ?
-                                                <ActivityIndicator size="small" color={'#F66F00'} style={{
-                                                    transform: [{scale: 0.75}]
-                                                }}/>
-                                                :
-                                                (
-                                                    isCurrentItemPlaying(item)
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                marginTop: 12,
+                            }}>
+                                <Icon
+                                    size={16}
+                                    name='time-outline'
+                                    type='ionicon'
+                                    color='#939393'
+                                />
+                                <Text style={styles.duration} numberOfLines={1} ellipsizeMode='tail'>
+                                    {formatDuration(item.duration)}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={styles.operationWrapper}>
+                            <View style={{alignItems: 'center', justifyContent: 'center'}}>
+                                <AnimatedCircularProgress
+                                    size={32}
+                                    width={1}
+                                    fill={(item.position / item.duration) * 100}
+                                    tintColor="#F66F00"
+                                    backgroundColor="transparent"
+                                    rotation={0}
+                                >
+                                    {
+                                        () => (
+                                            <TouchableOpacity
+                                                onPress={() => handlePlayButtonClick(index)}
+                                                style={{
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1',
+                                                    borderRadius: 20,
+                                                    width: 32,
+                                                    height: 32,
+                                                }}
+                                            >
+                                                {
+                                                    isCurrentItemLoading(item)
                                                         ?
-                                                        <Icon
-                                                            size={14}
-                                                            name='pause'
-                                                            type='ionicon'
-                                                            color='#F66F00'
-                                                        />
+                                                        <ActivityIndicator size="small" color={'#464646'}
+                                                                           style={{transform: [{scale: 0.75}]}}/>
                                                         :
-                                                        <Icon
-                                                            size={14}
-                                                            name='play'
-                                                            type='ionicon'
-                                                            color='#F66F00'
-                                                        />
-                                                )
-                                        }
-
-                                        {
-                                            item?.hasBeenActive
-                                                ?
-                                                <Slider
-                                                    disabled
-                                                    maximumTrackTintColor="#ccc"
-                                                    maximumValue={item.duration}
-                                                    minimumTrackTintColor="#F66F00"
-                                                    minimumValue={0}
-                                                    orientation="horizontal"
-                                                    step={1}
-                                                    style={{
-                                                        height: 24,
-                                                        marginLeft: 4,
-                                                        marginRight: 4,
-                                                        width: 30,
-                                                    }}
-                                                    thumbStyle={{height: 4, width: 4}}
-                                                    thumbTintColor="#F66F00"
-                                                    value={item.position}
-                                                    pointerEvents="none"
-                                                />
-                                                :
-                                                <></>
-                                        }
-
-                                        <Text style={{
-                                            marginLeft: 4,
-                                            color: '#F66F00',
-                                            fontSize: 14,
-                                            fontWeight: '500'
-                                        }}>
-                                            {getRemainingTime(index)}
-                                        </Text>
-                                    </TouchableOpacity>
-                                }
+                                                        (
+                                                            isCurrentItemPlaying(item)
+                                                                ?
+                                                                <Icon size={18} name='pause' type='ionicon'
+                                                                      color='#F76F00'/>
+                                                                :
+                                                                <Icon size={18} name='play-sharp' type='ionicon'
+                                                                      color='#464646'
+                                                                      style={{marginLeft: 2}}/>
+                                                        )
+                                                }
+                                            </TouchableOpacity>
+                                        )
+                                    }
+                                </AnimatedCircularProgress>
                             </View>
                         </View>
                     </View>
-                    <View style={styles.borderBottom}/>
                 </View>
             ))}
         </ScrollView>
@@ -329,28 +312,24 @@ const styles = StyleSheet.create({
     newItemContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-    },
-    borderBottom: {
-        borderBottomColor: 'rgba(0,0,0,0.08)',
-        borderBottomWidth: 1,
-        width: '94%',
+        paddingHorizontal: 14,
+        paddingVertical: 14,
     },
     infoContainer: {
         flex: 1,
     },
     title: {
         fontSize: 16,
-        color: 'rgba(0,0,0,0.85)',
-        lineHeight: 16 * 1.5,
-        fontWeight: '500'
+        color: '#464646',
+        lineHeight: 24,
     },
     extraInfoWrapper: {
         flexDirection: 'row',
+        alignItems: 'center',
         marginTop: 12
     },
     operationWrapper: {
-        marginTop: 12
+        // marginTop: 12
     },
     trendType: {
         color: '#939393',
@@ -360,7 +339,12 @@ const styles = StyleSheet.create({
     author: {
         color: '#939393',
         fontSize: 14,
-        marginLeft: 2
+        marginLeft: 4
+    },
+    duration: {
+        color: '#939393',
+        marginLeft: 4,
+        fontSize: 14,
     },
     image: {
         width: 100,
