@@ -4,12 +4,14 @@ import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackProgress, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
 import TrackPlayer, {State, useProgress} from "react-native-track-player";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
 
 export const PlayerBar = () => {
     const progress = useProgress(800);
     const currentTrack = useTrack();
     const showing = useTrackShowing();
     const status = useTrackStatus();
+    const insets = useSafeAreaInsets();
 
     const formatTime = (time) => {
         const hours = Math.floor(time / 3600);
@@ -25,7 +27,7 @@ export const PlayerBar = () => {
 
     return (
         showing ?
-            <View style={styles.playerBarExternalWrapper}>
+            <View style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}]}>
                 <View style={styles.playerBarInternalWrapper}>
                     <View style={styles.trackInfo}>
                         {
@@ -64,7 +66,6 @@ export const PlayerBar = () => {
                             thumbStyle={{height: 6, width: 6}}
                             thumbTintColor="#464646"
                             value={progress.position}
-                            allowTouchTrack={true}
                             onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
                         />
                         <Text style={{color: '#888888', width: 70, textAlign: 'center', fontSize: 12}}>
@@ -127,7 +128,6 @@ export const PlayerBar = () => {
 const styles = StyleSheet.create({
     playerBarExternalWrapper: {
         position: 'absolute',
-        bottom: 82,
         zIndex: 1,
         width: '100%',
         backgroundColor: 'transparent',

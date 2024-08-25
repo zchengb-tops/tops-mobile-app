@@ -9,6 +9,7 @@ import {Animated, AppRegistry, SafeAreaView, StyleSheet, Text, TextInput, Toucha
 import {PlaybackService} from "./src/services/PlaybackService";
 import {Icon} from "@rneui/themed";
 import {PlayerBar} from "./src/components/PlayerBar";
+import {SafeAreaProvider} from "react-native-safe-area-context";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -172,23 +173,25 @@ const CustomNavBar = () => {
 
 export default function App() {
     return (
-        <GlobalProvider>
-            <NavigationContainer>
-                <View style={{flex: 1}}>
-                    <Stack.Navigator
-                        screenOptions={{
-                            headerShown: false,
-                        }}
-                    >
-                        <Stack.Screen name="HomeScreen" component={NewsStack}/>
-                        <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
-                        <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
-                    </Stack.Navigator>
-                    <PlayerBar/>
-                    <CustomNavBar/>
-                </View>
-            </NavigationContainer>
-        </GlobalProvider>
+        <SafeAreaProvider>
+            <GlobalProvider>
+                <NavigationContainer>
+                    <View style={{flex: 1}}>
+                        <Stack.Navigator
+                            screenOptions={{
+                                headerShown: false,
+                            }}
+                        >
+                            <Stack.Screen name="HomeScreen" component={NewsStack}/>
+                            <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
+                            <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
+                        </Stack.Navigator>
+                        <PlayerBar/>
+                        <CustomNavBar/>
+                    </View>
+                </NavigationContainer>
+            </GlobalProvider>
+        </SafeAreaProvider>
     );
 }
 

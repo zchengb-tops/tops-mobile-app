@@ -158,7 +158,6 @@ export const Xiaoyuzhou = () => {
                 artwork: mediaItem.coverUrl,
                 duration: mediaItem.duration
             };
-            console.log('track', track);
             setTrack(track);
 
             if (trackIndex !== -1) {
