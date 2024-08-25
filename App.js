@@ -1,5 +1,5 @@
 import React, {useRef, useState} from "react";
-import {NavigationContainer, useNavigation} from "@react-navigation/native";
+import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {NewsPageScreen} from "./src/NewsPageScreen";
 import {NewsDetailScreen} from "./src/NewsDetailScreen";
@@ -118,8 +118,7 @@ const CustomNavBar = () => {
     }
 
     const goto = (routeName, index) => {
-        const {x, width} = tabRefs.current[routeName];
-        console.log('x', x, 'width', width)
+        const {x} = tabRefs.current[routeName];
 
         Animated.spring(translateAnim, {
             toValue: x - 18,
