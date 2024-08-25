@@ -8,6 +8,7 @@ import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {Animated, AppRegistry, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {Icon} from "@rneui/themed";
+import {PlayerBar} from "./src/components/PlayerBar";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -51,7 +52,6 @@ const CustomNavBar = () => {
         SETTING: 'SettingsScreen',
         PROFILE: 'ProfileScreen',
     }
-    const navigation = useNavigation();
     const [currentRoute, setCurrentRoute] = useState(routeMapping.HOME);
     const translateAnim = useRef(new Animated.Value(0)).current;
     const tabRefs = useRef({});  // Store references to the tab layout info
@@ -122,7 +122,7 @@ const CustomNavBar = () => {
         console.log('x', x, 'width', width)
 
         Animated.spring(translateAnim, {
-            toValue: x - 30,
+            toValue: x - 18,
             useNativeDriver: true,
         }).start();
 
@@ -179,6 +179,7 @@ export default function App() {
                         <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
                         <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
                     </Stack.Navigator>
+                    <PlayerBar/>
                     <CustomNavBar/>
                 </View>
             </NavigationContainer>
@@ -199,6 +200,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: "center",
         justifyContent: "center",
+        width: 100,
+        height: 24
     },
     navButtonSelected: {
         position: 'absolute',
@@ -206,8 +209,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#404040',
         justifyContent: 'center',
         borderRadius: 20,
-        width: 102,
-        left: 12,
+        width: 104,
+        left: 16,
     },
     navText: {
         fontSize: 14,

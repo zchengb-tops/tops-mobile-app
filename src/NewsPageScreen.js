@@ -1418,7 +1418,6 @@ export const NewsPageScreen = () => {
                     )
             }
         </TabView>
-        <PlayerBar/>
     </SafeAreaView>
 }
 

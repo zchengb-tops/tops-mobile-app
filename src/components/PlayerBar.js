@@ -129,17 +129,18 @@ export const PlayerBar = () => {
 const styles = StyleSheet.create({
     playerBarExternalWrapper: {
         position: 'absolute',
-        bottom: 4,
+        bottom: 82,
+        zIndex: 1,
         width: '100%',
         backgroundColor: 'transparent',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 12,
-        shadowColor: '#000', // 阴影的颜色
-        shadowOffset: {width: 0, height: 2}, // 阴影的偏移量
-        shadowOpacity: 0.25, // 阴影的透明度
-        shadowRadius: 3.84, // 阴影的模糊半径
+        shadowColor: '#000',
+        shadowOffset: {width: -4, height: 2},
+        shadowOpacity: 0.15,
+        shadowRadius: 8.84,
     },
     playerBarInternalWrapper: {
         backgroundColor: '#ffffff',
