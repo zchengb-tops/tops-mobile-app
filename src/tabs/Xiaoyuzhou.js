@@ -136,14 +136,20 @@ export const Xiaoyuzhou = () => {
         });
     }
 
+    const markHasBeenActive = (newsItem) => {
+        const cloneNews = [...news];
+        const index = cloneNews.findIndex(item => item.id === newsItem.id);
+        if (index !== -1) {
+            cloneNews[index].hasBeenActive = true;
+        }
+        setNews(cloneNews);
+    }
+
     const triggerTrackPlayerToPlay = async (mediaItem) => {
         if (!playingTrack || playingTrack?.id !== mediaItem.id) {
             setPlayerBarShowing();
-            console.log('setPlayerBarShowing')
             let tracks = await TrackPlayer.getQueue();
-            console.log('tracks', tracks);
             const trackIndex = tracks.findIndex(item => item.id === mediaItem.id)
-            console.log('trackIndex', trackIndex, mediaItem);
             const track = {
                 id: mediaItem.id,
                 url: mediaItem.mediaUrl,
@@ -156,16 +162,13 @@ export const Xiaoyuzhou = () => {
             setTrack(track);
 
             if (trackIndex !== -1) {
+                console.log('start to skip.');
                 await TrackPlayer.skip(trackIndex, mediaItem.position);
             } else {
+                console.log('add new track to queue.');
                 await TrackPlayer.add(track);
 
-                const newItems = [...news];
-                const index = newItems.findIndex(item => item.id === mediaItem.id);
-                if (index !== -1) {
-                    newItems[index].hasBeenActive = true;
-                }
-                setNews(newItems);
+                markHasBeenActive(mediaItem);
                 const queue = await TrackPlayer.getQueue();
                 await TrackPlayer.skip(queue.length - 1, mediaItem.position);
             }
@@ -179,12 +182,11 @@ export const Xiaoyuzhou = () => {
     }
 
     const isCurrentItemPlaying = (newsItem) => {
-        return isCurrentItemInTrack(newsItem) && playStatus === State.Playing;
+        return isCurrentItemInTrack(newsItem) && (playStatus === State.Playing);
     }
 
     const isCurrentItemLoading = (newsItem) => {
-        return isCurrentItemInTrack(newsItem)
-            && (playStatus === State.Loading || playStatus === State.Buffering || playStatus === State.Ready);
+        return isCurrentItemInTrack(newsItem) && (playStatus === State.Loading);
     }
 
     const formatDuration = (duration) => {
@@ -200,19 +202,13 @@ export const Xiaoyuzhou = () => {
         }
     }
 
-    const handlePlayButtonClick = (newsItemIndex) => {
+    const handlePlayButtonClick = async (newsItemIndex) => {
         const newsItem = news[newsItemIndex];
-        if (isCurrentItemPlaying(newsItem)) {
-            TrackPlayer.pause();
-        } else {
-            triggerTrackPlayerToPlay(newsItem)
+        await TrackPlayer.pause();
+
+        if (!isCurrentItemPlaying(newsItem)) {
+            triggerTrackPlayerToPlay(newsItem);
         }
-    }
-
-    const getRemainingTime = (newsItemIndex) => {
-        const newsItem = news[newsItemIndex];
-
-        return formatDuration(newsItem.duration - newsItem.position)
     }
 
     return (
@@ -252,7 +248,7 @@ export const Xiaoyuzhou = () => {
                             <View style={{alignItems: 'center', justifyContent: 'center'}}>
                                 <AnimatedCircularProgress
                                     size={32}
-                                    width={1}
+                                    width={2}
                                     fill={(item.position / item.duration) * 100}
                                     tintColor="#F66F00"
                                     backgroundColor="transparent"
@@ -274,7 +270,8 @@ export const Xiaoyuzhou = () => {
                                                 {
                                                     isCurrentItemLoading(item)
                                                         ?
-                                                        <ActivityIndicator size="small" color={'#464646'}
+                                                        <ActivityIndicator size="small"
+                                                                           color='#464646'
                                                                            style={{transform: [{scale: 0.75}]}}/>
                                                         :
                                                         (
@@ -328,9 +325,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 12
     },
-    operationWrapper: {
-        // marginTop: 12
-    },
+    operationWrapper: {},
     trendType: {
         color: '#939393',
         fontSize: 14,

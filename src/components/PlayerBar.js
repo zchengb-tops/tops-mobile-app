@@ -3,13 +3,25 @@ import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackProgress, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
-import TrackPlayer, {State} from "react-native-track-player";
+import TrackPlayer, {State, useProgress} from "react-native-track-player";
 
 export const PlayerBar = () => {
-    const position = useTrackProgress();
+    const progress = useProgress(800);
     const currentTrack = useTrack();
     const showing = useTrackShowing();
     const status = useTrackStatus();
+
+    const formatTime = (time) => {
+        const hours = Math.floor(time / 3600);
+        const minutes = Math.floor((time % 3600) / 60);
+        const seconds = Math.floor(time % 60);
+
+        const formattedHours = hours.toString().padStart(2, '0');
+        const formattedMinutes = minutes.toString().padStart(2, '0');
+        const formattedSeconds = seconds.toString().padStart(2, '0');
+
+        return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    }
 
     return (
         showing ?
@@ -32,30 +44,33 @@ export const PlayerBar = () => {
                         </View>
                     </View>
                     <View style={styles.controls}>
-                        <Text style={{color: '#939393'}}>
-                            01:20:13
+                        <Text style={{color: '#888888', width: 64, textAlign: 'center', fontSize: 12}}>
+                            {
+                                formatTime(progress.position)
+                            }
                         </Text>
                         <Slider
                             maximumTrackTintColor="#D9D9D9"
-                            maximumValue={100}
+                            maximumValue={progress.duration}
                             minimumTrackTintColor="#464646"
                             minimumValue={0}
                             orientation="horizontal"
                             step={1}
                             style={{
-                                height: 12,
+                                height: 18,
                                 marginLeft: 8,
                                 marginRight: 8,
                                 width: 150,
-                                // backgroundColor: 'pink'
                             }}
-                            thumbStyle={{height: 4, width: 4}}
+                            trackStyle={{height: 6}}
+                            thumbStyle={{height: 6, width: 6}}
                             thumbTintColor="#464646"
-                            value={20}
-                            pointerEvents="none"
+                            value={progress.position}
+                            allowTouchTrack={true}
+                            onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
                         />
-                        <Text style={{color: '#939393'}}>
-                            -00:02:11
+                        <Text style={{color: '#888888', width: 70, textAlign: 'center', fontSize: 12}}>
+                            -{formatTime(progress.duration - progress.position)}
                         </Text>
                         {
                             currentTrack ?
@@ -72,7 +87,7 @@ export const PlayerBar = () => {
                                             />
                                         </TouchableOpacity>
                                     ) : (
-                                        status === State.Loading || status === State.Buffering || status === State.Ready
+                                        status === State.Loading
                                             ?
                                             <ActivityIndicator size="small" color={'#464646'}/>
                                             :
@@ -153,11 +168,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 14,
         fontWeight: '500',
+        color: '#464646'
     },
     author: {
-        color: '#939393',
-        fontSize: 14,
-        marginTop: 4
+        color: '#888888',
+        fontSize: 12,
+        marginTop: 6
     },
     controls: {
         flexDirection: 'row',
