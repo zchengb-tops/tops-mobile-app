@@ -5,7 +5,7 @@ import AuthorIcon from "../../assets/icons/author.svg";
 import TrackPlayer, {Capability, Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
 import {useTrackStateStore} from "../store";
 import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
-import {Icon, Slider} from "@rneui/themed";
+import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
 
 export const Xiaoyuzhou = () => {
@@ -247,7 +247,7 @@ export const Xiaoyuzhou = () => {
                         <View style={styles.operationWrapper}>
                             <View style={{alignItems: 'center', justifyContent: 'center'}}>
                                 <AnimatedCircularProgress
-                                    size={32}
+                                    size={36}
                                     width={2}
                                     fill={(item.position / item.duration) * 100}
                                     tintColor="#F66F00"
@@ -263,8 +263,8 @@ export const Xiaoyuzhou = () => {
                                                     justifyContent: 'center',
                                                     backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1',
                                                     borderRadius: 20,
-                                                    width: 32,
-                                                    height: 32,
+                                                    width: 36,
+                                                    height: 36,
                                                 }}
                                             >
                                                 {

@@ -50,11 +50,9 @@ export const PlayerBar = () => {
                             }
                         </Text>
                         <Slider
-                            maximumTrackTintColor="#D9D9D9"
+                            maximumTrackTintColor={"#D9D9D9"}
                             maximumValue={progress.duration}
-                            minimumTrackTintColor="#464646"
-                            minimumValue={0}
-                            orientation="horizontal"
+                            minimumTrackTintColor={"#464646"}
                             step={1}
                             style={{
                                 height: 18,

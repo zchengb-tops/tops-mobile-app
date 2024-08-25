@@ -21,6 +21,12 @@ Text.defaultProps.allowFontScaling = false;
 TextInput.defaultProps = TextInput.defaultProps || {};
 TextInput.defaultProps.allowFontScaling = false;
 
+const error = console.error;
+console.error = (...args) => {
+    if (/defaultProps/.test(args[0])) return;
+    error(...args);
+};
+
 function NewsStack() {
     return (
         <Stack.Navigator initialRouteName="NewsPage">
