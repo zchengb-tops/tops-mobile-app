@@ -230,7 +230,7 @@ export const Xiaoyuzhou = () => {
                             <View style={{
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                marginTop: 12,
+                                marginTop: 6,
                             }}>
                                 <Icon
                                     size={16}
@@ -308,7 +308,8 @@ const styles = StyleSheet.create({
     newItemContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 14,
+        paddingLeft: 20,
+        paddingRight: 16,
         paddingVertical: 14,
     },
     infoContainer: {
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
     extraInfoWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 12
+        marginTop: 6
     },
     operationWrapper: {},
     trendType: {
@@ -341,10 +342,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     image: {
-        width: 100,
-        height: 100,
+        width: 90,
+        height: 90,
         marginRight: 14,
-        marginLeft: 6,
         borderRadius: 4
     },
 });

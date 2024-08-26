@@ -28,9 +28,18 @@ export const NewsPageScreen = () => {
     const [channelList, setChannelList] = useState([
         {
             id: 'sina',
+            title: '今日热门',
+            tabTitle: '今日热门',
+            icon: <WeiboIcon width={16} height={16} style={styles.tabBarIcon}/>,
+            desc: '新浪微博TOP50热搜榜',
+            enable: true,
+            component: <Sina/>
+        },
+        {
+            id: 'sina',
             title: '新浪微博',
             tabTitle: '微博',
-            icon: <WeiboIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <WeiboIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '新浪微博TOP50热搜榜',
             enable: true,
             component: <Sina/>
@@ -39,7 +48,7 @@ export const NewsPageScreen = () => {
             id: 'zhihu',
             title: '知乎',
             tabTitle: '知乎',
-            icon: <ZhihuIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <ZhihuIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '知乎TOP50热榜',
             enable: true,
             component: <Zhihu/>
@@ -48,7 +57,7 @@ export const NewsPageScreen = () => {
             id: 'sspai',
             title: '少数派',
             tabTitle: '少数派',
-            icon: <SspaiIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <SspaiIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '高效工作，品质生活',
             enable: true,
             component: <Sspai/>
@@ -57,7 +66,7 @@ export const NewsPageScreen = () => {
             id: 'xiaoyuzhou',
             title: '小宇宙',
             tabTitle: '小宇宙FM',
-            icon: <XiaoyuzhouIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <XiaoyuzhouIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '小宇宙FM每日榜单（最热榜、锋芒榜、新星榜）',
             enable: true,
             component: <Xiaoyuzhou/>
@@ -66,7 +75,7 @@ export const NewsPageScreen = () => {
             id: 'stock',
             title: '沪深实时热力图',
             tabTitle: '实时沪深',
-            icon: <StockIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <StockIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '汇集沪深股市各大板块热力图',
             enable: false,
             component: <></>
@@ -75,7 +84,7 @@ export const NewsPageScreen = () => {
             id: 'doubanMovie',
             title: '豆瓣電影口碑榜',
             tabTitle: '豆瓣',
-            icon: <DoubanIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <DoubanIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '每周最新的全球電影口碑排行榜',
             enable: false,
             component: <></>
@@ -84,7 +93,7 @@ export const NewsPageScreen = () => {
             id: 'bilibili',
             title: '哔哩哔哩',
             tabTitle: '哔哩哔哩',
-            icon: <BilibiliIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <BilibiliIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '哔哩哔哩每周必看榜单',
             enable: false,
             component: <></>
@@ -93,7 +102,7 @@ export const NewsPageScreen = () => {
             id: 'nnGroup',
             title: 'Nielsen Norman Group',
             tabTitle: 'NN/g',
-            icon: <NngroupIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <NngroupIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: 'World Leaders in Research-Based User Experience',
             enable: false,
             component: <></>
@@ -102,7 +111,7 @@ export const NewsPageScreen = () => {
             id: 'tiobe',
             title: 'TIOBE编程语言榜单',
             tabTitle: 'TIOBE',
-            icon: <TiobeIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <TiobeIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '每月最新的全球编程语言排行榜',
             enable: false,
             component: <></>
@@ -111,7 +120,7 @@ export const NewsPageScreen = () => {
             id: 'history',
             title: '历史上的今天',
             tabTitle: '历史薄',
-            icon: <HistoryIcon width={20} height={20} style={styles.tabBarIcon}/>,
+            icon: <HistoryIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '所以历史上的今天都发生了什么？🧐',
             enable: false,
             component: <></>
@@ -205,7 +214,7 @@ const styles = StyleSheet.create({
     tabBar: {
         paddingHorizontal: 4,
         paddingTop: 12,
-        paddingBottom: 14,
+        paddingBottom: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
     },
@@ -219,23 +228,25 @@ const styles = StyleSheet.create({
         height: 0,
     },
     tabBarText: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: "normal",
         color: '#464646',
-        paddingHorizontal: 0
+        paddingHorizontal: 0,
+        paddingVertical: 0,
     },
     tabBarItem: {
         borderRadius: 25,
-        height: 38,
         marginLeft: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 8
+        paddingHorizontal: 4,
+        paddingVertical: 2,
     },
     selectedTabBarText: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#FFFFFF',
-        paddingHorizontal: 0
+        paddingHorizontal: 0,
+        paddingVertical: 0,
     },
     tabBarIcon: {
         marginRight: 6
