@@ -219,10 +219,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         width: 104,
         left: 16,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.15,
-        shadowRadius: 8.84,
     },
     navText: {
         fontSize: 14,
