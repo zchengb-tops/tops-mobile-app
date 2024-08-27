@@ -8,13 +8,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/welcomePage.png",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.zxchengb.tops-mobile-app",
+      "bundleIdentifier": "cn.zxchengb.tops-mobile-app",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
@@ -26,7 +25,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.zxchengb.topsmobileapp"
+      "package": "cn.zxchengb.topsmobileapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
