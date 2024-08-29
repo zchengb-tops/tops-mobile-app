@@ -10,6 +10,7 @@ import {PlaybackService} from "./src/services/PlaybackService";
 import {Icon} from "@rneui/themed";
 import {PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
+import {useVisibility, VisibilityProvider} from "./utils/VisibilityProvider";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -61,7 +62,8 @@ const NavBar = () => {
     }
     const [currentRoute, setCurrentRoute] = useState(routeMapping.HOME);
     const translateAnim = useRef(new Animated.Value(0)).current;
-    const tabRefs = useRef({});  // Store references to the tab layout info
+    const tabRefs = useRef({});
+    const {isVisible} = useVisibility();
 
     const handleLayout = (screenName, layout) => {
         tabRefs.current[screenName] = layout;
@@ -136,6 +138,8 @@ const NavBar = () => {
         // navigation.navigate(routeName);
     }
 
+    if (!isVisible) return null;
+
     return (
         <SafeAreaView style={{backgroundColor: '#F5F5F5'}}>
             <View style={styles.navBar}>
@@ -165,7 +169,6 @@ const NavBar = () => {
                     {renderLabel(routeMapping.PROFILE, '账号')}
                 </TouchableOpacity>
             </View>
-
         </SafeAreaView>
     );
 };
@@ -174,23 +177,25 @@ const NavBar = () => {
 export default function App() {
     return (
         <SafeAreaProvider>
-            <GlobalProvider>
-                <NavigationContainer>
-                    <View style={{flex: 1}}>
-                        <Stack.Navigator
-                            screenOptions={{
-                                headerShown: false,
-                            }}
-                        >
-                            <Stack.Screen name="HomeScreen" component={NewsStack}/>
-                            <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
-                            <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
-                        </Stack.Navigator>
-                        <PlayerBar/>
-                        <NavBar/>
-                    </View>
-                </NavigationContainer>
-            </GlobalProvider>
+            <VisibilityProvider>
+                <GlobalProvider>
+                    <NavigationContainer>
+                        <View style={{flex: 1}}>
+                            <Stack.Navigator
+                                screenOptions={{
+                                    headerShown: false,
+                                }}
+                            >
+                                <Stack.Screen name="HomeScreen" component={NewsStack}/>
+                                <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
+                                <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
+                            </Stack.Navigator>
+                            <PlayerBar/>
+                            <NavBar/>
+                        </View>
+                    </NavigationContainer>
+                </GlobalProvider>
+            </VisibilityProvider>
         </SafeAreaProvider>
     );
 }

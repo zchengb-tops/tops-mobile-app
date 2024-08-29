@@ -1,17 +1,20 @@
 import React from 'react';
 import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
-import {useTrack, useTrackProgress, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
 import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
+import {useVisibility} from "../../utils/VisibilityProvider";
 
 export const PlayerBar = () => {
     const progress = useProgress(800);
+
     const currentTrack = useTrack();
     const showing = useTrackShowing();
     const status = useTrackStatus();
     const insets = useSafeAreaInsets();
+    const {isVisible} = useVisibility();
 
     const formatTime = (time) => {
         const hours = Math.floor(time / 3600);
@@ -24,6 +27,8 @@ export const PlayerBar = () => {
 
         return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
     }
+
+    if (!isVisible) return null;
 
     return (
         showing ?
