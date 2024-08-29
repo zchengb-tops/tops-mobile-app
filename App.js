@@ -53,7 +53,7 @@ const ProfileScreen = () => {
     return <Text>账号</Text>;
 }
 
-const CustomNavBar = () => {
+const NavBar = () => {
     const routeMapping = {
         HOME: 'HomeScreen',
         SETTING: 'SettingsScreen',
@@ -187,7 +187,7 @@ export default function App() {
                             <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
                         </Stack.Navigator>
                         <PlayerBar/>
-                        <CustomNavBar/>
+                        <NavBar/>
                     </View>
                 </NavigationContainer>
             </GlobalProvider>
