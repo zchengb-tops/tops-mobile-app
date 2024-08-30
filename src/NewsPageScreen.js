@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {RefreshControl, SafeAreaView, ScrollView, StyleSheet} from 'react-native';
+import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
 import {Tab, TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
@@ -20,7 +20,7 @@ import {useTrackShowing} from "./hooks/TrackHooks";
 
 
 export const NewsPageScreen = () => {
-    const [tabIndex, setTabIndex] = useState(3);
+    const [tabIndex, setTabIndex] = useState(0);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -193,7 +193,15 @@ export const NewsPageScreen = () => {
                                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
                                     }
                                 >
-                                    {channel.component}
+                                    {
+                                        loading
+                                            ?
+                                            <View style={styles.loadingView}>
+                                                <ActivityIndicator/>
+                                            </View>
+                                            :
+                                            channel.component
+                                    }
                                 </ScrollView>
                             </TabView.Item>
                         }
@@ -264,4 +272,9 @@ const styles = StyleSheet.create({
     scrollView: {
         flexGrow: 1,
     },
+    loadingView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    }
 })
