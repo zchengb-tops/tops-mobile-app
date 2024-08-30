@@ -7,28 +7,35 @@ import {useVisibility} from "../utils/VisibilityProvider";
 export const NewsDetailScreen = ({route}) => {
     const {url} = route.params;
     const [loading, setLoading] = useState(true);
+    const [webviewKey, setWebviewKey] = useState(1);
     const isFocused = useIsFocused();
     const {setIsVisible} = useVisibility();
 
     useEffect(() => {
         setIsVisible(!isFocused);
 
+        if (!isFocused) {
+            setWebviewKey(prevKey => prevKey + 1);
+        }
+
         return () => setIsVisible(true);
     }, [isFocused]);
 
     return <View style={styles.container}>
         {
-            loading && <View style={styles.loadingContainer}><ActivityIndicator size={"large"}/></View>
+            loading && <View style={styles.loadingContainer}><ActivityIndicator/></View>
         }
 
-        <WebView source={{uri: url}}
-                 originWhitelist={['*']}
-                 allowsFullscreenVideo={false}
-                 javaScriptEnabled={true}
-                 allowsInlineMediaPlayback={true}
-                 onLoadEnd={(e) => {
-                     setLoading(false);
-                 }}
+        <WebView
+            key={webviewKey}
+            source={{uri: url}}
+            originWhitelist={['*']}
+            allowsFullscreenVideo={false}
+            javaScriptEnabled={true}
+            allowsInlineMediaPlayback={true}
+            onLoadEnd={(e) => {
+                setLoading(false);
+            }}
         />
     </View>;
 };
