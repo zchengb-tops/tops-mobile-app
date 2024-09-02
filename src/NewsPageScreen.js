@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View, Text} from 'react-native';
 import {Tab, TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
@@ -155,9 +155,8 @@ export const NewsPageScreen = () => {
         <Tab
             value={tabIndex}
             onChange={(e) => setTabIndex(e)}
-            style={styles.tabBar}
-            containerStyle={styles.tarBarContainer}
-            indicatorStyle={styles.tabBarIndicator}
+            containerStyle={styles.tabBar}
+            disableIndicator={true}
             scrollable
         >
             {
@@ -168,8 +167,9 @@ export const NewsPageScreen = () => {
                             key={index}
                             iconPosition="left"
                             title={channel.tabTitle}
-                            containerStyle={(active) => [
+                            buttonStyle={(active) => [
                                 styles.tabBarItem,
+                                {marginLeft: index === 0 ? 10 : 0},
                                 {backgroundColor: active ? "#404040" : '#ECEDF0'}
                             ]}
                             titleStyle={tabIndex === index ? styles.selectedTabBarText : styles.tabBarText}
@@ -179,8 +179,7 @@ export const NewsPageScreen = () => {
             }
         </Tab>
 
-        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" loading={loading} minSwipeRatio={0}
-                 minSwipeSpeed={100}>
+        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring">
             {
                 channelList
                     .filter(channel => channel.enable)
@@ -216,54 +215,35 @@ const styles = StyleSheet.create({
         position: 'relative',
         flex: 1,
         backgroundColor: '#fff',
-        paddingLeft: 4,
-        paddingRight: 4
     },
     tabBar: {
-        paddingHorizontal: 4,
-        paddingTop: 12,
+        // paddingTop: 12,
         paddingBottom: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
-    },
-    tarBarContainer: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: 48,
-    },
-    tabBarIndicator: {
-        height: 0,
     },
     tabBarText: {
         fontSize: 14,
         fontWeight: "normal",
         color: '#464646',
-        paddingHorizontal: 0,
-        paddingVertical: 0,
-    },
-    tabBarItem: {
-        borderRadius: 25,
-        marginLeft: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
         paddingHorizontal: 4,
         paddingVertical: 2,
     },
     selectedTabBarText: {
         fontSize: 14,
         color: '#FFFFFF',
-        paddingHorizontal: 0,
-        paddingVertical: 0,
+        paddingHorizontal: 4,
+        paddingVertical: 2,
+    },
+    tabBarItem: {
+        borderRadius: 25,
+        marginRight: 10,
+        backgroundColor: 'pink',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     tabBarIcon: {
         marginRight: 6
-    },
-    text: {
-        fontSize: 24,
-        color: 'black',
-        textAlign: 'center',
-        marginTop: 20,
     },
     tabView: {
         backgroundColor: '#fffff',
