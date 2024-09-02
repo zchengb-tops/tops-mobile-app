@@ -1,21 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from 'react-native';
-import TopsIcon from '../../assets/icons/tops-logo.svg';
-import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
-import {Icon, Slider} from "@rneui/themed";
-import TrackPlayer, {State, useProgress} from "react-native-track-player";
-import {useSafeAreaInsets} from "react-native-safe-area-context";
-import {useVisibility} from "../../utils/VisibilityProvider";
+import {Animated, Dimensions, ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native';
 
 export const TabBar = React.memo(({state, descriptors, navigation, position}) => {
     const scrollViewRef = useRef(null);
