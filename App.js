@@ -18,10 +18,10 @@ TrackPlayer.registerPlaybackService(() => PlaybackService);
 const Stack = createStackNavigator();
 
 Text.defaultProps = Text.defaultProps || {};
-Text.defaultProps.allowFontScaling = true;
+Text.defaultProps.allowFontScaling = false;
 
 TextInput.defaultProps = TextInput.defaultProps || {};
-TextInput.defaultProps.allowFontScaling = true;
+TextInput.defaultProps.allowFontScaling = false;
 
 const error = console.error;
 console.error = (...args) => {

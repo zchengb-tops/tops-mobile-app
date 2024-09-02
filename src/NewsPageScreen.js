@@ -1,14 +1,6 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
-import {
-    ActivityIndicator,
-    Animated,
-    RefreshControl,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import React, {useContext, useEffect, useState} from "react";
+import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
+import {Tab, TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
 import SspaiIcon from "../assets/icons/sspai.svg";
@@ -25,11 +17,9 @@ import {Zhihu} from "./tabs/Zhihu";
 import {Sspai} from "./tabs/Sspai";
 import {Xiaoyuzhou} from "./tabs/Xiaoyuzhou";
 import {useTrackShowing} from "./hooks/TrackHooks";
-import {createMaterialTopTabNavigator} from "@react-navigation/material-top-tabs";
-import {TabBar} from "./components/TabBar";
 
 
-export const NewsPageScreen = ({navigation}) => {
+export const NewsPageScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
@@ -37,7 +27,7 @@ export const NewsPageScreen = ({navigation}) => {
     const playBarShowing = useTrackShowing();
     const [channelList, setChannelList] = useState([
         {
-            id: 'hot',
+            id: 'sina',
             title: '今日热门',
             tabTitle: '今日热门',
             icon: <WeiboIcon width={16} height={16} style={styles.tabBarIcon}/>,
@@ -87,7 +77,7 @@ export const NewsPageScreen = ({navigation}) => {
             tabTitle: '实时沪深',
             icon: <StockIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '汇集沪深股市各大板块热力图',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -96,7 +86,7 @@ export const NewsPageScreen = ({navigation}) => {
             tabTitle: '豆瓣',
             icon: <DoubanIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '每周最新的全球電影口碑排行榜',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -105,7 +95,7 @@ export const NewsPageScreen = ({navigation}) => {
             tabTitle: '哔哩哔哩',
             icon: <BilibiliIcon width={16} height={16} style={styles.tabBarIcon}/>,
             desc: '哔哩哔哩每周必看榜单',
-            enable: true,
+            enable: false,
             component: <></>
         },
         {
@@ -138,7 +128,6 @@ export const NewsPageScreen = ({navigation}) => {
     ]);
 
     useEffect(() => {
-        console.log('render news page screen');
         fetchNews().then(() => console.log('Successfully fetch news :)'));
     }, []);
 
@@ -162,64 +151,63 @@ export const NewsPageScreen = ({navigation}) => {
         console.log('refresh completed.');
     };
 
-    const Tab = createMaterialTopTabNavigator();
-
-    const renderChannelComponent = (channel) => {
-        return <ScrollView
-            contentContainerStyle={[styles.scrollView, {paddingBottom: playBarShowing ? 100 : 0}]}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
-            }
+    return <SafeAreaView style={styles.container}>
+        <Tab
+            value={tabIndex}
+            onChange={(e) => setTabIndex(e)}
+            style={styles.tabBar}
+            containerStyle={styles.tarBarContainer}
+            indicatorStyle={styles.tabBarIndicator}
+            scrollable
         >
             {
-                loading
-                    ?
-                    <View style={styles.loadingView}>
-                        <ActivityIndicator/>
-                    </View>
-                    :
-                    channel.component
+                channelList
+                    .filter(channel => channel.enable)
+                    .map((channel, index) =>
+                        <Tab.Item
+                            key={index}
+                            iconPosition="left"
+                            title={channel.tabTitle}
+                            containerStyle={(active) => [
+                                styles.tabBarItem,
+                                {backgroundColor: active ? "#404040" : '#ECEDF0'}
+                            ]}
+                            titleStyle={tabIndex === index ? styles.selectedTabBarText : styles.tabBarText}
+                            icon={<></>}
+                        />
+                    )
             }
-        </ScrollView>
-    }
+        </Tab>
 
-    const handleTabChange = (selectedTabIndex) => {
-        setTabIndex(selectedTabIndex);
-    }
-
-
-    return <SafeAreaView style={styles.container}>
-        <Tab.Navigator
-            screenOptions={({route}) => ({
-                tabBarShowIcon: false,
-                tabBarScrollEnabled: true,
-                tabBarLabelStyle: {
-                    fontSize: 14
-                },
-                tabBarIndicator: () => <></>,
-            })}
-            screenListeners={({route}) => ({
-                state: (e) => handleTabChange(e.data.state.index)
-            })}
-            tabBar={props => <TabBar {...props} />}
-        >
-            {channelList
-                .filter((channel) => channel.enable)
-                .map((channel, index) => (
-                    <Tab.Screen
-                        key={index}
-                        name={channel.id}
-                        options={{
-                            tabBarLabel: channel.tabTitle,
-                            tabBarIcon: ({focused}) => {
-                                return <></>
-                            },
-                        }}
-                    >
-                        {() => renderChannelComponent(channel)}
-                    </Tab.Screen>
-                ))}
-        </Tab.Navigator>
+        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" loading={loading} minSwipeRatio={0}
+                 minSwipeSpeed={100}>
+            {
+                channelList
+                    .filter(channel => channel.enable)
+                    .map(
+                        (channel, index) => {
+                            return <TabView.Item style={styles.tabView} key={index}>
+                                <ScrollView
+                                    contentContainerStyle={[styles.scrollView, {paddingBottom: playBarShowing ? 100 : 0}]}
+                                    refreshControl={
+                                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
+                                    }
+                                >
+                                    {
+                                        loading
+                                            ?
+                                            <View style={styles.loadingView}>
+                                                <ActivityIndicator/>
+                                            </View>
+                                            :
+                                            channel.component
+                                    }
+                                </ScrollView>
+                            </TabView.Item>
+                        }
+                    )
+            }
+        </TabView>
     </SafeAreaView>
 }
 
@@ -228,11 +216,12 @@ const styles = StyleSheet.create({
         position: 'relative',
         flex: 1,
         backgroundColor: '#fff',
+        paddingLeft: 4,
+        paddingRight: 4
     },
     tabBar: {
-        flexDirection: 'row',
         paddingHorizontal: 4,
-        paddingTop: 4,
+        paddingTop: 12,
         paddingBottom: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
@@ -243,6 +232,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         height: 48,
     },
+    tabBarIndicator: {
+        height: 0,
+    },
     tabBarText: {
         fontSize: 14,
         fontWeight: "normal",
@@ -250,38 +242,28 @@ const styles = StyleSheet.create({
         paddingHorizontal: 0,
         paddingVertical: 0,
     },
+    tabBarItem: {
+        borderRadius: 25,
+        marginLeft: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 4,
+        paddingVertical: 2,
+    },
     selectedTabBarText: {
         fontSize: 14,
         color: '#FFFFFF',
         paddingHorizontal: 0,
-        textAlign: 'center',
-        alignItems: 'center',
         paddingVertical: 0,
-    },
-    tabBarItem: {
-        borderRadius: 24,
-        minHeight: 0,
-        width: 'auto',
-        backgroundColor: '#ECEDF0',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        marginLeft: 10,
-    },
-    selectedTabBarItem: {
-        borderRadius: 24,
-        minHeight: 0,
-        width: 'auto',
-        backgroundColor: '#404040',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        marginLeft: 10,
     },
     tabBarIcon: {
         marginRight: 6
+    },
+    text: {
+        fontSize: 24,
+        color: 'black',
+        textAlign: 'center',
+        marginTop: 20,
     },
     tabView: {
         backgroundColor: '#fffff',
@@ -289,7 +271,6 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flexGrow: 1,
-        backgroundColor: '#ffffff',
     },
     loadingView: {
         flex: 1,
