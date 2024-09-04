@@ -224,7 +224,7 @@ export const NewsPageScreen = () => {
                                     }
                                 >
                                     {
-                                        loading
+                                        loading && !refreshing
                                             ?
                                             <View style={styles.loadingView}>
                                                 <ActivityIndicator/>
