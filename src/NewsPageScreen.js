@@ -1,5 +1,14 @@
-import React, {useContext, useEffect, useState} from "react";
-import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View, Text} from 'react-native';
+import React, {useContext, useEffect, useRef, useState} from "react";
+import {
+    ActivityIndicator,
+    RefreshControl,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    View,
+    Text,
+    Animated
+} from 'react-native';
 import {Tab, TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
@@ -151,6 +160,19 @@ export const NewsPageScreen = () => {
         console.log('refresh completed.');
     };
 
+    const animatedValues = useRef(channelList.map(() => new Animated.Value(0))).current;
+
+    useEffect(() => {
+        channelList.forEach((_, index) => {
+            Animated.timing(animatedValues[index], {
+                toValue: tabIndex === index ? 1 : 0,
+                duration: 300,
+                useNativeDriver: false,
+            }).start();
+        });
+    }, [tabIndex]);
+
+
     return <SafeAreaView style={styles.container}>
         <Tab
             value={tabIndex}
@@ -162,19 +184,28 @@ export const NewsPageScreen = () => {
             {
                 channelList
                     .filter(channel => channel.enable)
-                    .map((channel, index) =>
-                        <Tab.Item
-                            key={index}
-                            iconPosition="left"
-                            title={channel.tabTitle}
-                            buttonStyle={(active) => [
-                                styles.tabBarItem,
-                                {marginLeft: index === 0 ? 10 : 0},
-                                {backgroundColor: active ? "#404040" : '#ECEDF0'}
-                            ]}
-                            titleStyle={tabIndex === index ? styles.selectedTabBarText : styles.tabBarText}
-                            icon={<></>}
-                        />
+                    .map((channel, index) => {
+                            const backgroundColor = animatedValues[index].interpolate({
+                                inputRange: [0, 1],
+                                outputRange: ['#ECEDF0', '#404040'],
+                            });
+                            return <Tab.Item
+                                key={index}
+                                iconPosition="left"
+                                title={channel.tabTitle}
+                                buttonStyle={(active) => [
+                                    styles.tabBarItem,
+                                    {marginLeft: index === 0 ? 10 : 0},
+                                ]}
+                                icon={<></>}
+                            >
+                                <Animated.View style={[styles.tabItemContent, {backgroundColor}]}>
+                                    <Text style={tabIndex === index ? styles.selectedTabBarText : styles.tabBarText}>
+                                        {channel.tabTitle}
+                                    </Text>
+                                </Animated.View>
+                            </Tab.Item>
+                        }
                     )
             }
         </Tab>
@@ -236,11 +267,18 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
     },
     tabBarItem: {
-        borderRadius: 25,
+        paddingHorizontal: 0,
+        paddingVertical: 0,
         marginRight: 10,
-        backgroundColor: 'pink',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    tabItemContent: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderRadius: 24,
     },
     tabBarIcon: {
         marginRight: 6
