@@ -1,15 +1,6 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
-import {
-    ActivityIndicator,
-    RefreshControl,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    View,
-    Text,
-    Animated
-} from 'react-native';
-import {Tab, TabView} from "@rneui/themed";
+import React, {useContext, useEffect, useState} from "react";
+import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
+import {TabView} from "@rneui/themed";
 import WeiboIcon from "../assets/icons/weibo.svg";
 import ZhihuIcon from "../assets/icons/zhihu.svg";
 import SspaiIcon from "../assets/icons/sspai.svg";
@@ -26,6 +17,7 @@ import {Zhihu} from "./tabs/Zhihu";
 import {Sspai} from "./tabs/Sspai";
 import {Xiaoyuzhou} from "./tabs/Xiaoyuzhou";
 import {useTrackShowing} from "./hooks/TrackHooks";
+import {TabBar} from "./components/TabBar";
 
 
 export const NewsPageScreen = () => {
@@ -160,57 +152,11 @@ export const NewsPageScreen = () => {
         console.log('refresh completed.');
     };
 
-    const animatedValues = useRef(channelList.map(() => new Animated.Value(0))).current;
-
-    useEffect(() => {
-        channelList.forEach((_, index) => {
-            Animated.timing(animatedValues[index], {
-                toValue: tabIndex === index ? 1 : 0,
-                duration: 300,
-                useNativeDriver: false,
-            }).start();
-        });
-    }, [tabIndex]);
 
 
     return <SafeAreaView style={styles.container}>
-        <Tab
-            value={tabIndex}
-            onChange={(e) => setTabIndex(e)}
-            containerStyle={styles.tabBar}
-            disableIndicator={true}
-            scrollable
-        >
-            {
-                channelList
-                    .filter(channel => channel.enable)
-                    .map((channel, index) => {
-                            const backgroundColor = animatedValues[index].interpolate({
-                                inputRange: [0, 1],
-                                outputRange: ['#ECEDF0', '#404040'],
-                            });
-                            return <Tab.Item
-                                key={index}
-                                iconPosition="left"
-                                title={channel.tabTitle}
-                                buttonStyle={(active) => [
-                                    styles.tabBarItem,
-                                    {marginLeft: index === 0 ? 10 : 0},
-                                ]}
-                                icon={<></>}
-                            >
-                                <Animated.View style={[styles.tabItemContent, {backgroundColor}]}>
-                                    <Text style={tabIndex === index ? styles.selectedTabBarText : styles.tabBarText}>
-                                        {channel.tabTitle}
-                                    </Text>
-                                </Animated.View>
-                            </Tab.Item>
-                        }
-                    )
-            }
-        </Tab>
-
-        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring">
+        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
+        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" minSwipeRatio={0} minSwipeSpeed={100}>
             {
                 channelList
                     .filter(channel => channel.enable)
@@ -243,47 +189,14 @@ export const NewsPageScreen = () => {
 
 const styles = StyleSheet.create({
     container: {
-        position: 'relative',
         flex: 1,
         backgroundColor: '#fff',
     },
-    tabBar: {
-        // paddingTop: 12,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    tabBarText: {
-        fontSize: 14,
-        fontWeight: "normal",
-        color: '#464646',
-        paddingHorizontal: 4,
-        paddingVertical: 2,
-    },
-    selectedTabBarText: {
-        fontSize: 14,
-        color: '#FFFFFF',
-        paddingHorizontal: 4,
-        paddingVertical: 2,
-    },
-    tabBarItem: {
-        paddingHorizontal: 0,
-        paddingVertical: 0,
-        marginRight: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    tabItemContent: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        borderRadius: 24,
-    },
     tabBarIcon: {
-        marginRight: 6
+        marginRight: 4
     },
     tabView: {
+        flex: 1,
         backgroundColor: '#fffff',
         width: '100%'
     },

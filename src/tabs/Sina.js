@@ -56,7 +56,7 @@ export const Sina = () => {
 
 const styles = StyleSheet.create({
     newItemContainer: {
-        marginBottom: -8,
+        marginBottom: -4,
     },
     title: {
         fontSize: 16,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     },
     viewerText: {
         color: '#939393',
-        fontSize: 12
+        fontSize: 14
     },
     rankNumCircle: {
         width: 18,

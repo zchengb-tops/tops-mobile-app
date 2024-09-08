@@ -5,7 +5,17 @@ import {NewsPageScreen} from "./src/NewsPageScreen";
 import {NewsDetailScreen} from "./src/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {Animated, AppRegistry, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {
+    Animated,
+    AppRegistry,
+    LogBox,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {Icon} from "@rneui/themed";
 import {PlayerBar} from "./src/components/PlayerBar";
@@ -22,6 +32,8 @@ Text.defaultProps.allowFontScaling = false;
 
 TextInput.defaultProps = TextInput.defaultProps || {};
 TextInput.defaultProps.allowFontScaling = false;
+
+LogBox.ignoreAllLogs();
 
 const error = console.error;
 console.error = (...args) => {
