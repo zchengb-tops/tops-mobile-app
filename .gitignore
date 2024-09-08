@@ -35,5 +35,4 @@ yarn-error.*
 *.tsbuildinfo
 .idea/
 
-ios/
 android/
