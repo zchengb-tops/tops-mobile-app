@@ -1,5 +1,14 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Animated, Dimensions, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+    Animated,
+    Dimensions,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    TouchableOpacity
+} from 'react-native';
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);
@@ -9,6 +18,8 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const scrollViewRef = useRef(null);
     const screenWidth = Dimensions.get('window').width;
     const [scrollX, setScrollX] = useState(0);
+    const statusBarHeight = StatusBar.currentHeight || 0;
+
 
     useEffect(() => {
         if (tabWidths.current.length > 0) {
@@ -69,7 +80,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 
     return (
         <ScrollView
-            style={styles.tabBar}
+            style={[styles.tabBar, { marginTop: statusBarHeight }]}
             ref={scrollViewRef}
             contentContainerStyle={styles.tabBarContent}
             horizontal
@@ -109,7 +120,8 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                     style={{
                                         ...styles.tabBarText,
                                         color: animatedTextColor
-                                    }}>
+                                    }}
+                                >
                                     {channel.tabTitle}
                                 </Animated.Text>
                             </TouchableOpacity>
@@ -124,7 +136,7 @@ const styles = StyleSheet.create({
     tabBar: {
         maxHeight: 54,
         paddingVertical: 0,
-        borderBottomWidth: 0.5,
+        borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
     },
     tabBarContent: {
@@ -135,13 +147,10 @@ const styles = StyleSheet.create({
     tabBarText: {
         fontSize: 14,
         fontWeight: "normal",
+        lineHeight: Platform.select({
+            android: 20
+        }),
         color: '#464646',
-        paddingHorizontal: 4,
-        paddingVertical: 2,
-    },
-    selectedTabBarText: {
-        fontSize: 14,
-        color: '#FFFFFF',
         paddingHorizontal: 4,
         paddingVertical: 2,
     },

@@ -1,7 +1,6 @@
-import {ScrollView, Text, TouchableOpacity, View} from "react-native";
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {ListItem} from "@rneui/themed";
 import React, {useContext, useEffect, useState} from "react";
-import {StyleSheet} from 'react-native';
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
 

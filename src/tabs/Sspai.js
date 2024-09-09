@@ -117,6 +117,8 @@ const styles = StyleSheet.create({
     },
     likeWrapper: {
         flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginRight: 12
     },
     likeCount: {
@@ -126,6 +128,8 @@ const styles = StyleSheet.create({
     },
     commentWrapper: {
         flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     commentCount: {
         color: '#939393',

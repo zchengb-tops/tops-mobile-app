@@ -8,7 +8,7 @@ import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {
     Animated,
     AppRegistry,
-    LogBox,
+    LogBox, Platform,
     SafeAreaView,
     StyleSheet,
     Text,
@@ -239,6 +239,9 @@ const styles = StyleSheet.create({
     },
     navText: {
         fontSize: 14,
+        lineHeight: Platform.select({
+            android: 20
+        }),
         color: '#464646',
         fontWeight: "normal",
         marginLeft: 8
