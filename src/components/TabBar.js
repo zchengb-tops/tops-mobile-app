@@ -31,12 +31,12 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
         if (scrollViewRef.current && tabWidths.current[index] !== undefined) {
             const tabItemEndPosition = tabWidths.current.slice(0, index + 1).reduce((total, width) => total + width, 10 * (index + 1));
             const tabItemStartPosition = tabItemEndPosition - 10 - tabWidths.current[index];
-            let tabOffset = tabItemEndPosition - screenWidth + 10;
-            tabOffset = tabOffset > 0 ? tabOffset : 0;
 
             const currentScreenEndPosition = scrollX + screenWidth;
             const currentScreenStartPosition = currentScreenEndPosition - screenWidth;
             if (currentScreenEndPosition < tabItemEndPosition) {
+                let tabOffset = tabItemEndPosition - screenWidth + 10 + 20;
+                tabOffset = tabOffset > 0 ? tabOffset : 0;
                 scrollViewRef.current.scrollTo({
                     x: tabOffset,
                     animated: true,
@@ -52,11 +52,15 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                 useNativeDriver: false,
             }).start();
 
-            Animated.timing(animatedWidth, {
-                toValue: tabWidths.current[tabIndex] || tabWidths.current[0] || 100,
-                duration: 300,
-                useNativeDriver: false,
-            }).start();
+            console.log('target width', (tabWidths.current[tabIndex] || tabWidths.current[0]) + 20);
+
+            setTimeout(() => {
+                Animated.timing(animatedWidth, {
+                    toValue: (tabWidths.current[tabIndex] || tabWidths.current[0]) + 20,
+                    duration: 300,
+                    useNativeDriver: false,
+                }).start();
+            }, 100);
 
             Animated.timing(animatedTextColors.current[tabIndex], {
                 toValue: 1,
@@ -80,7 +84,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 
     return (
         <ScrollView
-            style={[styles.tabBar, { marginTop: statusBarHeight }]}
+            style={[styles.tabBar, {marginTop: statusBarHeight}]}
             ref={scrollViewRef}
             contentContainerStyle={styles.tabBarContent}
             horizontal
@@ -113,13 +117,17 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                         animatedWidth.setValue(width);
                                     }
 
-                                    tabWidths.current[index] = width;
+                                    tabWidths.current[index] = index === tabIndex ? width - 20 : width;
                                 }}
                             >
+                                {
+                                    tabIndex === index ? channel.icon : <></>
+                                }
                                 <Animated.Text
                                     style={{
                                         ...styles.tabBarText,
-                                        color: animatedTextColor
+                                        color: animatedTextColor,
+                                        fontWeight: tabIndex === index ? '500' : 'normal'
                                     }}
                                 >
                                     {channel.tabTitle}
@@ -134,6 +142,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 
 const styles = StyleSheet.create({
     tabBar: {
+        position: 'relative',
         maxHeight: 54,
         paddingVertical: 0,
         borderBottomWidth: 1,
@@ -155,6 +164,7 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
     },
     tabBarItem: {
+        flexDirection: 'row',
         paddingHorizontal: 12,
         paddingVertical: 8,
         justifyContent: 'center',
