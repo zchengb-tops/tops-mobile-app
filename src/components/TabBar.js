@@ -127,7 +127,6 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                     style={{
                                         ...styles.tabBarText,
                                         color: animatedTextColor,
-                                        fontWeight: tabIndex === index ? '500' : 'normal'
                                     }}
                                 >
                                     {channel.tabTitle}
@@ -174,7 +173,7 @@ const styles = StyleSheet.create({
     },
     selectedBackground: {
         position: 'absolute',
-        height: 38,
+        height: 36,
         backgroundColor: '#404040',
         borderRadius: 24,
         left: 10,
