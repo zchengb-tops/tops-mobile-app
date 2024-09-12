@@ -18,12 +18,14 @@ import {Sspai} from "./tabs/Sspai";
 import {Xiaoyuzhou} from "./tabs/Xiaoyuzhou";
 import {useTrackShowing} from "./hooks/TrackHooks";
 import {TabBar} from "./components/TabBar";
+import {ErrorScreen} from "./ErrorScreen";
 
 
 export const NewsPageScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);
+    const [loadError, setLoadError] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const playBarShowing = useTrackShowing();
     const [channelList, setChannelList] = useState([
@@ -133,6 +135,7 @@ export const NewsPageScreen = () => {
     }, []);
 
     const fetchNews = async () => {
+        setLoadError(false);
         setLoading(true);
         try {
             const response = await fetch('https://zchengb.top/api/normal-news');
@@ -140,6 +143,7 @@ export const NewsPageScreen = () => {
             setGlobalState({...globalState, news: data});
         } catch (error) {
             console.error('Error fetching news:', error);
+            setLoadError(true);
         } finally {
             setLoading(false);
         }
@@ -151,7 +155,6 @@ export const NewsPageScreen = () => {
         setRefreshing(false);
         console.log('refresh completed.');
     };
-
 
 
     return <SafeAreaView style={styles.container}>
@@ -170,13 +173,17 @@ export const NewsPageScreen = () => {
                                     }
                                 >
                                     {
-                                        loading && !refreshing
+                                        loadError
                                             ?
-                                            <View style={styles.loadingView}>
-                                                <ActivityIndicator/>
-                                            </View>
+                                            <ErrorScreen fetchNews={fetchNews}/>
                                             :
-                                            channel.component
+                                            (loading && !refreshing
+                                                ?
+                                                <View style={styles.loadingView}>
+                                                    <ActivityIndicator/>
+                                                </View>
+                                                :
+                                                channel.component)
                                     }
                                 </ScrollView>
                             </TabView.Item>
