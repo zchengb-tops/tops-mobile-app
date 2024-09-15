@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {WebView} from "react-native-webview";
 import {ActivityIndicator, StyleSheet, View} from "react-native";
 import {useIsFocused} from "@react-navigation/native";
-import {useVisibility} from "../utils/VisibilityProvider";
+import {useVisibility} from "../../utils/VisibilityProvider";
 
 export const NewsDetailScreen = ({route}) => {
     const {url} = route.params;

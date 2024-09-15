@@ -1,25 +1,25 @@
 import React, {useContext, useEffect, useState} from "react";
 import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
 import {TabView} from "@rneui/themed";
-import WeiboIcon from "../assets/icons/weibo.svg";
-import ZhihuIcon from "../assets/icons/zhihu.svg";
-import SspaiIcon from "../assets/icons/sspai.svg";
-import BilibiliIcon from "../assets/icons/bilibili.svg";
-import XiaoyuzhouIcon from "../assets/icons/xiaoyuzhou.svg";
-import StockIcon from "../assets/icons/stock.svg";
-import DoubanIcon from "../assets/icons/douban.svg";
-import HistoryIcon from "../assets/icons/history.svg";
-import NngroupIcon from "../assets/icons/nngroup.svg";
-import TiobeIcon from "../assets/icons/tiobe.svg";
-import {Sina} from "./tabs/Sina";
-import {GlobalContext} from "../utils/GlobalContext";
-import {Zhihu} from "./tabs/Zhihu";
-import {Sspai} from "./tabs/Sspai";
-import {Xiaoyuzhou} from "./tabs/Xiaoyuzhou";
-import {useTrackShowing} from "./hooks/TrackHooks";
-import {TabBar} from "./components/TabBar";
+import WeiboIcon from "../../assets/icons/weibo.svg";
+import ZhihuIcon from "../../assets/icons/zhihu.svg";
+import SspaiIcon from "../../assets/icons/sspai.svg";
+import BilibiliIcon from "../../assets/icons/bilibili.svg";
+import XiaoyuzhouIcon from "../../assets/icons/xiaoyuzhou.svg";
+import StockIcon from "../../assets/icons/stock.svg";
+import DoubanIcon from "../../assets/icons/douban.svg";
+import HistoryIcon from "../../assets/icons/history.svg";
+import NngroupIcon from "../../assets/icons/nngroup.svg";
+import TiobeIcon from "../../assets/icons/tiobe.svg";
+import {Sina} from "../tabs/Sina";
+import {GlobalContext} from "../../utils/GlobalContext";
+import {Zhihu} from "../tabs/Zhihu";
+import {Sspai} from "../tabs/Sspai";
+import {Xiaoyuzhou} from "../tabs/Xiaoyuzhou";
+import {useTrackShowing} from "../hooks/TrackHooks";
+import {TabBar} from "../components/TabBar";
 import {ErrorScreen} from "./ErrorScreen";
-import {storage} from "./storage";
+import {storage} from "../storage";
 
 
 const DEFAULT_CHANNEL_LIST = [

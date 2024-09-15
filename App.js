@@ -1,8 +1,8 @@
 import React from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
-import {NewsPageScreen} from "./src/NewsPageScreen";
-import {NewsDetailScreen} from "./src/NewsDetailScreen";
+import {NewsPageScreen} from "./src/screens/NewsPageScreen";
+import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry, LogBox, Text, TextInput, View} from "react-native";
@@ -11,7 +11,7 @@ import {PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 import {VisibilityProvider} from "./utils/VisibilityProvider";
 import {NavBar} from "./src/components/NavBar";
-import {SubscribeScreen} from "./src/SubscribeScreen";
+import {SubscribeScreen} from "./src/screens/SubscribeScreen";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);

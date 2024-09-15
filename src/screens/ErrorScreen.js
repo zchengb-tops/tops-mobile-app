@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {WebView} from "react-native-webview";
 import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {useIsFocused} from "@react-navigation/native";
-import {useVisibility} from "../utils/VisibilityProvider";
+import {useVisibility} from "../../utils/VisibilityProvider";
 
 export const ErrorScreen = ({fetchNews}) => {
     return <TouchableOpacity
@@ -10,7 +10,7 @@ export const ErrorScreen = ({fetchNews}) => {
         style={styles.container}
         onPress={() => fetchNews().then(e => console.log('fetch'))}
     >
-        <Image source={require("../assets/images/icon-64.png")}
+        <Image source={require("../../assets/images/icon-64.png")}
                style={styles.errorLogo}/>
         <Text style={styles.errorText}>Oops,
             加载失败</Text>
