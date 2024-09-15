@@ -22,6 +22,7 @@ import {PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 import {useVisibility, VisibilityProvider} from "./utils/VisibilityProvider";
 import {NavBar} from "./src/components/NavBar";
+import {SubscribeScreen} from "./src/SubscribeScreen";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -59,10 +60,6 @@ function NewsStack() {
     );
 }
 
-const SettingsScreen = () => {
-    return <Text>设置页</Text>;
-}
-
 const ProfileScreen = () => {
     return <Text>账号</Text>;
 }
@@ -76,13 +73,14 @@ export default function App() {
                     <NavigationContainer>
                         <View style={{flex: 1}}>
                             <Stack.Navigator
+                                initialRouteName={"SubscribeScreen"}
                                 screenOptions={{
                                     headerShown: false,
                                 }}
                             >
                                 <Stack.Screen name="HomeScreen" component={NewsStack}/>
+                                <Stack.Screen name="SubscribeScreen" component={SubscribeScreen}/>
                                 <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
-                                <Stack.Screen name="SettingsScreen" component={SettingsScreen}/>
                             </Stack.Navigator>
                             <PlayerBar/>
                             <NavBar/>

@@ -2,13 +2,15 @@ import React, {useRef, useState} from "react";
 import {Animated, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {useVisibility} from "../../utils/VisibilityProvider";
 import {Icon} from "@rneui/themed";
+import {useNavigation} from "@react-navigation/native";
 
 export const NavBar = () => {
     const routeMapping = {
         HOME: 'HomeScreen',
-        SETTING: 'SettingsScreen',
+        SUBSCRIBE: 'SubscribeScreen',
         PROFILE: 'ProfileScreen',
     }
+    const navigation = useNavigation();
     const [currentRoute, setCurrentRoute] = useState(routeMapping.HOME);
     const translateAnim = useRef(new Animated.Value(0)).current;
     const tabRefs = useRef({});
@@ -56,7 +58,7 @@ export const NavBar = () => {
                         type='ionicon'
                         color='#949494'
                     />;
-            case routeMapping.SETTING:
+            case routeMapping.SUBSCRIBE:
                 return currentRoute === screenName
                     ?
                     <Icon
@@ -84,7 +86,7 @@ export const NavBar = () => {
         }).start();
 
         setCurrentRoute(routeName);
-        // navigation.navigate(routeName);
+        navigation.navigate(routeName);
     }
 
     if (!isVisible) return null;
@@ -103,11 +105,11 @@ export const NavBar = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navButton}
-                    onPress={() => goto(routeMapping.SETTING, 1)}
-                    onLayout={(event) => handleLayout(routeMapping.SETTING, event.nativeEvent.layout)}
+                    onPress={() => goto(routeMapping.SUBSCRIBE, 1)}
+                    onLayout={(event) => handleLayout(routeMapping.SUBSCRIBE, event.nativeEvent.layout)}
                 >
-                    {renderIcon(routeMapping.SETTING)}
-                    {renderLabel(routeMapping.SETTING, '订阅')}
+                    {renderIcon(routeMapping.SUBSCRIBE)}
+                    {renderLabel(routeMapping.SUBSCRIBE, '订阅')}
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navButton}
