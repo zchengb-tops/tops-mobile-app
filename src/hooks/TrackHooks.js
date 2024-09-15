@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import {useTrackStateStore} from '../store';
+import {useTrackStateStore} from '../AudioTrackStore';
 
 export const useTrackProgress = () => {
     return useTrackStateStore(useCallback(state => {
