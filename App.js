@@ -1,26 +1,15 @@
-import React, {useRef, useState} from "react";
+import React from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {NewsPageScreen} from "./src/NewsPageScreen";
 import {NewsDetailScreen} from "./src/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {
-    Animated,
-    AppRegistry,
-    LogBox, Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
-} from "react-native";
+import {AppRegistry, LogBox, Text, TextInput, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
-import {Icon} from "@rneui/themed";
 import {PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
-import {useVisibility, VisibilityProvider} from "./utils/VisibilityProvider";
+import {VisibilityProvider} from "./utils/VisibilityProvider";
 import {NavBar} from "./src/components/NavBar";
 import {SubscribeScreen} from "./src/SubscribeScreen";
 

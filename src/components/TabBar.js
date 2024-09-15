@@ -20,7 +20,6 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const [scrollX, setScrollX] = useState(0);
     const statusBarHeight = StatusBar.currentHeight || 0;
 
-
     useEffect(() => {
         if (tabWidths.current.length > 0) {
             scrollToTab(tabIndex);
@@ -51,8 +50,6 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                 toValue: tabItemStartPosition,
                 useNativeDriver: false,
             }).start();
-
-            console.log('target width', (tabWidths.current[tabIndex] || tabWidths.current[0]) + 20);
 
             setTimeout(() => {
                 Animated.timing(animatedWidth, {
