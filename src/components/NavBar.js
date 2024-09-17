@@ -7,12 +7,12 @@ import {trigger} from "react-native-haptic-feedback";
 
 export const NavBar = () => {
     const routeMapping = {
-        HOME: 'HomeScreen',
+        DISCOVERY: 'DiscoveryScreen',
         SUBSCRIBE: 'SubscribeScreen',
         PROFILE: 'ProfileScreen',
     }
     const navigation = useNavigation();
-    const [currentRoute, setCurrentRoute] = useState(routeMapping.HOME);
+    const [currentRoute, setCurrentRoute] = useState(routeMapping.DISCOVERY);
     const translateAnim = useRef(new Animated.Value(0)).current;
     const tabRefs = useRef({});
     const {isVisible} = useVisibility();
@@ -27,7 +27,7 @@ export const NavBar = () => {
 
     const renderIcon = (screenName) => {
         switch (screenName) {
-            case routeMapping.HOME:
+            case routeMapping.DISCOVERY:
                 return currentRoute === screenName
                     ?
                     <Icon
@@ -103,11 +103,11 @@ export const NavBar = () => {
                 <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
                 <TouchableOpacity
                     style={styles.navButton}
-                    onPress={() => goto(routeMapping.HOME, 0)}
-                    onLayout={(event) => handleLayout(routeMapping.HOME, event.nativeEvent.layout)}
+                    onPress={() => goto(routeMapping.DISCOVERY, 0)}
+                    onLayout={(event) => handleLayout(routeMapping.DISCOVERY, event.nativeEvent.layout)}
                 >
-                    {renderIcon(routeMapping.HOME)}
-                    {renderLabel(routeMapping.HOME, '发现')}
+                    {renderIcon(routeMapping.DISCOVERY)}
+                    {renderLabel(routeMapping.DISCOVERY, '发现')}
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navButton}

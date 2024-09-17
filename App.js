@@ -1,7 +1,7 @@
 import React from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
-import {NewsPageScreen} from "./src/screens/NewsPageScreen";
+import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
 import {GlobalProvider} from "./utils/GlobalContext";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
@@ -32,23 +32,6 @@ console.error = (...args) => {
     error(...args);
 };
 
-function NewsStack() {
-    return (
-        <Stack.Navigator initialRouteName="NewsPage">
-            <Stack.Screen
-                name="NewsPage"
-                component={NewsPageScreen}
-                options={{headerShown: false, title: "Tops"}}
-            />
-            <Stack.Screen
-                name="NewsDetail"
-                component={NewsDetailScreen}
-                options={{title: "资讯详情"}}
-            />
-        </Stack.Navigator>
-    );
-}
-
 const ProfileScreen = () => {
     return <Text>账号</Text>;
 }
@@ -67,9 +50,14 @@ export default function App() {
                                     headerShown: false,
                                 }}
                             >
-                                <Stack.Screen name="HomeScreen" component={NewsStack}/>
+                                <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen}/>
                                 <Stack.Screen name="SubscribeScreen" component={SubscribeScreen}/>
                                 <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
+                                <Stack.Screen
+                                    name="NewsDetailScreen"
+                                    component={NewsDetailScreen}
+                                    options={{title: "资讯详情"}}
+                                />
                             </Stack.Navigator>
                             <PlayerBar/>
                             <NavBar/>

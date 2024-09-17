@@ -8,7 +8,7 @@ import {ErrorScreen} from "./ErrorScreen";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 
-export const NewsPageScreen = () => {
+export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
     const {globalState, setGlobalState} = useContext(GlobalContext);
     const [loading, setLoading] = useState(false);

@@ -32,7 +32,7 @@ export const Sspai = () => {
         {
             news?.map((item, index) => {
                 return <TouchableOpacity key={index}
-                                         onPress={() => navigation.navigate('NewsDetail', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
+                                         onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
                     <View style={styles.newsItemWrapper}>
                         <View style={styles.newItemContainer}>
                             <Image
