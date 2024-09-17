@@ -73,7 +73,7 @@ export const SubscribeScreen = () => {
             <DraggableFlatList
                 data={channelList}
                 onDragEnd={({data}) => setChannelList(data)}
-                keyExtractor={(item, index) => `draggable-item-${index}`}
+                keyExtractor={(item) => item.id}
                 renderItem={renderItem}
             />
         </View>
