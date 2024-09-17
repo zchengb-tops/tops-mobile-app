@@ -79,7 +79,7 @@ export const SubscribeScreen = () => {
                     color='#F76F00'
                 />
                 <Text style={styles.addButtonLabel}>
-                    添加RSS订阅
+                    添加RSS频道
                 </Text>
             </TouchableOpacity>
         </View>
