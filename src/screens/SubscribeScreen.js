@@ -84,8 +84,7 @@ export const SubscribeScreen = () => {
             </TouchableOpacity>
         </View>
         <View style={styles.channelContainer}>
-            <Text style={{marginLeft: 20, marginBottom: 8, color: '#939393', fontSize: 12, textAlign: 'left'}}>Tips:
-                长按即可进行拖拽排序</Text>
+            <Text style={styles.dragTips}>Tips: 长按即可进行拖拽排序</Text>
             <DraggableFlatList
                 data={channelList}
                 onDragEnd={({data}) => reorderChannelList(data)}
@@ -105,6 +104,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center'
     },
+    dragTips: {marginLeft: 20, marginBottom: 8, color: '#939393', fontSize: 12, textAlign: 'left'},
     pageTitle: {
         fontSize: 20,
         fontWeight: "bold"
