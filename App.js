@@ -50,13 +50,13 @@ export default function App() {
                                     headerShown: false,
                                 }}
                             >
-                                <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen}/>
+                                <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: 'Tops'}}/>
                                 <Stack.Screen name="SubscribeScreen" component={SubscribeScreen}/>
                                 <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
                                 <Stack.Screen
                                     name="NewsDetailScreen"
                                     component={NewsDetailScreen}
-                                    options={{title: "资讯详情"}}
+                                    options={{title: "资讯详情",  headerShown: true}}
                                 />
                             </Stack.Navigator>
                             <PlayerBar/>
