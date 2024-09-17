@@ -25,6 +25,16 @@ export const SubscribeScreen = () => {
         ));
     }
 
+    const reorderChannelList = (newChannelList) => {
+        setChannelList(newChannelList);
+        const pureChannelList = newChannelList.map((channel) => {
+            const pureChannel = {...channel};
+            delete pureChannel.renderIcon;
+            return pureChannel;
+        });
+        storage.set('channelList', JSON.stringify(pureChannelList));
+    }
+
     const renderItem = useCallback(({item, index, drag, isActive}) => {
         console.log('re render item', new Date())
         return (
@@ -72,7 +82,7 @@ export const SubscribeScreen = () => {
                 长按即可进行拖拽排序</Text>
             <DraggableFlatList
                 data={channelList}
-                onDragEnd={({data}) => setChannelList(data)}
+                onDragEnd={({data}) => reorderChannelList(data)}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
             />
