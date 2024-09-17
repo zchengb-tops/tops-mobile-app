@@ -4,6 +4,7 @@ import {Icon} from "@rneui/themed";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
+import {trigger} from "react-native-haptic-feedback";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
@@ -36,12 +37,17 @@ export const SubscribeScreen = () => {
     }
 
     const renderItem = useCallback(({item, index, drag, isActive}) => {
-        console.log('re render item', new Date())
         return (
             <ScaleDecorator>
                 <TouchableOpacity
                     delayLongPress={300}
-                    onLongPress={drag}
+                    onLongPress={() => {
+                        trigger("impactLight", {
+                            enableVibrateFallback: true,
+                            ignoreAndroidSystemSettings: false,
+                        });
+                        drag();
+                    }}
                     disabled={isActive}
                     style={[
                         styles.channelItem
