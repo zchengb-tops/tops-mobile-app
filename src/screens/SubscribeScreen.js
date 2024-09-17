@@ -53,13 +53,18 @@ export const SubscribeScreen = () => {
                         styles.channelItem
                     ]}
                 >
+                    {item.renderIcon(styles.channelIcon, 20, 20)}
                     <View style={styles.channelInfoWrapper}>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                            {item.renderIcon(styles.channelIcon, 20, 20)}
                             <View style={styles.channelTextInfoWrapper}>
                                 <Text style={styles.channelTitle}>{item.title}</Text>
-                                <Text style={styles.channelDesc}>{item.desc}</Text>
+                                <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>
                             </View>
+                            <TouchableOpacity
+                                style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}>
+                                <Text
+                                    style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
+                            </TouchableOpacity>
                         </View>
                         <View style={styles.channelItemDivider}/>
                     </View>
@@ -129,7 +134,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     channelIcon: {
-        marginLeft: 12,
+        marginLeft: 2,
         marginRight: 16,
     },
     channelInfoWrapper: {
@@ -157,6 +162,17 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 0.2,
         backgroundColor: '#B6B6B6',
+    },
+    subscribeButton: {
+        width: 54,
+        alignItems: 'center',
+        marginLeft: 8,
+        paddingVertical: 6,
+        borderRadius: 24,
+        borderWidth: 0.2,
+    },
+    subscribeButtonLabel: {
+        fontSize: 12
     },
     rowItem: {
         height: 100,
