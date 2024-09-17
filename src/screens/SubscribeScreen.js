@@ -5,9 +5,21 @@ import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
+import {useVisibility} from "../../utils/VisibilityProvider";
+import {useIsFocused} from "@react-navigation/native";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
+    const {setIsPlayBarVisible} = useVisibility();
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        setIsPlayBarVisible(!isFocused);
+
+        return () => {
+            setIsPlayBarVisible(true);
+        };
+    }, [isFocused]);
 
     useEffect(() => {
         const stringifyChannelList = storage.getString('channelList')
@@ -91,6 +103,7 @@ export const SubscribeScreen = () => {
         <View style={styles.channelContainer}>
             <Text style={styles.dragTips}>Tips: 长按即可进行拖拽排序</Text>
             <DraggableFlatList
+                containerStyle={{paddingBottom: 22}}
                 data={channelList}
                 onDragEnd={({data}) => reorderChannelList(data)}
                 keyExtractor={(item) => item.id}
@@ -125,7 +138,8 @@ const styles = StyleSheet.create({
     },
     channelContainer: {
         marginTop: 12,
-        flex: 1
+        flex: 1,
+        // backgroundColor: 'rgba(0,0,0,0.1)'
     },
     channelItem: {
         flexDirection: 'row',

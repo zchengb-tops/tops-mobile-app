@@ -14,7 +14,7 @@ export const PlayerBar = () => {
     const showing = useTrackShowing();
     const status = useTrackStatus();
     const insets = useSafeAreaInsets();
-    const {isVisible} = useVisibility();
+    const {isPlayBarVisible} = useVisibility();
 
     const formatTime = (time) => {
         const hours = Math.floor(time / 3600);
@@ -28,7 +28,7 @@ export const PlayerBar = () => {
         return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
     }
 
-    if (!isVisible) return null;
+    if (!isPlayBarVisible) return null;
 
     return (
         showing ?

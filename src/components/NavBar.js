@@ -15,7 +15,7 @@ export const NavBar = () => {
     const [currentRoute, setCurrentRoute] = useState(routeMapping.DISCOVERY);
     const translateAnim = useRef(new Animated.Value(0)).current;
     const tabRefs = useRef({});
-    const {isVisible} = useVisibility();
+    const {isNavBarVisible} = useVisibility();
 
     const handleLayout = (screenName, layout) => {
         tabRefs.current[screenName] = layout;
@@ -95,7 +95,7 @@ export const NavBar = () => {
         navigation.navigate(routeName);
     }
 
-    if (!isVisible) return null;
+    if (!isNavBarVisible) return null;
 
     return (
         <SafeAreaView style={{backgroundColor: '#F5F5F5'}}>
