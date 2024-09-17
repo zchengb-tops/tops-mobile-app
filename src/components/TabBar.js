@@ -118,7 +118,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                 }}
                             >
                                 {
-                                    tabIndex === index ? channel.icon : <></>
+                                    tabIndex === index ? channel.renderIcon() : <></>
                                 }
                                 <Animated.Text
                                     style={{
