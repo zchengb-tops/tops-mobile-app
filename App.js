@@ -45,9 +45,10 @@ export default function App() {
                     <NavigationContainer>
                         <View style={{flex: 1}}>
                             <Stack.Navigator
-                                initialRouteName={"SubscribeScreen"}
+                                initialRouteName={"DiscoveryScreen"}
                                 screenOptions={{
                                     headerShown: false,
+                                    animationEnabled: false
                                 }}
                             >
                                 <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: 'Tops'}}/>

@@ -104,7 +104,7 @@ export const DiscoveryScreen = () => {
             }
         </TabView>
     </SafeAreaView>
-}
+};
 
 const styles = StyleSheet.create({
     container: {
