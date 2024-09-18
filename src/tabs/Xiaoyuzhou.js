@@ -227,11 +227,7 @@ export const Xiaoyuzhou = () => {
                                 <AuthorIcon/>
                                 <Text style={styles.author} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
                             </View>
-                            <View style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                marginTop: 6,
-                            }}>
+                            <View style={styles.extraInfoWrapper}>
                                 <Icon
                                     size={16}
                                     name='time-outline'
@@ -244,51 +240,42 @@ export const Xiaoyuzhou = () => {
                             </View>
                         </View>
                         <View style={styles.operationWrapper}>
-                            <View style={{alignItems: 'center', justifyContent: 'center'}}>
-                                <AnimatedCircularProgress
-                                    size={36}
-                                    width={2}
-                                    fill={(item.position / item.duration) * 100}
-                                    tintColor="#F66F00"
-                                    backgroundColor="transparent"
-                                    rotation={0}
-                                >
-                                    {
-                                        () => (
-                                            <TouchableOpacity
-                                                onPress={() => handlePlayButtonClick(index)}
-                                                style={{
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1',
-                                                    borderRadius: 20,
-                                                    width: 36,
-                                                    height: 36,
-                                                }}
-                                            >
-                                                {
-                                                    isCurrentItemLoading(item)
-                                                        ?
-                                                        <ActivityIndicator size="small"
-                                                                           color='#464646'
-                                                                           style={{transform: [{scale: 0.75}]}}/>
-                                                        :
-                                                        (
-                                                            isCurrentItemPlaying(item)
-                                                                ?
-                                                                <Icon size={18} name='pause' type='ionicon'
-                                                                      color='#F76F00'/>
-                                                                :
-                                                                <Icon size={18} name='play-sharp' type='ionicon'
-                                                                      color='#464646'
-                                                                      style={{marginLeft: 2}}/>
-                                                        )
-                                                }
-                                            </TouchableOpacity>
-                                        )
-                                    }
-                                </AnimatedCircularProgress>
-                            </View>
+                            <AnimatedCircularProgress
+                                size={36}
+                                width={2}
+                                fill={(item.position / item.duration) * 100}
+                                tintColor="#F66F00"
+                                backgroundColor="transparent"
+                                rotation={0}
+                            >
+                                {
+                                    () => (
+                                        <TouchableOpacity
+                                            onPress={() => handlePlayButtonClick(index)}
+                                            style={[styles.playButton, {backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1',}]}
+                                        >
+                                            {
+                                                isCurrentItemLoading(item)
+                                                    ?
+                                                    <ActivityIndicator size="small"
+                                                                       color='#464646'
+                                                                       style={styles.playLoadingIndicator}/>
+                                                    :
+                                                    (
+                                                        isCurrentItemPlaying(item)
+                                                            ?
+                                                            <Icon size={18} name='pause' type='ionicon'
+                                                                  color='#F76F00'/>
+                                                            :
+                                                            <Icon size={18} name='play-sharp' type='ionicon'
+                                                                  color='#464646'
+                                                                  style={{marginLeft: 2}}/>
+                                                    )
+                                            }
+                                        </TouchableOpacity>
+                                    )
+                                }
+                            </AnimatedCircularProgress>
                         </View>
                     </View>
                 </View>
@@ -325,7 +312,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 6
     },
-    operationWrapper: {},
+    operationWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    playButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 20,
+        width: 36,
+        height: 36,
+    },
     trendType: {
         color: '#939393',
         fontSize: 14,
@@ -347,4 +344,7 @@ const styles = StyleSheet.create({
         marginRight: 14,
         borderRadius: 4
     },
+    playLoadingIndicator: {
+        transform: [{scale: 0.75}]
+    }
 });
