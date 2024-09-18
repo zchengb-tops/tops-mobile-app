@@ -8,7 +8,7 @@ import {trigger} from "react-native-haptic-feedback";
 import {useVisibility} from "../../utils/VisibilityProvider";
 import {useIsFocused} from "@react-navigation/native";
 
-export const SubscribeScreen = () => {
+export const SubscribeScreen = React.memo(() => {
     const [channelList, setChannelList] = useState([]);
     const {setIsPlayBarVisible} = useVisibility();
     const isFocused = useIsFocused();
@@ -26,6 +26,9 @@ export const SubscribeScreen = () => {
 
         if (stringifyChannelList) {
             setChannelList(injectChannelComponentFields(JSON.parse(stringifyChannelList) || DEFAULT_CHANNEL_LIST));
+        } else {
+            setChannelList(injectChannelComponentFields(DEFAULT_CHANNEL_LIST))
+            saveChannelListToStorage(DEFAULT_CHANNEL_LIST);
         }
     }, []);
 
@@ -45,7 +48,25 @@ export const SubscribeScreen = () => {
             delete pureChannel.renderIcon;
             return pureChannel;
         });
-        storage.set('channelList', JSON.stringify(pureChannelList));
+        saveChannelListToStorage(pureChannelList);
+    }
+
+    const saveChannelListToStorage = (newChannelList) => {
+        storage.set('channelList', JSON.stringify(newChannelList));
+        console.log('successfully update channel list');
+    }
+
+    const handleSubscribe = (channel) => {
+        const newChannelList = [...channelList];
+
+        newChannelList.forEach(item => {
+            if (item.id === channel.id) {
+                item.enable = !item.enable;
+            }
+        })
+
+        setChannelList(newChannelList);
+        saveChannelListToStorage(newChannelList);
     }
 
     const renderItem = useCallback(({item, index, drag, isActive}) => {
@@ -73,7 +94,9 @@ export const SubscribeScreen = () => {
                                 <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>
                             </View>
                             <TouchableOpacity
-                                style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}>
+                                style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
+                                onPress={() => handleSubscribe(item)}
+                            >
                                 <Text
                                     style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
                             </TouchableOpacity>
@@ -83,7 +106,7 @@ export const SubscribeScreen = () => {
                 </TouchableOpacity>
             </ScaleDecorator>
         );
-    }, [])
+    }, [channelList])
 
     return <SafeAreaView style={styles.container}>
         <View style={styles.topBar}>
@@ -103,7 +126,7 @@ export const SubscribeScreen = () => {
         <View style={styles.channelContainer}>
             <Text style={styles.dragTips}>Tips: 长按即可进行拖拽排序</Text>
             <DraggableFlatList
-                containerStyle={{paddingBottom: 22}}
+                containerStyle={styles.dragContainer}
                 data={channelList}
                 onDragEnd={({data}) => reorderChannelList(data)}
                 keyExtractor={(item) => item.id}
@@ -111,7 +134,7 @@ export const SubscribeScreen = () => {
             />
         </View>
     </SafeAreaView>;
-};
+});
 
 const styles = StyleSheet.create({
     container: {flex: 1, backgroundColor: '#fff'},
@@ -139,8 +162,8 @@ const styles = StyleSheet.create({
     channelContainer: {
         marginTop: 12,
         flex: 1,
-        // backgroundColor: 'rgba(0,0,0,0.1)'
     },
+    dragContainer: {paddingBottom: 22},
     channelItem: {
         flexDirection: 'row',
         alignItems: 'center',
