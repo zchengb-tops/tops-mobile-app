@@ -7,6 +7,7 @@ import {TabBar} from "../components/TabBar";
 import {ErrorScreen} from "./ErrorScreen";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
+import {useIsFocused} from "@react-navigation/native";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
@@ -16,15 +17,32 @@ export const DiscoveryScreen = () => {
     const [refreshing, setRefreshing] = useState(false);
     const playBarShowing = useTrackShowing();
     const [channelList, setChannelList] = useState([]);
+    const isFocused = useIsFocused();
 
     useEffect(() => {
+        initialChannelList();
+    }, [isFocused]);
+
+
+    useEffect(() => {
+        fetchNews().then(() => console.log('Successfully fetch news :)'));
+    }, []);
+
+    const initialChannelList = () => {
         const stringifyChannelList = storage.getString("channelList");
         let needUseDefaultChannelList = true;
         if (stringifyChannelList) {
             const parsedChannelList = JSON.parse(stringifyChannelList);
+
+            const hasChanges = checkChannelListChanges(parsedChannelList, channelList);
+
             if (parsedChannelList?.length > 0) {
                 setChannelList(injectChannelComponentFields(parsedChannelList));
                 needUseDefaultChannelList = false;
+
+                if (hasChanges) {
+                    setTabIndex(0);
+                }
             }
         }
 
@@ -33,9 +51,23 @@ export const DiscoveryScreen = () => {
             storage.set("channelList", JSON.stringify(initialChannelList));
             setChannelList(injectChannelComponentFields(initialChannelList));
         }
+    }
 
-        fetchNews().then(() => console.log('Successfully fetch news :)'));
-    }, []);
+    const checkChannelListChanges = (newList, oldList) => {
+        if (newList.length !== oldList.length) {
+            return true;
+        }
+
+        for (let i = 0; i < newList.length; i++) {
+            const newChannel = newList[i];
+            const oldChannel = oldList.find(channel => channel.id === newChannel.id);
+            if (!oldChannel || newChannel.enable !== oldChannel.enable) {
+                return true;
+            }
+        }
+
+        return false;
+    };
 
     const injectChannelComponentFields = (channelList) => {
         return channelList.map(channel => (

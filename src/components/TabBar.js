@@ -24,7 +24,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
         if (tabWidths.current.length > 0) {
             scrollToTab(tabIndex);
         }
-    }, [tabIndex]);
+    }, [tabIndex, channelList]);
 
     const scrollToTab = (index) => {
         if (scrollViewRef.current && tabWidths.current[index] !== undefined) {
