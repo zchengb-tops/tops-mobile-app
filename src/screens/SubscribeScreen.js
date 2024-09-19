@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Icon} from "@rneui/themed";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
@@ -57,6 +57,17 @@ export const SubscribeScreen = React.memo(() => {
     }
 
     const handleSubscribe = (channel) => {
+        const subscribedChannels = channelList.filter(item => item.enable);
+
+        if (channel.enable && subscribedChannels.length === 1) {
+            Alert.alert(
+                "提示",
+                "请至少保留一个资讯订阅 😃",
+                [{ text: "确定" }]
+            );
+            return;
+        }
+
         const newChannelList = [...channelList];
 
         newChannelList.forEach(item => {
