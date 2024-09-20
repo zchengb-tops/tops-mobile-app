@@ -1,8 +1,5 @@
-import React, {useEffect, useState} from "react";
-import {WebView} from "react-native-webview";
-import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {useIsFocused} from "@react-navigation/native";
-import {useVisibility} from "../../utils/VisibilityProvider";
+import React from "react";
+import {Image, StyleSheet, Text, TouchableOpacity} from "react-native";
 
 export const ErrorScreen = ({fetchNews}) => {
     return <TouchableOpacity

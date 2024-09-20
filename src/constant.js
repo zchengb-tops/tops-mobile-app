@@ -15,6 +15,7 @@ import HistoryIcon from "../assets/icons/history.svg";
 import React from "react";
 import {StyleSheet} from 'react-native';
 import HotIcon from "../assets/icons/hot.svg";
+import {DoubanMovie} from "./tabs/DoubanMovie";
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -140,7 +141,7 @@ export const CHANNEL_COMPONENT_MAP = {
     },
     'doubanMovie': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <DoubanIcon width={width} height={height} style={style}/>,
-        component: <></>
+        component: <DoubanMovie/>
     },
     'bilibili': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <BilibiliIcon width={width} height={height} style={style}/>,
