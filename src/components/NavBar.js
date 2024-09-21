@@ -140,14 +140,13 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: '#F5F5F5',
         position: 'relative',
-        paddingVertical: 12
     },
     navButton: {
         flexDirection: 'row',
         alignItems: "center",
         justifyContent: "center",
         width: 100,
-        height: 24,
+        height: 48,
     },
     navButtonSelected: {
         position: 'absolute',
