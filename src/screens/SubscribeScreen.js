@@ -7,8 +7,9 @@ import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist
 import {trigger} from "react-native-haptic-feedback";
 import {useVisibility} from "../../utils/VisibilityProvider";
 import {useIsFocused} from "@react-navigation/native";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
 
-export const SubscribeScreen = React.memo(() => {
+export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
     const {setIsPlayBarVisible} = useVisibility();
     const isFocused = useIsFocused();
@@ -63,7 +64,7 @@ export const SubscribeScreen = React.memo(() => {
             Alert.alert(
                 "提示",
                 "请至少保留一个资讯订阅 😃",
-                [{ text: "确定" }]
+                [{text: "确定"}]
             );
             return;
         }
@@ -136,16 +137,18 @@ export const SubscribeScreen = React.memo(() => {
         </View>
         <View style={styles.channelContainer}>
             <Text style={styles.dragTips}>Tips: 长按即可进行拖拽排序</Text>
-            <DraggableFlatList
-                containerStyle={styles.dragContainer}
-                data={channelList}
-                onDragEnd={({data}) => reorderChannelList(data)}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-            />
+            <GestureHandlerRootView style={{flex: 1}}>
+                <DraggableFlatList
+                    containerStyle={styles.dragContainer}
+                    data={channelList}
+                    onDragEnd={({data}) => reorderChannelList(data)}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                />
+            </GestureHandlerRootView>
         </View>
     </SafeAreaView>;
-});
+};
 
 const styles = StyleSheet.create({
     container: {flex: 1, backgroundColor: '#fff'},
@@ -174,7 +177,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
         flex: 1,
     },
-    dragContainer: {paddingBottom: 22},
+    dragContainer: {},
     channelItem: {
         flexDirection: 'row',
         alignItems: 'center',
