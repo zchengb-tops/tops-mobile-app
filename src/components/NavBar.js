@@ -98,7 +98,7 @@ export const NavBar = () => {
     if (!isNavBarVisible) return null;
 
     return (
-        <SafeAreaView style={{backgroundColor: '#F5F5F5'}}>
+        <SafeAreaView style={styles.navBarWrapper}>
             <View style={styles.navBar}>
                 <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
                 <TouchableOpacity
@@ -134,6 +134,9 @@ export const NavBar = () => {
 };
 
 const styles = StyleSheet.create({
+    navBarWrapper: {
+        backgroundColor: '#F5F5F5'
+    },
     navBar: {
         flexDirection: 'row',
         justifyContent: 'space-around',
