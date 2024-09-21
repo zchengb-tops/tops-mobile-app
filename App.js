@@ -43,7 +43,12 @@ const Stack = createStackNavigator();
 
 const DiscoveryStackNavigator = () => {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false, animationEnabled: false, gestureEnabled: true }}>
+        <Stack.Navigator screenOptions={{
+            headerShown: false,
+            gestureEnabled: true,
+            gestureDirection: 'horizontal',
+            animationEnabled: true,
+        }}>
             <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: '发现'}} />
             <Stack.Screen name="NewsDetailScreen" component={NewsDetailScreen}  options={{title: "资讯详情",  headerShown: true}} />
         </Stack.Navigator>
