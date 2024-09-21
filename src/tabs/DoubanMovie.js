@@ -46,7 +46,6 @@ export const DoubanMovie = () => {
                                 startingValue={rate}
                                 imageSize={16}
                                 fractions={1}
-                                starContainerStyle={{width: 300, justifyContent: 'space-between'}}
                             />
                             <Text style={styles.rankText}>{movie.rate}</Text>
                         </View>
@@ -131,6 +130,6 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         fontSize: 14,
         color: '#F1C30F',
-        fontWeight: 'bold'
+        fontWeight: '500'
     }
 })
