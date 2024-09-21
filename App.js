@@ -12,11 +12,11 @@ import {SafeAreaProvider} from "react-native-safe-area-context";
 import {VisibilityProvider} from "./utils/VisibilityProvider";
 import {NavBar} from "./src/components/NavBar";
 import {SubscribeScreen} from "./src/screens/SubscribeScreen";
+import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
-const Stack = createStackNavigator();
 
 Text.defaultProps = Text.defaultProps || {};
 Text.defaultProps.allowFontScaling = false;
@@ -37,6 +37,18 @@ const ProfileScreen = () => {
 }
 
 
+const Tab = createBottomTabNavigator();
+
+const Stack = createStackNavigator();
+
+const DiscoveryStackNavigator = () => {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false, animationEnabled: false, gestureEnabled: true }}>
+            <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: '发现'}} />
+            <Stack.Screen name="NewsDetailScreen" component={NewsDetailScreen}  options={{title: "资讯详情",  headerShown: true}} />
+        </Stack.Navigator>
+    );
+}
 export default function App() {
     return (
         <SafeAreaProvider>
@@ -44,22 +56,18 @@ export default function App() {
                 <GlobalProvider>
                     <NavigationContainer>
                         <View style={{flex: 1}}>
-                            <Stack.Navigator
-                                initialRouteName={"DiscoveryScreen"}
+                            <Tab.Navigator
+                                initialRouteName="DiscoveryScreen"
                                 screenOptions={{
                                     headerShown: false,
-                                    animationEnabled: false
+                                    animationEnabled: false,
+                                    tabBarStyle: { display: 'none' },
                                 }}
                             >
-                                <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: 'Tops'}}/>
-                                <Stack.Screen name="SubscribeScreen" component={SubscribeScreen}/>
-                                <Stack.Screen name="ProfileScreen" component={ProfileScreen}/>
-                                <Stack.Screen
-                                    name="NewsDetailScreen"
-                                    component={NewsDetailScreen}
-                                    options={{title: "资讯详情",  headerShown: true}}
-                                />
-                            </Stack.Navigator>
+                                <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator} />
+                                <Tab.Screen name="SubscribeScreen" component={SubscribeScreen} />
+                                <Tab.Screen name="ProfileScreen" component={ProfileScreen} />
+                            </Tab.Navigator>
                             <PlayerBar/>
                             <NavBar/>
                         </View>
