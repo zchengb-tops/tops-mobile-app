@@ -1,5 +1,5 @@
-import React, {useRef, useState} from "react";
-import {Animated, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import React, {useEffect, useRef, useState} from "react";
+import {Animated, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Easing} from "react-native";
 import {useVisibility} from "../../utils/VisibilityProvider";
 import {Icon} from "@rneui/themed";
 import {useNavigation} from "@react-navigation/native";
@@ -14,8 +14,27 @@ export const NavBar = () => {
     const navigation = useNavigation();
     const [currentRoute, setCurrentRoute] = useState(routeMapping.DISCOVERY);
     const translateAnim = useRef(new Animated.Value(0)).current;
+    const positionAnim = useRef(new Animated.Value(100)).current;
     const tabRefs = useRef({});
     const {isNavBarVisible} = useVisibility();
+
+    useEffect(() => {
+        if (isNavBarVisible) {
+            Animated.timing(positionAnim, {
+                toValue: 0,
+                duration: 200,
+                easing: Easing.ease,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            Animated.timing(positionAnim, {
+                toValue: 100,
+                duration: 100,
+                easing: Easing.ease,
+                useNativeDriver: true,
+            }).start();
+        }
+    }, [isNavBarVisible]);
 
     const handleLayout = (screenName, layout) => {
         tabRefs.current[screenName] = layout;
@@ -95,47 +114,57 @@ export const NavBar = () => {
         navigation.navigate(routeName);
     }
 
-    if (!isNavBarVisible) return null;
-
     return (
-        <SafeAreaView style={styles.navBarWrapper}>
-            <View style={styles.navBar}>
-                <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
-                <TouchableOpacity
-                    activeOpacity={0.9}
-                    style={styles.navButton}
-                    onPress={() => goto(routeMapping.DISCOVERY, 0)}
-                    onLayout={(event) => handleLayout(routeMapping.DISCOVERY, event.nativeEvent.layout)}
-                >
-                    {renderIcon(routeMapping.DISCOVERY)}
-                    {renderLabel(routeMapping.DISCOVERY, '发现')}
-                </TouchableOpacity>
-                <TouchableOpacity
-                    activeOpacity={0.9}
-                    style={styles.navButton}
-                    onPress={() => goto(routeMapping.SUBSCRIBE, 1)}
-                    onLayout={(event) => handleLayout(routeMapping.SUBSCRIBE, event.nativeEvent.layout)}
-                >
-                    {renderIcon(routeMapping.SUBSCRIBE)}
-                    {renderLabel(routeMapping.SUBSCRIBE, '订阅')}
-                </TouchableOpacity>
-                <TouchableOpacity
-                    activeOpacity={0.9}
-                    style={styles.navButton}
-                    onPress={() => goto(routeMapping.PROFILE, 2)}
-                    onLayout={(event) => handleLayout(routeMapping.PROFILE, event.nativeEvent.layout)}
-                >
-                    {renderIcon(routeMapping.PROFILE)}
-                    {renderLabel(routeMapping.PROFILE, '账号')}
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
+        <Animated.View
+            style={[
+                styles.navBarWrapper,
+                {
+                    transform: [{translateY: positionAnim}],
+                }
+            ]}
+        >
+            <SafeAreaView>
+                <View style={styles.navBar}>
+                    <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={styles.navButton}
+                        onPress={() => goto(routeMapping.DISCOVERY, 0)}
+                        onLayout={(event) => handleLayout(routeMapping.DISCOVERY, event.nativeEvent.layout)}
+                    >
+                        {renderIcon(routeMapping.DISCOVERY)}
+                        {renderLabel(routeMapping.DISCOVERY, '发现')}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={styles.navButton}
+                        onPress={() => goto(routeMapping.SUBSCRIBE, 1)}
+                        onLayout={(event) => handleLayout(routeMapping.SUBSCRIBE, event.nativeEvent.layout)}
+                    >
+                        {renderIcon(routeMapping.SUBSCRIBE)}
+                        {renderLabel(routeMapping.SUBSCRIBE, '订阅')}
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        style={styles.navButton}
+                        onPress={() => goto(routeMapping.PROFILE, 2)}
+                        onLayout={(event) => handleLayout(routeMapping.PROFILE, event.nativeEvent.layout)}
+                    >
+                        {renderIcon(routeMapping.PROFILE)}
+                        {renderLabel(routeMapping.PROFILE, '账号')}
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        </Animated.View>
     );
 };
 
 const styles = StyleSheet.create({
     navBarWrapper: {
-        backgroundColor: '#F5F5F5'
+        backgroundColor: '#F5F5F5',
+        position: 'absolute',
+        bottom: 0,
+        width: '100%',
     },
     navBar: {
         flexDirection: 'row',
