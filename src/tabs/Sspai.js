@@ -1,4 +1,4 @@
-import {Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
@@ -28,41 +28,49 @@ export const Sspai = () => {
         return <Text style={styles.normalTitle} numberOfLines={3} ellipsizeMode='tail'>{article.title}</Text>
     }
 
-    return <ScrollView>
-        {
-            news?.map((item, index) => {
-                return <TouchableOpacity key={index}
-                                         onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
-                    <View style={styles.newsItemWrapper}>
-                        <View style={styles.newItemContainer}>
-                            <Image
-                                style={styles.image}
-                                resizeMode="cover"
-                                source={{uri: item.banner}}
-                            />
+    useEffect(() => console.log('start to render sspai'), []);
 
-                            <View style={styles.textContainer}>
-                                {getArticleTitle(item)}
-                                <View style={styles.infoWrapper}>
-                                    <Text style={styles.publishDate}>{item.publishDate}</Text>
-                                    <View style={styles.countWrapper}>
-                                        <View style={styles.likeWrapper}>
-                                            <FlashlightIcon/>
-                                            <Text style={styles.likeCount}>{item.likeCount}</Text>
-                                        </View>
-                                        <View style={styles.commentWrapper}>
-                                            <CommentIcon/>
-                                            <Text style={styles.commentCount}>{item.commentCount}</Text></View>
+    return <FlatList
+        data={news}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+            <TouchableOpacity
+                onPress={() =>
+                    navigation.navigate('NewsDetailScreen', {
+                        url: "https://zchengb.top/api/t/" + item.shortLink,
+                    })
+                }
+            >
+                <View style={styles.newsItemWrapper}>
+                    <View style={styles.newItemContainer}>
+                        <Image
+                            style={styles.image}
+                            resizeMode="cover"
+                            source={{ uri: item.banner }}
+                        />
+
+                        <View style={styles.textContainer}>
+                            {getArticleTitle(item)}
+                            <View style={styles.infoWrapper}>
+                                <Text style={styles.publishDate}>{item.publishDate}</Text>
+                                <View style={styles.countWrapper}>
+                                    <View style={styles.likeWrapper}>
+                                        <FlashlightIcon />
+                                        <Text style={styles.likeCount}>{item.likeCount}</Text>
+                                    </View>
+                                    <View style={styles.commentWrapper}>
+                                        <CommentIcon />
+                                        <Text style={styles.commentCount}>{item.commentCount}</Text>
                                     </View>
                                 </View>
                             </View>
                         </View>
-                        <View style={styles.borderBottom}/>
                     </View>
-                </TouchableOpacity>
-            })
-        }
-    </ScrollView>
+                    <View style={styles.borderBottom} />
+                </View>
+            </TouchableOpacity>
+        )}
+    />
 }
 
 const styles = StyleSheet.create({

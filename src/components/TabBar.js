@@ -1,14 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {
-    Animated,
-    Dimensions,
-    Platform,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    TouchableOpacity
-} from 'react-native';
+import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity} from 'react-native';
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);

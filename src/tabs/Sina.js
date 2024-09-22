@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {ListItem} from "@rneui/themed";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
@@ -23,23 +23,38 @@ export const Sina = () => {
         return viewers;
     }
 
-    return <ScrollView>
-        {
-            news?.map((item, index) => {
-                return <TouchableOpacity key={index}
-                                         onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
+    useEffect(() => console.log('start to render sina'), []);
+
+    return <FlatList
+        initialNumToRender={20}
+        data={news}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({item, index}) => {
+            return (
+                <TouchableOpacity
+                    onPress={() =>
+                        navigation.navigate('NewsDetailScreen', {
+                            url: "https://zchengb.top/api/t/" + item.shortLink,
+                        })
+                    }
+                >
                     <ListItem containerStyle={styles.newItemContainer}>
-                        <View style={[
-                            styles.rankNumCircle,
-                            index < 3 && styles[`rankNumCircleTop${index + 1}`]
-                        ]}>
-                            <Text
-                                style={index < 3 ? styles.topRankNumText : styles.rankNumText}>{item.rankNum}</Text>
+                        <View
+                            style={[
+                                styles.rankNumCircle,
+                                index < 3 && styles[`rankNumCircleTop${index + 1}`],
+                            ]}
+                        >
+                            <Text style={index < 3 ? styles.topRankNumText : styles.rankNumText}>
+                                {item.rankNum}
+                            </Text>
                         </View>
                         <ListItem.Content>
-                            <ListItem.Title style={styles.title}
-                                            numberOfLines={1}
-                                            ellipsizeMode='tail'>
+                            <ListItem.Title
+                                style={styles.title}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
                                 {item.title}
                             </ListItem.Title>
                         </ListItem.Content>
@@ -48,9 +63,9 @@ export const Sina = () => {
                         </Text>
                     </ListItem>
                 </TouchableOpacity>
-            })
-        }
-    </ScrollView>
+            );
+        }}
+    />
 }
 
 const styles = StyleSheet.create({

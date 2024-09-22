@@ -1,4 +1,4 @@
-import {ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
@@ -210,21 +210,25 @@ export const Xiaoyuzhou = () => {
         }
     }
 
+    useEffect(() => console.log('start to render xiaoyuzhou'), []);
+
     return (
-        <ScrollView>
-            {news?.map((item, index) => (
-                <View style={styles.newsItemWrapper} key={index}>
+        <FlatList
+            data={news}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item, index }) => (
+                <View style={styles.newsItemWrapper}>
                     <View style={styles.newItemContainer}>
                         <Image
                             style={styles.image}
                             resizeMode="cover"
-                            source={{uri: item.coverUrl}}
+                            source={{ uri: item.coverUrl }}
                         />
 
                         <View style={styles.infoContainer}>
                             <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
                             <View style={styles.extraInfoWrapper}>
-                                <AuthorIcon/>
+                                <AuthorIcon />
                                 <Text style={styles.author} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
                             </View>
                             <View style={styles.extraInfoWrapper}>
@@ -248,39 +252,39 @@ export const Xiaoyuzhou = () => {
                                 backgroundColor="transparent"
                                 rotation={0}
                             >
-                                {
-                                    () => (
-                                        <TouchableOpacity
-                                            onPress={() => handlePlayButtonClick(index)}
-                                            style={[styles.playButton, {backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1',}]}
-                                        >
-                                            {
-                                                isCurrentItemLoading(item)
-                                                    ?
-                                                    <ActivityIndicator size="small"
-                                                                       color='#464646'
-                                                                       style={styles.playLoadingIndicator}/>
-                                                    :
-                                                    (
-                                                        isCurrentItemPlaying(item)
-                                                            ?
-                                                            <Icon size={18} name='pause' type='ionicon'
-                                                                  color='#F76F00'/>
-                                                            :
-                                                            <Icon size={18} name='play-sharp' type='ionicon'
-                                                                  color='#464646'
-                                                                  style={{marginLeft: 2}}/>
-                                                    )
-                                            }
-                                        </TouchableOpacity>
-                                    )
-                                }
+                                {() => (
+                                    <TouchableOpacity
+                                        onPress={() => handlePlayButtonClick(index)}
+                                        style={[
+                                            styles.playButton,
+                                            { backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1' },
+                                        ]}
+                                    >
+                                        {isCurrentItemLoading(item) ? (
+                                            <ActivityIndicator
+                                                size="small"
+                                                color="#464646"
+                                                style={styles.playLoadingIndicator}
+                                            />
+                                        ) : isCurrentItemPlaying(item) ? (
+                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00" />
+                                        ) : (
+                                            <Icon
+                                                size={18}
+                                                name="play-sharp"
+                                                type="ionicon"
+                                                color="#464646"
+                                                style={{ marginLeft: 2 }}
+                                            />
+                                        )}
+                                    </TouchableOpacity>
+                                )}
                             </AnimatedCircularProgress>
                         </View>
                     </View>
                 </View>
-            ))}
-        </ScrollView>
+            )}
+        />
     );
 };
 

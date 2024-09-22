@@ -1,4 +1,4 @@
-import {Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
@@ -13,32 +13,49 @@ export const DoubanMovie = () => {
         setMovies(globalState['news']['doubanMovie'])
     }, [globalState]);
 
+    useEffect(() => console.log('start to render douban'), []);
 
-    return <ScrollView style={styles.container}>
-        {
-            movies.map((movie, index) => {
-                const numericRate = parseFloat(movie.rate);
-                const rate = numericRate / 2;
+    return <FlatList
+        style={styles.container}
+        data={movies}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({item, index}) => {
+            const numericRate = parseFloat(item.rate);
+            const rate = numericRate / 2;
 
-                return <TouchableOpacity style={styles.movieItem} key={index} activeOpacity={0.8}
-                                         onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + movie.shortLink})}>
-                    <View style={[
-                        styles.rankNumCircle,
-                        index < 3 && styles[`rankNumCircleTop${index + 1}`]
-                    ]}>
-                        <Text
-                            style={index < 3 ? styles.topRankNumText : styles.rankNumText}>{movie.rankNum}</Text>
-                    </View>
-                    <Image style={styles.cover} source={{uri: movie.coverUrl}}></Image>
-                    <View style={styles.movieInfoWrapper}>
-                        <Text style={styles.movieName}>
-                            {movie.name}
+            return (
+                <TouchableOpacity
+                    style={styles.movieItem}
+                    activeOpacity={0.8}
+                    onPress={() =>
+                        navigation.navigate('NewsDetailScreen', {
+                            url: "https://zchengb.top/api/t/" + item.shortLink,
+                        })
+                    }
+                >
+                    <View
+                        style={[
+                            styles.rankNumCircle,
+                            index < 3 && styles[`rankNumCircleTop${index + 1}`],
+                        ]}
+                    >
+                        <Text style={index < 3 ? styles.topRankNumText : styles.rankNumText}>
+                            {item.rankNum}
                         </Text>
+                    </View>
+                    <Image style={styles.cover} source={{uri: item.coverUrl}}/>
+                    <View style={styles.movieInfoWrapper}>
+                        <Text style={styles.movieName}>{item.name}</Text>
                         <View style={styles.additionalInfoWrapper}>
-                            <Text style={styles.additionalText}>{movie.publishDate} / </Text>
-                            <Text style={styles.additionalText}>{movie.region} / </Text>
-                            <Text style={[styles.additionalText, styles.movieTypeText]} numberOfLines={1}
-                                  ellipsizeMode='tail'>{movie.type}</Text>
+                            <Text style={styles.additionalText}>{item.publishDate} / </Text>
+                            <Text style={styles.additionalText}>{item.region} / </Text>
+                            <Text
+                                style={[styles.additionalText, styles.movieTypeText]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                {item.type}
+                            </Text>
                         </View>
                         <View style={styles.rankWrapper}>
                             <Rating
@@ -47,13 +64,13 @@ export const DoubanMovie = () => {
                                 imageSize={16}
                                 fractions={1}
                             />
-                            <Text style={styles.rankText}>{movie.rate}</Text>
+                            <Text style={styles.rankText}>{item.rate}</Text>
                         </View>
                     </View>
                 </TouchableOpacity>
-            })
-        }
-    </ScrollView>
+            );
+        }}
+    />
 }
 
 const styles = StyleSheet.create({

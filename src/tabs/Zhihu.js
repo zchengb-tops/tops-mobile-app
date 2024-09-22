@@ -1,4 +1,4 @@
-import {Image, ScrollView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
@@ -16,38 +16,45 @@ export const Zhihu = () => {
         return Number(number).toLocaleString("en-US", {minimumIntegerDigits: 2, useGrouping: false});
     }
 
-    return <ScrollView>
-        {
-            news?.map((item, index) => {
-                return <TouchableOpacity key={index}
-                                         onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}>
-                    <View style={styles.newsItemWrapper}>
-                        <View style={styles.newItemContainer}>
-                            <View style={styles.rankContainer}>
-                                <Text
-                                    style={index < 3 ? styles[`rankNumTop${index + 1}`] : styles.rankNumText}>{formatTwoDigits(item.rankNum)}</Text>
-                            </View>
-                            <View style={styles.textContainer}>
-                                <Text style={styles.title}
-                                      numberOfLines={4}
-                                      ellipsizeMode='tail'>{item.title}</Text>
-                                <Text style={styles.viewerText}>{item.properties.metrics}</Text>
-                            </View>
-                            {
-                                item.properties.banner !== 'https://zchengb-images.oss-cn-shenzhen.aliyuncs.com/1.jpeg' &&
-                                <Image
-                                    style={styles.image}
-                                    resizeMode="cover"
-                                    source={{uri: item.properties.banner}}
-                                />
-                            }
+    useEffect(() => console.log('start to render zhihu'), []);
+
+    return <FlatList
+        data={news}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+            <TouchableOpacity
+                onPress={() => navigation.navigate('NewsDetailScreen', { url: "https://zchengb.top/api/t/" + item.shortLink })}
+            >
+                <View style={styles.newsItemWrapper}>
+                    <View style={styles.newItemContainer}>
+                        <View style={styles.rankContainer}>
+                            <Text
+                                style={index < 3 ? styles[`rankNumTop${index + 1}`] : styles.rankNumText}>
+                                {formatTwoDigits(item.rankNum)}
+                            </Text>
                         </View>
-                        <View style={styles.borderBottom}/>
+                        <View style={styles.textContainer}>
+                            <Text
+                                style={styles.title}
+                                numberOfLines={4}
+                                ellipsizeMode='tail'>
+                                {item.title}
+                            </Text>
+                            <Text style={styles.viewerText}>{item.properties.metrics}</Text>
+                        </View>
+                        {item.properties.banner !== 'https://zchengb-images.oss-cn-shenzhen.aliyuncs.com/1.jpeg' && (
+                            <Image
+                                style={styles.image}
+                                resizeMode="cover"
+                                source={{ uri: item.properties.banner }}
+                            />
+                        )}
                     </View>
-                </TouchableOpacity>
-            })
-        }
-    </ScrollView>
+                    <View style={styles.borderBottom} />
+                </View>
+            </TouchableOpacity>
+        )}
+    />
 }
 
 const styles = StyleSheet.create({

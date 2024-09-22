@@ -1,5 +1,5 @@
-import React, {useContext, useEffect, useState} from "react";
-import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
+import React, {Profiler, useContext, useEffect, useState} from "react";
+import {ActivityIndicator, SafeAreaView, StyleSheet, View} from 'react-native';
 import {TabView} from "@rneui/themed";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useTrackShowing} from "../hooks/TrackHooks";
@@ -18,11 +18,18 @@ export const DiscoveryScreen = () => {
     const playBarShowing = useTrackShowing();
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
+    const [loadedTabs, setLoadedTabs] = useState(new Set());
+
 
     useEffect(() => {
         initialChannelList();
     }, [isFocused]);
 
+    useEffect(() => {
+        const newLoadedTabs = new Set(loadedTabs);
+        newLoadedTabs.add(tabIndex);
+        setLoadedTabs(newLoadedTabs);
+    }, [tabIndex]);
 
     useEffect(() => {
         fetchNews().then(() => console.log('Successfully fetch news :)'));
@@ -85,12 +92,13 @@ export const DiscoveryScreen = () => {
         try {
             const response = await fetch('https://zchengb.top/api/normal-news');
             const data = await response.json();
-            setGlobalState({...globalState, news: data});
+            await setGlobalState({...globalState, news: data});
         } catch (error) {
             console.error('Error fetching news:', error);
             setLoadError(true);
         } finally {
             setLoading(false);
+            console.log('loading finished', new Date())
         }
     };
 
@@ -109,28 +117,32 @@ export const DiscoveryScreen = () => {
                     .filter(channel => channel.enable)
                     .map(
                         (channel, index) => {
-                            return <TabView.Item style={styles.tabView} key={index}>
-                                <ScrollView
-                                    contentContainerStyle={[styles.scrollView, {paddingBottom: playBarShowing ? 100 : 0}]}
-                                    refreshControl={
-                                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
-                                    }
-                                >
-                                    {
-                                        loadError
-                                            ?
-                                            <ErrorScreen fetchNews={fetchNews}/>
-                                            :
-                                            (loading && !refreshing
-                                                ?
-                                                <View style={styles.loadingView}>
-                                                    <ActivityIndicator/>
-                                                </View>
-                                                :
-                                                channel.component)
-                                    }
-                                </ScrollView>
-                            </TabView.Item>
+                            if (loadedTabs.has(index) || Math.abs(tabIndex - index) <= 1) {
+                                return (
+                                    <TabView.Item style={styles.tabView} key={index}>
+                                        <View
+                                            style={[styles.scrollView, {paddingBottom: playBarShowing ? 100 : 0}]}
+                                        >
+                                            {
+                                                loadError
+                                                    ?
+                                                    <ErrorScreen fetchNews={fetchNews}/>
+                                                    :
+                                                    (loading && !refreshing
+                                                            ?
+                                                            <View style={styles.loadingView}>
+                                                                <ActivityIndicator/>
+                                                            </View>
+                                                            :
+                                                            channel.component
+                                                    )
+                                            }
+                                        </View>
+                                    </TabView.Item>
+                                );
+                            } else {
+                                return <TabView.Item key={index} style={styles.tabView}/>;
+                            }
                         }
                     )
             }
@@ -150,7 +162,7 @@ const styles = StyleSheet.create({
     },
     tabBarIcon: {width: 16, height: 16, marginRight: 4},
     scrollView: {
-        flexGrow: 1,
+        flex: 1,
     },
     loadingView: {
         flex: 1,
