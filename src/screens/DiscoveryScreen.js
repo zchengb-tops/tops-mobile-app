@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     tabView: {
+        marginBottom: 48,
         flex: 1,
         backgroundColor: '#fffff',
         width: '100%'
