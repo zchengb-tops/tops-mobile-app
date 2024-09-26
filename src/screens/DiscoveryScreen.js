@@ -1,4 +1,4 @@
-import React, {Profiler, useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {ActivityIndicator, SafeAreaView, StyleSheet, View} from 'react-native';
 import {TabView} from "@rneui/themed";
 import {GlobalContext} from "../../utils/GlobalContext";

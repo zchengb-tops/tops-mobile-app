@@ -33,7 +33,7 @@ export const Sspai = () => {
     return <FlatList
         data={news}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item, index }) => (
+        renderItem={({item, index}) => (
             <TouchableOpacity
                 onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
@@ -46,7 +46,7 @@ export const Sspai = () => {
                         <Image
                             style={styles.image}
                             resizeMode="cover"
-                            source={{ uri: item.banner }}
+                            source={{uri: item.banner}}
                         />
 
                         <View style={styles.textContainer}>
@@ -55,18 +55,18 @@ export const Sspai = () => {
                                 <Text style={styles.publishDate}>{item.publishDate}</Text>
                                 <View style={styles.countWrapper}>
                                     <View style={styles.likeWrapper}>
-                                        <FlashlightIcon />
+                                        <FlashlightIcon/>
                                         <Text style={styles.likeCount}>{item.likeCount}</Text>
                                     </View>
                                     <View style={styles.commentWrapper}>
-                                        <CommentIcon />
+                                        <CommentIcon/>
                                         <Text style={styles.commentCount}>{item.commentCount}</Text>
                                     </View>
                                 </View>
                             </View>
                         </View>
                     </View>
-                    <View style={styles.borderBottom} />
+                    <View style={styles.borderBottom}/>
                 </View>
             </TouchableOpacity>
         )}

@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
         marginLeft: 2
     },
     channelContainer: {
+        marginBottom: 48,
         marginTop: 12,
         flex: 1,
     },
