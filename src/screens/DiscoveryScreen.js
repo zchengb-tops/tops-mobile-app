@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {ActivityIndicator, SafeAreaView, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
 import {TabView} from "@rneui/themed";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useTrackShowing} from "../hooks/TrackHooks";
@@ -120,8 +120,11 @@ export const DiscoveryScreen = () => {
                             if (loadedTabs.has(index) || Math.abs(tabIndex - index) <= 1) {
                                 return (
                                     <TabView.Item style={styles.tabView} key={index}>
-                                        <View
+                                        <ScrollView
                                             style={[styles.scrollView, {paddingBottom: playBarShowing ? 100 : 0}]}
+                                            refreshControl={
+                                                <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
+                                            }
                                         >
                                             {
                                                 loadError
@@ -137,7 +140,7 @@ export const DiscoveryScreen = () => {
                                                             channel.component
                                                     )
                                             }
-                                        </View>
+                                        </ScrollView>
                                     </TabView.Item>
                                 );
                             } else {
