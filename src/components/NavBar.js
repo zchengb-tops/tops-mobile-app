@@ -1,9 +1,8 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Animated, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Easing} from "react-native";
+import {Animated, Easing, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {useVisibility} from "../../utils/VisibilityProvider";
 import {Icon} from "@rneui/themed";
 import {useNavigation} from "@react-navigation/native";
-import {trigger} from "react-native-haptic-feedback";
 
 export const NavBar = () => {
     const routeMapping = {
@@ -98,11 +97,6 @@ export const NavBar = () => {
     }
 
     const goto = (routeName, index) => {
-        trigger("impactLight", {
-            enableVibrateFallback: true,
-            ignoreAndroidSystemSettings: false,
-        });
-
         const {x} = tabRefs.current[routeName];
 
         Animated.spring(translateAnim, {
