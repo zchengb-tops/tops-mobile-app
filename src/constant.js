@@ -16,6 +16,7 @@ import React from "react";
 import {StyleSheet} from 'react-native';
 import HotIcon from "../assets/icons/hot.svg";
 import {DoubanMovie} from "./tabs/DoubanMovie";
+import {Bilibili} from "./tabs/Bilibili";
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -79,7 +80,7 @@ export const DEFAULT_CHANNEL_LIST = [
         title: '哔哩哔哩',
         tabTitle: '哔哩哔哩',
         desc: '哔哩哔哩每周必看榜单',
-        enable: false,
+        enable: true,
         isOrigin: true
     },
     {
@@ -145,7 +146,7 @@ export const CHANNEL_COMPONENT_MAP = {
     },
     'bilibili': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <BilibiliIcon width={width} height={height} style={style}/>,
-        component: <></>
+        component: <Bilibili/>
     },
     'nnGroup': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <NngroupIcon width={width} height={height} style={style}/>,
