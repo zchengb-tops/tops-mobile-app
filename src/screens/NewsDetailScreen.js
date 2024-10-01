@@ -39,7 +39,7 @@ export const NewsDetailScreen = ({route}) => {
 
         <WebView
             key={webviewKey}
-            source={{uri: "https://m.bilibili.com/video/BV1LLsYeuEqR"}}
+            source={{uri: url}}
             originWhitelist={['*']}
             allowsFullscreenVideo={false}
             javaScriptEnabled={true}
