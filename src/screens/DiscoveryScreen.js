@@ -121,6 +121,7 @@ export const DiscoveryScreen = () => {
                                 return (
                                     <TabView.Item style={styles.tabView} key={index}>
                                         <ScrollView
+                                            contentContainerStyle={{flex: 1}}
                                             style={[styles.scrollView, {paddingBottom: playBarShowing ? 100 : 0}]}
                                             refreshControl={
                                                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
@@ -171,6 +172,6 @@ const styles = StyleSheet.create({
     loadingView: {
         flex: 1,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     }
 })
