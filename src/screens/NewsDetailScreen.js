@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {WebView} from "react-native-webview";
-import {ActivityIndicator, StyleSheet, View} from "react-native";
+import {ActivityIndicator, Alert, Linking, StyleSheet, View} from "react-native";
 import {useIsFocused} from "@react-navigation/native";
 import {useVisibility} from "../../utils/VisibilityProvider";
 
@@ -25,6 +25,13 @@ export const NewsDetailScreen = ({route}) => {
         };
     }, [isFocused]);
 
+    const handleShouldStartLoadWithRequest = (request) => {
+        const url = request.url;
+
+        return url.startsWith('http') || url.startsWith('https');
+    };
+
+
     return <View style={styles.container}>
         {
             loading && <View style={styles.loadingContainer}><ActivityIndicator/></View>
@@ -32,7 +39,7 @@ export const NewsDetailScreen = ({route}) => {
 
         <WebView
             key={webviewKey}
-            source={{uri: url}}
+            source={{uri: "https://m.bilibili.com/video/BV1LLsYeuEqR"}}
             originWhitelist={['*']}
             allowsFullscreenVideo={false}
             javaScriptEnabled={true}
@@ -40,6 +47,11 @@ export const NewsDetailScreen = ({route}) => {
             onLoadEnd={(e) => {
                 setLoading(false);
             }}
+            onError={(syntheticEvent) => {
+                const {nativeEvent} = syntheticEvent;
+                console.warn('WebView error: ', nativeEvent);
+            }}
+            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
         />
     </View>;
 };
