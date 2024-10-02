@@ -70,7 +70,10 @@ export const DiscoveryScreen = () => {
             {
                 ...channel,
                 renderIcon: CHANNEL_COMPONENT_MAP[channel.id]?.renderIcon,
-                component: CHANNEL_COMPONENT_MAP[channel.id]?.component
+                renderComponent: (onRefresh, refreshing) => CHANNEL_COMPONENT_MAP[channel.id]?.component({
+                    onRefresh,
+                    refreshing
+                })
             }
         ));
     }

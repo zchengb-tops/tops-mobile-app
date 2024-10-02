@@ -1,4 +1,4 @@
-import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
@@ -6,7 +6,7 @@ import FlashlightIcon from "../../assets/icons/flashlight.svg";
 import CommentIcon from "../../assets/icons/comment.svg";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Sspai = () => {
+export const Sspai = ({onRefresh, refreshing}) => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
@@ -34,6 +34,9 @@ export const Sspai = () => {
 
     return <FlatList
         data={news}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         renderItem={({item, index}) => (

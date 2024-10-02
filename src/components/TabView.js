@@ -76,7 +76,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onRefresh, loading,
                                                         ? <View style={styles.loadingView}>
                                                             <ActivityIndicator/>
                                                         </View>
-                                                        : channel.component
+                                                        : channel.renderComponent(onRefresh, refreshing)
                                                 )
                                         }
                                     </View>

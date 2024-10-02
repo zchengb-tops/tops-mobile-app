@@ -1,10 +1,10 @@
-import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Zhihu = () => {
+export const Zhihu = ({onRefresh, refreshing}) => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
@@ -24,6 +24,9 @@ export const Zhihu = () => {
         data={news}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         renderItem={({ item, index }) => (
             <TouchableOpacity
                 onPress={() => navigation.navigate('NewsDetailScreen', { url: "https://zchengb.top/api/t/" + item.shortLink })}

@@ -1,11 +1,11 @@
-import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "react-native-ratings";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const DoubanMovie = () => {
+export const DoubanMovie = ({onRefresh, refreshing}) => {
     const {globalState} = useContext(GlobalContext);
     const [movies, setMovies] = useState([]);
     const navigation = useNavigation();
@@ -19,6 +19,9 @@ export const DoubanMovie = () => {
 
     return <FlatList
         style={styles.container}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         data={movies}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         keyExtractor={(item, index) => index.toString()}

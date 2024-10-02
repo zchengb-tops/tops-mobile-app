@@ -1,4 +1,4 @@
-import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
@@ -7,7 +7,7 @@ import ViewIcon from "../../assets/icons/view.svg"
 import LikeIcon from "../../assets/icons/like.svg"
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Bilibili = () => {
+export const Bilibili = ({onRefresh, refreshing}) => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
@@ -32,6 +32,9 @@ export const Bilibili = () => {
     return <FlatList
         style={styles.container}
         data={news}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         renderItem={({item, index}) => {

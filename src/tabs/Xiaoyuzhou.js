@@ -1,4 +1,13 @@
-import {ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {
+    ActivityIndicator,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
@@ -8,7 +17,7 @@ import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
 
-export const Xiaoyuzhou = () => {
+export const Xiaoyuzhou = ({onRefresh, refreshing}) => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const progress = useProgress();
@@ -216,6 +225,9 @@ export const Xiaoyuzhou = () => {
     return (
         <FlatList
             data={news}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
             renderItem={({ item, index }) => (

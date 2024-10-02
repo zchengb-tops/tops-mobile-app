@@ -1,11 +1,11 @@
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {ListItem} from "@rneui/themed";
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Sina = () => {
+export const Sina = ({onRefresh, refreshing}) => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
@@ -29,6 +29,9 @@ export const Sina = () => {
 
     return <FlatList
         initialNumToRender={20}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         data={news}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         keyExtractor={(item, index) => index.toString()}
