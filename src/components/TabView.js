@@ -15,7 +15,6 @@ import {useTrackShowing} from "../hooks/TrackHooks";
 
 export const TabView = ({channelList, tabIndex, setTabIndex, onRefresh, loading, loadError, refreshing}) => {
     const [loadedTabs, setLoadedTabs] = useState(new Set());
-    const playBarShowing = useTrackShowing();
     const tabViewRef = useRef(null);
     const screenWidth = Dimensions.get('window').width;
     const [dragging, setDragging] = useState(false);
@@ -65,13 +64,10 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onRefresh, loading,
                         (channel, index) => {
                             if (loadedTabs.has(index) || Math.abs(tabIndex - index) <= 1) {
                                 return (
-                                    <ScrollView
+                                    <View
                                         key={index}
                                         contentContainerStyle={{flex: 1}}
-                                        style={[styles.tabView, {paddingBottom: playBarShowing ? 100 : 0}]}
-                                        refreshControl={
-                                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
-                                        }
+                                        style={[styles.tabView]}
                                     >
                                         {
                                             loadError
@@ -83,7 +79,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onRefresh, loading,
                                                         : channel.component
                                                 )
                                         }
-                                    </ScrollView>
+                                    </View>
                                 );
                             } else {
                                 return <ScrollView key={index} style={styles.tabView}/>;

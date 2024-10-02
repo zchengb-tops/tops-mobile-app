@@ -3,11 +3,13 @@ import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "react-native-ratings";
+import {useTrackShowing} from "../hooks/TrackHooks";
 
 export const DoubanMovie = () => {
     const {globalState} = useContext(GlobalContext);
     const [movies, setMovies] = useState([]);
     const navigation = useNavigation();
+    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setMovies(globalState['news']['doubanMovie'])
@@ -18,6 +20,7 @@ export const DoubanMovie = () => {
     return <FlatList
         style={styles.container}
         data={movies}
+        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
             const numericRate = parseFloat(item.rate);

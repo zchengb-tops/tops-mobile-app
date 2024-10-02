@@ -5,11 +5,13 @@ import {useNavigation} from "@react-navigation/native";
 import AuthorIcon from "../../assets/icons/author.svg"
 import ViewIcon from "../../assets/icons/view.svg"
 import LikeIcon from "../../assets/icons/like.svg"
+import {useTrackShowing} from "../hooks/TrackHooks";
 
 export const Bilibili = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(globalState['news']['bilibili'])
@@ -31,10 +33,11 @@ export const Bilibili = () => {
         style={styles.container}
         data={news}
         keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         renderItem={({item, index}) => {
             return <TouchableOpacity style={[styles.itemWrapper, {marginTop: index === 0 ? 16 : 8}]}
                                      activeOpacity={0.8}
-                                     onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink, })}
+                                     onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink,})}
             >
                 <Image style={styles.cover} source={{uri: item.properties.firstFrame.replace('http://', 'https://')}}/>
                 <View style={styles.itemInfoWrapper}>
@@ -43,7 +46,8 @@ export const Bilibili = () => {
                         <View style={styles.authorInfoWrapper}>
                             <View style={styles.iconItemWrapper}>
                                 <AuthorIcon width={12} height={12}/>
-                                <Text style={styles.infoText} numberOfLines={1} ellipsizeMode='tail'>{item.properties.owner}</Text>
+                                <Text style={styles.infoText} numberOfLines={1}
+                                      ellipsizeMode='tail'>{item.properties.owner}</Text>
                             </View>
                         </View>
                         <View style={styles.statisticInfoWrapper}>

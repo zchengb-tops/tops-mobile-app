@@ -4,11 +4,13 @@ import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
 import FlashlightIcon from "../../assets/icons/flashlight.svg";
 import CommentIcon from "../../assets/icons/comment.svg";
+import {useTrackShowing} from "../hooks/TrackHooks";
 
 export const Sspai = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(globalState['news']['sspai'])
@@ -33,6 +35,7 @@ export const Sspai = () => {
     return <FlatList
         data={news}
         keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         renderItem={({item, index}) => (
             <TouchableOpacity
                 onPress={() =>

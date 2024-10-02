@@ -4,7 +4,7 @@ import {GlobalContext} from "../../utils/GlobalContext";
 import AuthorIcon from "../../assets/icons/author.svg";
 import TrackPlayer, {Capability, Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
 import {useTrackStateStore} from "../AudioTrackStore";
-import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
 
@@ -14,6 +14,7 @@ export const Xiaoyuzhou = () => {
     const progress = useProgress();
     const playStatus = useTrackStatus();
     const playingTrack = useTrack();
+    const playBarShowing = useTrackShowing();
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
@@ -216,6 +217,7 @@ export const Xiaoyuzhou = () => {
         <FlatList
             data={news}
             keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
             renderItem={({ item, index }) => (
                 <View style={styles.newsItemWrapper}>
                     <View style={styles.newItemContainer}>

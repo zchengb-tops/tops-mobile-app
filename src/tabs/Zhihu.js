@@ -2,11 +2,13 @@ import {FlatList, Image, StyleSheet, Text, TouchableOpacity, View} from "react-n
 import React, {useContext, useEffect, useState} from "react";
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useNavigation} from "@react-navigation/native";
+import {useTrackShowing} from "../hooks/TrackHooks";
 
 export const Zhihu = () => {
     const {globalState} = useContext(GlobalContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(globalState['news']['zhihu'])
@@ -20,6 +22,7 @@ export const Zhihu = () => {
 
     return <FlatList
         data={news}
+        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item, index }) => (
             <TouchableOpacity
