@@ -43,7 +43,7 @@ export const Bilibili = () => {
                         <View style={styles.authorInfoWrapper}>
                             <View style={styles.iconItemWrapper}>
                                 <AuthorIcon width={12} height={12}/>
-                                <Text style={styles.infoText}>{item.properties.owner}</Text>
+                                <Text style={styles.infoText} numberOfLines={1} ellipsizeMode='tail'>{item.properties.owner}</Text>
                             </View>
                         </View>
                         <View style={styles.statisticInfoWrapper}>
