@@ -10,6 +10,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const screenWidth = Dimensions.get('window').width;
     const [scrollX, setScrollX] = useState(0);
     const statusBarHeight = StatusBar.currentHeight || 0;
+    const [isAnimating, setIsAnimating] = useState(false);
 
     useEffect(() => {
         if (tabWidths.current.length > 0) {
@@ -24,6 +25,9 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 
             const currentScreenEndPosition = scrollX + screenWidth;
             const currentScreenStartPosition = currentScreenEndPosition - screenWidth;
+
+            setIsAnimating(true);
+
             if (currentScreenEndPosition < tabItemEndPosition) {
                 let tabOffset = tabItemEndPosition - screenWidth + 10 + 20;
                 tabOffset = tabOffset > 0 ? tabOffset : 0;
@@ -41,6 +45,8 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                 toValue: tabItemStartPosition,
                 useNativeDriver: false,
             }).start();
+
+            setTimeout(() => setIsAnimating(false), 300);
 
             setTimeout(() => {
                 Animated.timing(animatedWidth, {
@@ -98,6 +104,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                 activeOpacity={0.9}
                                 style={[styles.tabBarItem]}
                                 key={index}
+                                disabled={isAnimating}
                                 onPress={() => setTabIndex(index)}
                                 onLayout={(event) => {
                                     const width = event.nativeEvent.layout.width;
