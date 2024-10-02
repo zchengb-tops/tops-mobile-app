@@ -1,6 +1,5 @@
-import React, {useContext, useEffect, useState} from "react";
-import {ActivityIndicator, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
-import {TabView} from "@rneui/themed";
+import React, {useContext, useEffect, useRef, useState} from "react";
+import {ActivityIndicator, Dimensions, RefreshControl, SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
 import {GlobalContext} from "../../utils/GlobalContext";
 import {useTrackShowing} from "../hooks/TrackHooks";
 import {TabBar} from "../components/TabBar";
@@ -19,7 +18,9 @@ export const DiscoveryScreen = () => {
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
     const [loadedTabs, setLoadedTabs] = useState(new Set());
-
+    const tabViewRef = useRef(null);
+    const screenWidth = Dimensions.get('window').width;
+    const [isProgrammaticScroll, setIsProgrammaticScroll] = useState(false);
 
     useEffect(() => {
         initialChannelList();
@@ -109,9 +110,43 @@ export const DiscoveryScreen = () => {
         console.log('refresh completed.');
     };
 
+    const visibleChannel = () => {
+        return channelList.filter(channel => channel.enable);
+    }
+
+    const handleScroll = (event) => {
+        if (isProgrammaticScroll) return;
+        const xOffset = event.nativeEvent.contentOffset.x;
+        const newIndex = Math.round(xOffset / screenWidth);
+
+        if (newIndex !== tabIndex) {
+            setTabIndex(newIndex);
+        }
+    };
+
+    const changeTabIndexFromTabBar = (newIndex) => {
+        if (tabViewRef.current) {
+            setIsProgrammaticScroll(true);
+            const screenWidth = Dimensions.get('window').width;
+            tabViewRef.current.scrollTo({x: screenWidth * newIndex, animated: true});
+            setTimeout(() => setIsProgrammaticScroll(false), 300);
+        }
+        setTabIndex(newIndex);
+    }
+
     return <SafeAreaView style={styles.container}>
-        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
-        <TabView value={tabIndex} onChange={setTabIndex} animationType="spring" minSwipeRatio={0} minSwipeSpeed={100}>
+        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={changeTabIndexFromTabBar}/>
+        <ScrollView
+            ref={tabViewRef}
+            horizontal
+            pagingEnabled={true}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={{width: screenWidth * channelList.filter(channel => channel.enable).length}}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+
+        >
             {
                 channelList
                     .filter(channel => channel.enable)
@@ -119,38 +154,33 @@ export const DiscoveryScreen = () => {
                         (channel, index) => {
                             if (loadedTabs.has(index) || Math.abs(tabIndex - index) <= 1) {
                                 return (
-                                    <TabView.Item style={styles.tabView} key={index}>
-                                        <ScrollView
-                                            contentContainerStyle={{flex: 1}}
-                                            style={[styles.scrollView, {paddingBottom: playBarShowing ? 100 : 0}]}
-                                            refreshControl={
-                                                <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
-                                            }
-                                        >
-                                            {
-                                                loadError
-                                                    ?
-                                                    <ErrorScreen fetchNews={fetchNews}/>
-                                                    :
-                                                    (loading && !refreshing
-                                                            ?
-                                                            <View style={styles.loadingView}>
-                                                                <ActivityIndicator/>
-                                                            </View>
-                                                            :
-                                                            channel.component
-                                                    )
-                                            }
-                                        </ScrollView>
-                                    </TabView.Item>
+                                    <ScrollView
+                                        key={index}
+                                        contentContainerStyle={{flex: 1}}
+                                        style={[styles.tabView, {paddingBottom: playBarShowing ? 100 : 0}]}
+                                        refreshControl={
+                                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
+                                        }
+                                    >
+                                        {
+                                            loadError
+                                                ? <ErrorScreen fetchNews={fetchNews}/>
+                                                : (loading && !refreshing
+                                                        ? <View style={styles.loadingView}>
+                                                            <ActivityIndicator/>
+                                                        </View>
+                                                        : channel.component
+                                                )
+                                        }
+                                    </ScrollView>
                                 );
                             } else {
-                                return <TabView.Item key={index} style={styles.tabView}/>;
+                                return <ScrollView key={index} style={styles.tabView}/>;
                             }
                         }
                     )
             }
-        </TabView>
+        </ScrollView>
     </SafeAreaView>
 };
 
@@ -163,12 +193,8 @@ const styles = StyleSheet.create({
         marginBottom: 48,
         flex: 1,
         backgroundColor: '#fffff',
-        width: '100%'
     },
     tabBarIcon: {width: 16, height: 16, marginRight: 4},
-    scrollView: {
-        flex: 1,
-    },
     loadingView: {
         flex: 1,
         justifyContent: "center",
