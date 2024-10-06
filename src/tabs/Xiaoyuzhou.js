@@ -144,7 +144,7 @@ export const Xiaoyuzhou = () => {
     }
 
     const isCurrentItemInTrack = (newsItem) => {
-        return playingTrack && newsItem.id === playingTrack.id;
+        return playingTrack && newsItem.id === playingTrack.id && playingTrack.source === 'xiaoyuzhou';
     }
 
     const isCurrentItemPlaying = (newsItem) => {
