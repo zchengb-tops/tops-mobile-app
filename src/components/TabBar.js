@@ -84,12 +84,13 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
         <ScrollView
             style={[styles.tabBar, {marginTop: statusBarHeight}]}
             ref={scrollViewRef}
-            contentContainerStyle={styles.tabBarContent}
-            horizontal
+            contentContainerStyle={[styles.tabBarContent, {flexDirection: 'row'}]}
+            horizontal={true}
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={onScroll}
+            bounces={false}
         >
             <Animated.View style={[styles.selectedBackground, animatedStyle]}/>
             {
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 5,
-        marginRight: 5
+        marginRight: 5,
     },
     selectedBackground: {
         position: 'absolute',
