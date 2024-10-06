@@ -1,5 +1,6 @@
 import TrackPlayer, {Event, State} from 'react-native-track-player';
 import {useTrackStateStore} from '../AudioTrackStore';
+import {storage} from "../storage";
 
 const setProgress = useTrackStateStore.getState().setProgress;
 const setStatus = useTrackStateStore.getState().setStatus;
@@ -15,5 +16,10 @@ export const PlaybackService = async function () {
 
     TrackPlayer.addEventListener(Event.PlaybackProgressUpdated, async ({position, track: trackIndex}) => {
         setProgress(position);
+        TrackPlayer.getTrack(trackIndex).then(track => {
+            track['position'] = position;
+            storage.set('currentTrack', JSON.stringify(track));
+            console.log('update current track into mmkv');
+        });
     });
 };

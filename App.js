@@ -13,6 +13,9 @@ import {VisibilityProvider} from "./utils/VisibilityProvider";
 import {NavBar} from "./src/components/NavBar";
 import {SubscribeScreen} from "./src/screens/SubscribeScreen";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
+import {Capability} from "react-native-track-player";
+import {storage} from "./src/storage";
+import {useTrackStateStore} from "./src/AudioTrackStore";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -41,6 +44,59 @@ const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
 
+const initializeTrackPlayer = async () => {
+    await TrackPlayer.setupPlayer();
+
+    await TrackPlayer.updateOptions({
+        progressUpdateEventInterval: 1,
+        stopWithApp: true,
+        capabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.JumpForward,
+            Capability.JumpBackward,
+            Capability.SeekTo
+        ],
+        compactCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.JumpForward,
+            Capability.JumpBackward
+        ],
+        notificationCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.JumpForward,
+            Capability.JumpBackward,
+            Capability.SeekTo
+        ],
+        androidCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.JumpForward,
+            Capability.JumpBackward
+        ],
+    });
+
+    const currentTrack = storage.getString('currentTrack');
+    if (currentTrack) {
+        const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
+        const setTrack = useTrackStateStore.getState().setTrack;
+        const track = JSON.parse(currentTrack);
+        await TrackPlayer.add([track]);
+        await TrackPlayer.seekTo(track.position);
+        await TrackPlayer.pause();
+        setPlayerBarShowing();
+        setTrack(track);
+        console.log('load exist track from mmkv:', track);
+    }
+}
+
+initializeTrackPlayer().then(r => console.log('initialize track player'));
+
 const DiscoveryStackNavigator = () => {
     return (
         <Stack.Navigator screenOptions={{
@@ -49,8 +105,9 @@ const DiscoveryStackNavigator = () => {
             gestureDirection: 'horizontal',
             animationEnabled: true,
         }}>
-            <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: '发现'}} />
-            <Stack.Screen name="NewsDetailScreen" component={NewsDetailScreen}  options={{title: "资讯详情",  headerShown: true}} />
+            <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: '发现'}}/>
+            <Stack.Screen name="NewsDetailScreen" component={NewsDetailScreen}
+                          options={{title: "资讯详情", headerShown: true}}/>
         </Stack.Navigator>
     );
 }
@@ -66,12 +123,12 @@ export default function App() {
                                 screenOptions={{
                                     headerShown: false,
                                     animationEnabled: false,
-                                    tabBarStyle: { display: 'none' },
+                                    tabBarStyle: {display: 'none'},
                                 }}
                             >
-                                <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator} />
-                                <Tab.Screen name="SubscribeScreen" component={SubscribeScreen} />
-                                <Tab.Screen name="ProfileScreen" component={ProfileScreen} />
+                                <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
+                                <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
+                                <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
                             </Tab.Navigator>
                             <PlayerBar/>
                             <NavBar/>

@@ -56,10 +56,6 @@ export const Xiaoyuzhou = () => {
     }, [progress]);
 
     useEffect(() => {
-        initializeTrackPlayer().then(r => console.log('initialize track player'));
-    }, []);
-
-    useEffect(() => {
         const newsItem = allNews['xiaoyuzhou'];
         newsItem?.forEach((newsItem, index) => {
             newsItem.id = index;
@@ -106,46 +102,6 @@ export const Xiaoyuzhou = () => {
             }
         });
 
-    const initializeTrackPlayer = async () => {
-        await TrackPlayer.setupPlayer();
-
-        await TrackPlayer.updateOptions({
-            progressUpdateEventInterval: 1,
-            stopWithApp: true,
-            capabilities: [
-                Capability.Play,
-                Capability.Pause,
-                Capability.Stop,
-                Capability.JumpForward,
-                Capability.JumpBackward,
-                Capability.SeekTo
-            ],
-            compactCapabilities: [
-                Capability.Play,
-                Capability.Pause,
-                Capability.JumpForward,
-                Capability.JumpBackward
-            ],
-            // Control capabilities in iOS lock screen and control center
-            notificationCapabilities: [
-                Capability.Play,
-                Capability.Pause,
-                Capability.Stop,
-                Capability.JumpForward,
-                Capability.JumpBackward,
-                Capability.SeekTo
-            ],
-            // Control capabilities in Android lock screen and notification
-            androidCapabilities: [
-                Capability.Play,
-                Capability.Pause,
-                Capability.Stop,
-                Capability.JumpForward,
-                Capability.JumpBackward
-            ],
-        });
-    }
-
     const markHasBeenActive = (newsItem) => {
         const cloneNews = [...news];
         const index = cloneNews.findIndex(item => item.id === newsItem.id);
@@ -166,7 +122,8 @@ export const Xiaoyuzhou = () => {
                 title: mediaItem.title,
                 artist: mediaItem.author,
                 artwork: mediaItem.coverUrl,
-                duration: mediaItem.duration
+                duration: mediaItem.duration,
+                source: 'xiaoyuzhou'
             };
             setTrack(track);
 
@@ -226,23 +183,23 @@ export const Xiaoyuzhou = () => {
         <FlatList
             data={news}
             refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
+                <RefreshControl refreshing={refreshing} onRefresh={refreshNews}/>
             }
             keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
-            renderItem={({ item, index }) => (
+            contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
+            renderItem={({item, index}) => (
                 <View style={styles.newsItemWrapper}>
                     <View style={styles.newItemContainer}>
                         <Image
                             style={styles.image}
                             resizeMode="cover"
-                            source={{ uri: item.coverUrl }}
+                            source={{uri: item.coverUrl}}
                         />
 
                         <View style={styles.infoContainer}>
                             <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
                             <View style={styles.extraInfoWrapper}>
-                                <AuthorIcon />
+                                <AuthorIcon/>
                                 <Text style={styles.author} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
                             </View>
                             <View style={styles.extraInfoWrapper}>
@@ -271,7 +228,7 @@ export const Xiaoyuzhou = () => {
                                         onPress={() => handlePlayButtonClick(index)}
                                         style={[
                                             styles.playButton,
-                                            { backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1' },
+                                            {backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1'},
                                         ]}
                                     >
                                         {isCurrentItemLoading(item) ? (
@@ -281,14 +238,14 @@ export const Xiaoyuzhou = () => {
                                                 style={styles.playLoadingIndicator}
                                             />
                                         ) : isCurrentItemPlaying(item) ? (
-                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00" />
+                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00"/>
                                         ) : (
                                             <Icon
                                                 size={18}
                                                 name="play-sharp"
                                                 type="ionicon"
                                                 color="#464646"
-                                                style={{ marginLeft: 2 }}
+                                                style={{marginLeft: 2}}
                                             />
                                         )}
                                     </TouchableOpacity>
