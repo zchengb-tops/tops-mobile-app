@@ -3,7 +3,6 @@ import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, Touch
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);
-    const animatedTextColors = useRef([]);
     const animatedPosition = useRef(new Animated.Value(0)).current;
     const animatedWidth = useRef(new Animated.Value(0)).current;
     const scrollViewRef = useRef(null);
@@ -54,17 +53,11 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 
             setTimeout(() => {
                 Animated.timing(animatedWidth, {
-                    toValue: (tabWidths.current[tabIndex] || tabWidths.current[0]) + 20,
+                    toValue: (tabWidths.current[tabIndex] || tabWidths.current[0]),
                     duration: 300,
                     useNativeDriver: false,
                 }).start();
             }, 100);
-
-            Animated.timing(animatedTextColors.current[tabIndex], {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: false,
-            }).start();
         }
     };
 
@@ -92,18 +85,11 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
             onScroll={onScroll}
             bounces={false}
         >
-            <Animated.View style={[styles.selectedBackground, animatedStyle]}/>
+            <Animated.View style={[styles.selectedIndicator, animatedStyle]}/>
             {
                 channelList
                     .filter(channel => channel.enable)
                     .map((channel, index) => {
-                        const animatedTextColorValue = new Animated.Value(tabIndex === index ? 1 : 0);
-                        const animatedTextColor = animatedTextColorValue.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ['#464646', '#FFFFFF']
-                        })
-                        animatedTextColors.current[index] = animatedTextColorValue;
-
                         return (
                             <TouchableOpacity
                                 activeOpacity={0.9}
@@ -117,16 +103,14 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                         animatedWidth.setValue(width);
                                     }
 
-                                    tabWidths.current[index] = index === tabIndex ? width - 20 : width;
+                                    tabWidths.current[index] = width;
                                 }}
                             >
-                                {
-                                    tabIndex === index ? channel.renderIcon() : <></>
-                                }
+                                {channel.renderIcon()}
                                 <Animated.Text
                                     style={{
                                         ...styles.tabBarText,
-                                        color: animatedTextColor,
+                                        fontWeight: tabIndex === index ? '500' : 'normal'
                                     }}
                                 >
                                     {channel.tabTitle}
@@ -142,14 +126,14 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 const styles = StyleSheet.create({
     tabBar: {
         position: 'relative',
-        maxHeight: 54,
+        height: 48,
         paddingVertical: 0,
         borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
     },
     tabBarContent: {
         alignItems: 'center',
-        height: 54,
+        height: 44,
         paddingHorizontal: 5,
     },
     tabBarText: {
@@ -171,12 +155,12 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         marginRight: 5,
     },
-    selectedBackground: {
+    selectedIndicator: {
         position: 'absolute',
-        height: 36,
+        height: 2,
         backgroundColor: '#404040',
-        borderRadius: 24,
         left: 10,
+        bottom: 0,
         zIndex: 0,
     }
 });
