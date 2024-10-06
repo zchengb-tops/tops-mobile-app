@@ -23,6 +23,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
 
     useEffect(() => {
         if (!dragging && tabViewRef.current) {
+            saveLoadedTab();
             tabViewRef.current.scrollTo({x: screenWidth * tabIndex, animated: true});
         }
     }, [tabIndex]);
@@ -31,7 +32,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
         console.log('render tabview', refreshing, loading, loadError, channelList)
     }, []);
 
-    const changeTabIndex = (newIndex) => {
+    function saveLoadedTab() {
         const visibleChannelSize = channelList.filter(channel => channel.enable)?.length || 0;
         const newLoadedTabs = new Set(loadedTabs);
         newLoadedTabs.add(tabIndex);
@@ -39,6 +40,10 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
             newLoadedTabs.add(tabIndex + 1);
         }
         setLoadedTabs(newLoadedTabs);
+    }
+
+    const changeTabIndex = (newIndex) => {
+        saveLoadedTab();
         setTabIndex(newIndex);
     }
 
