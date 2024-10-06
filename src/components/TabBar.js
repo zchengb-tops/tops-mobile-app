@@ -18,6 +18,10 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
         }
     }, [tabIndex, channelList]);
 
+    useEffect(() => {
+        console.log('render tab bar')
+    }, []);
+
     const scrollToTab = (index) => {
         if (scrollViewRef.current && tabWidths.current[index] !== undefined) {
             const tabItemEndPosition = tabWidths.current.slice(0, index + 1).reduce((total, width) => total + width, 10 * (index + 1));

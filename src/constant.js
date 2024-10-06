@@ -118,46 +118,46 @@ const styles = StyleSheet.create({
 export const CHANNEL_COMPONENT_MAP = {
     'hot': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HotIcon width={width} height={height} style={style}/>,
-        component: (props) => <Sina {...props}/>,
+        component: <Sina/>,
     },
     'sina': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <WeiboIcon width={width} height={height} style={style}/>,
-        component: (props) => <Sina {...props}/>,
+        component: <Sina/>,
     },
     'zhihu': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <ZhihuIcon width={width} height={height} style={style}/>,
-        component: (props) => <Zhihu {...props}/>
+        component: <Zhihu/>
     },
     'sspai': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <SspaiIcon width={width} height={height} style={style}/>,
-        component: (props) => <Sspai {...props}/>
+        component: <Sspai/>
     },
     'xiaoyuzhou': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <XiaoyuzhouIcon width={width} height={height} style={style}/>,
-        component: (props) => <Xiaoyuzhou {...props}/>
+        component: <Xiaoyuzhou/>
     },
     'stock': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <StockIcon width={width} height={height} style={style}/>,
-        component: (props) => <></>
+        component: <></>
     },
     'doubanMovie': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <DoubanIcon width={width} height={height} style={style}/>,
-        component: (props) => <DoubanMovie {...props}/>
+        component: <DoubanMovie/>
     },
     'bilibili': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <BilibiliIcon width={width} height={height} style={style}/>,
-        component: (props) => <Bilibili {...props}/>
+        component: <Bilibili/>
     },
     'nnGroup': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <NngroupIcon width={width} height={height} style={style}/>,
-        component: (props) => <></>
+        component: <></>
     },
     'tiobe': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <TiobeIcon width={width} height={height} style={style}/>,
-        component: (props) => <></>
+        component: <></>
     },
     'history': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HistoryIcon width={width} height={height} style={style}/>,
-        component: (props) => <></>
+        component: <></>
     },
 };

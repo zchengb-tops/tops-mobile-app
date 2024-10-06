@@ -3,7 +3,7 @@ import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
-import {GlobalProvider} from "./utils/GlobalContext";
+import {NewsProvider} from "./utils/NewsProvider";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry, LogBox, Text, TextInput, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
@@ -58,7 +58,7 @@ export default function App() {
     return (
         <SafeAreaProvider>
             <VisibilityProvider>
-                <GlobalProvider>
+                <NewsProvider>
                     <NavigationContainer>
                         <View style={{flex: 1}}>
                             <Tab.Navigator
@@ -77,7 +77,7 @@ export default function App() {
                             <NavBar/>
                         </View>
                     </NavigationContainer>
-                </GlobalProvider>
+                </NewsProvider>
             </VisibilityProvider>
         </SafeAreaProvider>
     );

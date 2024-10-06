@@ -1,18 +1,15 @@
 import React, {useContext, useEffect, useState} from "react";
 import {SafeAreaView, StyleSheet} from 'react-native';
-import {GlobalContext} from "../../utils/GlobalContext";
 import {TabBar} from "../components/TabBar";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import {useIsFocused} from "@react-navigation/native";
 import {TabView} from "../components/TabView";
+import {NewsContext} from "../../utils/NewsProvider";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
-    const {globalState, setGlobalState} = useContext(GlobalContext);
-    const [loading, setLoading] = useState(false);
-    const [loadError, setLoadError] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
+    const {fetchNews} = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
 
@@ -70,42 +67,15 @@ export const DiscoveryScreen = () => {
             {
                 ...channel,
                 renderIcon: CHANNEL_COMPONENT_MAP[channel.id]?.renderIcon,
-                renderComponent: (onRefresh, refreshing) => CHANNEL_COMPONENT_MAP[channel.id]?.component({
-                    onRefresh,
-                    refreshing
-                })
+                component: CHANNEL_COMPONENT_MAP[channel.id]?.component
             }
         ));
     }
 
-    const fetchNews = async () => {
-        setLoadError(false);
-        setLoading(true);
-        try {
-            const response = await fetch('https://zchengb.top/api/normal-news');
-            const data = await response.json();
-            await setGlobalState({...globalState, news: data});
-        } catch (error) {
-            console.error('Error fetching news:', error);
-            setLoadError(true);
-        } finally {
-            setLoading(false);
-            console.log('loading finished', new Date())
-        }
-    };
-
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await fetchNews();
-        setRefreshing(false);
-        console.log('refresh completed.');
-    };
-
 
     return <SafeAreaView style={styles.container}>
         <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
-        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} onRefresh={onRefresh}
-                 loading={loading} loadError={loadError} refreshing={refreshing}/>
+        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
     </SafeAreaView>
 };
 

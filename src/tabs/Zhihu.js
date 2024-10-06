@@ -1,18 +1,18 @@
 import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {GlobalContext} from "../../utils/GlobalContext";
+import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Zhihu = ({onRefresh, refreshing}) => {
-    const {globalState} = useContext(GlobalContext);
+export const Zhihu = () => {
+    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const playBarShowing = useTrackShowing();
 
     useEffect(() => {
-        setNews(globalState['news']['zhihu'])
-    }, [globalState]);
+        setNews(allNews['zhihu'])
+    }, [allNews]);
 
     const formatTwoDigits = (number) => {
         return Number(number).toLocaleString("en-US", {minimumIntegerDigits: 2, useGrouping: false});
@@ -25,7 +25,7 @@ export const Zhihu = ({onRefresh, refreshing}) => {
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
         }
         renderItem={({ item, index }) => (
             <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
     ActivityIndicator,
     Animated,
@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
 import {useTrackShowing} from "../hooks/TrackHooks";
+import {NewsContext} from "../../utils/NewsProvider";
 
-export const TabView = ({channelList, tabIndex, setTabIndex, onRefresh, loading, loadError, refreshing}) => {
+export const TabView = ({channelList, tabIndex, setTabIndex}) => {
+    const {refreshing, loading, loadError} = useContext(NewsContext);
     const [loadedTabs, setLoadedTabs] = useState(new Set());
     const tabViewRef = useRef(null);
     const screenWidth = Dimensions.get('window').width;
@@ -25,9 +27,17 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onRefresh, loading,
         }
     }, [tabIndex]);
 
+    useEffect(() => {
+        console.log('render tabview', refreshing, loading, loadError, channelList)
+    }, []);
+
     const changeTabIndex = (newIndex) => {
+        const visibleChannelSize = channelList.filter(channel => channel.enable)?.length || 0;
         const newLoadedTabs = new Set(loadedTabs);
         newLoadedTabs.add(tabIndex);
+        if (tabIndex + 1 < visibleChannelSize) {
+            newLoadedTabs.add(tabIndex + 1);
+        }
         setLoadedTabs(newLoadedTabs);
         setTabIndex(newIndex);
     }
@@ -76,7 +86,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onRefresh, loading,
                                                         ? <View style={styles.loadingView}>
                                                             <ActivityIndicator/>
                                                         </View>
-                                                        : channel.renderComponent(onRefresh, refreshing)
+                                                        : channel.component
                                                 )
                                         }
                                     </View>

@@ -1,19 +1,19 @@
 import {FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {ListItem} from "@rneui/themed";
 import React, {useContext, useEffect, useState} from "react";
-import {GlobalContext} from "../../utils/GlobalContext";
+import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Sina = ({onRefresh, refreshing}) => {
-    const {globalState} = useContext(GlobalContext);
+export const Sina = () => {
+    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const playBarShowing = useTrackShowing();
 
     useEffect(() => {
-        setNews(globalState['news']['sina'])
-    }, [globalState]);
+        setNews(allNews['sina'])
+    }, [allNews]);
 
     const prettifyNumber = (viewers) => {
         viewers = Number(viewers);
@@ -30,7 +30,7 @@ export const Sina = ({onRefresh, refreshing}) => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
         }
         data={news}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}

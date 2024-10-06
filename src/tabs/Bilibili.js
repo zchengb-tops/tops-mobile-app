@@ -1,21 +1,21 @@
 import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {GlobalContext} from "../../utils/GlobalContext";
+import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import AuthorIcon from "../../assets/icons/author.svg"
 import ViewIcon from "../../assets/icons/view.svg"
 import LikeIcon from "../../assets/icons/like.svg"
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Bilibili = ({onRefresh, refreshing}) => {
-    const {globalState} = useContext(GlobalContext);
+export const Bilibili = () => {
+    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const playBarShowing = useTrackShowing();
 
     useEffect(() => {
-        setNews(globalState['news']['bilibili'])
-    }, [globalState]);
+        setNews(allNews['bilibili'])
+    }, [allNews]);
 
     useEffect(() => console.log('start to render bilibili'), []);
 
@@ -33,7 +33,7 @@ export const Bilibili = ({onRefresh, refreshing}) => {
         style={styles.container}
         data={news}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
         }
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}

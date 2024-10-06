@@ -1,26 +1,26 @@
 import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {GlobalContext} from "../../utils/GlobalContext";
+import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "react-native-ratings";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const DoubanMovie = ({onRefresh, refreshing}) => {
-    const {globalState} = useContext(GlobalContext);
+export const DoubanMovie = () => {
+    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [movies, setMovies] = useState([]);
     const navigation = useNavigation();
     const playBarShowing = useTrackShowing();
 
     useEffect(() => {
-        setMovies(globalState['news']['doubanMovie'])
-    }, [globalState]);
+        setMovies(allNews['doubanMovie'])
+    }, [allNews]);
 
     useEffect(() => console.log('start to render douban'), []);
 
     return <FlatList
         style={styles.container}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
         }
         data={movies}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}

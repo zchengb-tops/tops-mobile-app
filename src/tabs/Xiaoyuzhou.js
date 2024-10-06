@@ -9,7 +9,7 @@ import {
     View
 } from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {GlobalContext} from "../../utils/GlobalContext";
+import {NewsContext} from "../../utils/NewsProvider";
 import AuthorIcon from "../../assets/icons/author.svg";
 import TrackPlayer, {Capability, Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
 import {useTrackStateStore} from "../AudioTrackStore";
@@ -17,8 +17,8 @@ import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
 
-export const Xiaoyuzhou = ({onRefresh, refreshing}) => {
-    const {globalState} = useContext(GlobalContext);
+export const Xiaoyuzhou = () => {
+    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const progress = useProgress();
     const playStatus = useTrackStatus();
@@ -60,14 +60,14 @@ export const Xiaoyuzhou = ({onRefresh, refreshing}) => {
     }, []);
 
     useEffect(() => {
-        const newsItem = globalState['news']['xiaoyuzhou'];
+        const newsItem = allNews['xiaoyuzhou'];
         newsItem?.forEach((newsItem, index) => {
             newsItem.id = index;
             newsItem.position = 0;
             newsItem.hasBeenActive = false;
         });
         setNews(newsItem)
-    }, [globalState]);
+    }, [allNews]);
 
     useTrackPlayerEvents([
             Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
@@ -226,7 +226,7 @@ export const Xiaoyuzhou = ({onRefresh, refreshing}) => {
         <FlatList
             data={news}
             refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
             }
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}

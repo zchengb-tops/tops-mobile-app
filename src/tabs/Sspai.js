@@ -1,20 +1,20 @@
 import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {GlobalContext} from "../../utils/GlobalContext";
+import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import FlashlightIcon from "../../assets/icons/flashlight.svg";
 import CommentIcon from "../../assets/icons/comment.svg";
 import {useTrackShowing} from "../hooks/TrackHooks";
 
-export const Sspai = ({onRefresh, refreshing}) => {
-    const {globalState} = useContext(GlobalContext);
+export const Sspai = () => {
+    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const playBarShowing = useTrackShowing();
 
     useEffect(() => {
-        setNews(globalState['news']['sspai'])
-    }, [globalState]);
+        setNews(allNews['sspai'])
+    }, [allNews]);
 
     const getArticleTitle = article => {
         const morningPaperPrefix = "派早报";
@@ -35,10 +35,10 @@ export const Sspai = ({onRefresh, refreshing}) => {
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
+        contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         renderItem={({item, index}) => (
             <TouchableOpacity
                 onPress={() =>
