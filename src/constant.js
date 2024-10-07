@@ -17,6 +17,7 @@ import {StyleSheet} from 'react-native';
 import HotIcon from "../assets/icons/hot.svg";
 import {DoubanMovie} from "./tabs/DoubanMovie";
 import {Bilibili} from "./tabs/Bilibili";
+import {Stock} from "./tabs/Stock";
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -64,7 +65,7 @@ export const DEFAULT_CHANNEL_LIST = [
         title: '沪深实时热力图',
         tabTitle: '实时沪深',
         desc: '汇集沪深股市各大板块热力图',
-        enable: false,
+        enable: true,
         isOrigin: true
     },
     {
@@ -72,7 +73,7 @@ export const DEFAULT_CHANNEL_LIST = [
         title: '豆瓣電影口碑榜',
         tabTitle: '豆瓣',
         desc: '每周最新的全球電影口碑排行榜',
-        enable: false,
+        enable: true,
         isOrigin: true
     },
     {
@@ -117,47 +118,59 @@ const styles = StyleSheet.create({
 
 export const CHANNEL_COMPONENT_MAP = {
     'hot': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HotIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HotIcon width={width} height={height}
+                                                                                     style={style}/>,
         component: <Sina/>,
     },
     'sina': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <WeiboIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <WeiboIcon width={width} height={height}
+                                                                                       style={style}/>,
         component: <Sina/>,
     },
     'zhihu': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <ZhihuIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <ZhihuIcon width={width} height={height}
+                                                                                       style={style}/>,
         component: <Zhihu/>
     },
     'sspai': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <SspaiIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <SspaiIcon width={width} height={height}
+                                                                                       style={style}/>,
         component: <Sspai/>
     },
     'xiaoyuzhou': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <XiaoyuzhouIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <XiaoyuzhouIcon width={width}
+                                                                                            height={height}
+                                                                                            style={style}/>,
         component: <Xiaoyuzhou/>
     },
     'stock': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <StockIcon width={width} height={height} style={style}/>,
-        component: <></>
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <StockIcon width={width} height={height}
+                                                                                       style={style}/>,
+        component: <Stock/>
     },
     'doubanMovie': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <DoubanIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <DoubanIcon width={width} height={height}
+                                                                                        style={style}/>,
         component: <DoubanMovie/>
     },
     'bilibili': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <BilibiliIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <BilibiliIcon width={width} height={height}
+                                                                                          style={style}/>,
         component: <Bilibili/>
     },
     'nnGroup': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <NngroupIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <NngroupIcon width={width} height={height}
+                                                                                         style={style}/>,
         component: <></>
     },
     'tiobe': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <TiobeIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <TiobeIcon width={width} height={height}
+                                                                                       style={style}/>,
         component: <></>
     },
     'history': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HistoryIcon width={width} height={height} style={style}/>,
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HistoryIcon width={width} height={height}
+                                                                                         style={style}/>,
         component: <></>
     },
 };
