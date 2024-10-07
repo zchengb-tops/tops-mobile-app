@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         paddingVertical: 6,
         borderRadius: 24,
-        borderWidth: 0.2,
+        borderWidth: 0.4,
     },
     subscribeButtonLabel: {
         fontSize: 12
