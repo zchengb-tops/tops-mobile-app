@@ -83,7 +83,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
             showsHorizontalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={onScroll}
-            bounces={false}
+            alwaysBounceVertical={false}
         >
             <Animated.View style={[styles.selectedIndicator, animatedStyle]}/>
             {
@@ -126,14 +126,16 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 const styles = StyleSheet.create({
     tabBar: {
         position: 'relative',
-        height: 48,
+        maxHeight: 48,
+        minHeight: 48,
         paddingVertical: 0,
         borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
+        // backgroundColor: 'pink'
     },
     tabBarContent: {
         alignItems: 'center',
-        height: 44,
+        height: 48,
         paddingHorizontal: 5,
     },
     tabBarText: {
