@@ -7,10 +7,12 @@ import {BarChart, TreemapChart} from "echarts/charts";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NewsContext} from "../../utils/NewsProvider";
 import {globalStyles} from "../globalStyle";
+import {useNavigation} from "@react-navigation/native";
 
 echarts.use([SVGRenderer, GridComponent, BarChart, TreemapChart, VisualMapComponent, TooltipComponent]);
 
 export const Stock = () => {
+    const navigation = useNavigation();
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [acquisitionTime, setAcquisitionTime] = useState(null);
     const [chartOption, setChartOption] = useState({
@@ -57,7 +59,7 @@ export const Stock = () => {
             }
         }
     });
-    const skiaRef = useRef(null);
+    const chartRef = useRef(null);
     const insets = useSafeAreaInsets();
     const screenWidth = Dimensions.get('window').width;
     const screenHeight = Dimensions.get('window').height;
@@ -86,13 +88,19 @@ export const Stock = () => {
 
     const renderChart = () => {
         let chart;
-        if (skiaRef.current) {
-            chart = echarts.init(skiaRef.current, 'light', {
+        if (chartRef.current) {
+            chart = echarts.init(chartRef.current, 'light', {
                 renderer: 'svg',
                 width: screenWidth,
                 height: screenHeight - insets.top - 18 - 100 - insets.bottom
             });
             chart.setOption(chartOption);
+
+            chart.on("click", (e) => {
+                navigation.navigate('NewsDetailScreen', {
+                    url: "https://zchengb.top/api/t/" + e.data.link,
+                })
+            });
         }
     };
 
@@ -113,9 +121,9 @@ export const Stock = () => {
         }
     >
         <View style={styles.timeTipsWrapper}>
-            <Text style={styles.timeTipsText}>*更新于 {formatDate(acquisitionTime)} 中国</Text>
+            <Text style={styles.timeTipsText}>*更新于 {formatDate(acquisitionTime)} 北京</Text>
         </View>
-        <SvgChart ref={skiaRef}/>
+        <SvgChart ref={chartRef}/>
     </ScrollView>;
 };
 
