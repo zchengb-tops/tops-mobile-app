@@ -4,6 +4,7 @@ import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "react-native-ratings";
 import {useTrackShowing} from "../hooks/TrackHooks";
+import {globalStyles} from "../globalStyle";
 
 export const DoubanMovie = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -20,7 +21,7 @@ export const DoubanMovie = () => {
     return <FlatList
         style={styles.container}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
+            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews} />
         }
         data={movies}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}

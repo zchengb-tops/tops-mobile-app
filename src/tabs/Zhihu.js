@@ -3,6 +3,7 @@ import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
+import {globalStyles} from "../globalStyle";
 
 export const Zhihu = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -22,14 +23,14 @@ export const Zhihu = () => {
 
     return <FlatList
         data={news}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
+        contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
+            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
-        renderItem={({ item, index }) => (
+        renderItem={({item, index}) => (
             <TouchableOpacity
-                onPress={() => navigation.navigate('NewsDetailScreen', { url: "https://zchengb.top/api/t/" + item.shortLink })}
+                onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}
             >
                 <View style={styles.newsItemWrapper}>
                     <View style={styles.newItemContainer}>
@@ -52,11 +53,11 @@ export const Zhihu = () => {
                             <Image
                                 style={styles.image}
                                 resizeMode="cover"
-                                source={{ uri: item.properties.banner }}
+                                source={{uri: item.properties.banner}}
                             />
                         )}
                     </View>
-                    <View style={styles.borderBottom} />
+                    <View style={styles.borderBottom}/>
                 </View>
             </TouchableOpacity>
         )}

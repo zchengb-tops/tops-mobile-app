@@ -29,7 +29,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
     }, [tabIndex]);
 
     useEffect(() => {
-        console.log('render tabview', refreshing, loading, loadError, channelList)
+        console.log('render tabview');
     }, []);
 
     function saveLoadedTab() {

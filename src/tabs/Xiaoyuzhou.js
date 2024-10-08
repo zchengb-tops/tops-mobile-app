@@ -16,6 +16,7 @@ import {useTrackStateStore} from "../AudioTrackStore";
 import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
+import {globalStyles} from "../globalStyle";
 
 export const Xiaoyuzhou = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -183,7 +184,7 @@ export const Xiaoyuzhou = () => {
         <FlatList
             data={news}
             refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={refreshNews}/>
+                <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
             }
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}

@@ -4,6 +4,7 @@ import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
+import {globalStyles} from "../globalStyle";
 
 export const Sina = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -30,7 +31,7 @@ export const Sina = () => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refreshNews} />
+            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews} />
         }
         data={news}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}

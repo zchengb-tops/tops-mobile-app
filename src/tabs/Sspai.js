@@ -5,6 +5,7 @@ import {useNavigation} from "@react-navigation/native";
 import FlashlightIcon from "../../assets/icons/flashlight.svg";
 import CommentIcon from "../../assets/icons/comment.svg";
 import {useTrackShowing} from "../hooks/TrackHooks";
+import {globalStyles} from "../globalStyle";
 
 export const Sspai = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -35,7 +36,7 @@ export const Sspai = () => {
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
