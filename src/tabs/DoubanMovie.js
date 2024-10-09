@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     movieName: {
-        fontSize: 16
+        fontSize: 16,
     },
     rankWrapper: {
         flexDirection: 'row',

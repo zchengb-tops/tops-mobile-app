@@ -34,10 +34,10 @@ export const Bilibili = () => {
         style={styles.container}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews} />
+            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
+        contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         renderItem={({item, index}) => {
             return <TouchableOpacity style={[styles.itemWrapper, {marginTop: index === 0 ? 16 : 8}]}
                                      activeOpacity={0.8}
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
         borderRadius: 8
     },
     title: {
-        fontWeight: 500,
+        color: 'rgba(0,0,0,0.85)',
         fontSize: 14,
         lineHeight: 18,
     },
