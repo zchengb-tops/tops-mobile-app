@@ -2,10 +2,9 @@ import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, Vie
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
-import FlashlightIcon from "../../assets/icons/flashlight.svg";
-import CommentIcon from "../../assets/icons/comment.svg";
 import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
+import CoverPlayIcon from "../../assets/icons/cover-play.svg"
 
 export const NnGroup = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -56,11 +55,15 @@ export const NnGroup = () => {
                     {
                         item.coverImage
                             ?
-                            <Image
-                                style={styles.coverImage}
-                                resizeMode="cover"
-                                source={{uri: item.coverImage}}
-                            />
+                            <View style={styles.coverImageWrapper}>
+                                <Image
+                                    style={styles.coverImage}
+                                    resizeMode="cover"
+                                    source={{uri: item.coverImage}}
+                                />
+                                <CoverPlayIcon width={36} height={36} style={styles.coverPlayIcon}
+                                               color={"rgba(0,0,0,0.6)"}/>
+                            </View>
                             :
                             <></>
                     }
@@ -115,9 +118,23 @@ const styles = StyleSheet.create({
         color: 'rgba(0,0,0,0.65)',
         lineHeight: 20
     },
-    coverImage: {
-        marginLeft: 16,
+    coverImageWrapper: {
+        position: 'relative',
+        marginLeft: 12,
         width: 120,
         height: 88
-    }
+    },
+    coverImage: {
+        width: 120,
+        height: 88
+    },
+    coverPlayIcon: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform:  [
+            { translateX: -18 },
+            { translateY: -18 },
+        ],
+    },
 })
