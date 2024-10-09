@@ -85,6 +85,7 @@ export const SubscribeScreen = () => {
         return (
             <ScaleDecorator>
                 <TouchableOpacity
+                    activeOpacity={0.8}
                     delayLongPress={300}
                     onLongPress={() => {
                         trigger("impactLight", {
