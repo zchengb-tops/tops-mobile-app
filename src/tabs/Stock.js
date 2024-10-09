@@ -131,7 +131,6 @@ const styles = StyleSheet.create({
     stockContentWrapper: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
     },
     loadingView: {
         flex: 1,
