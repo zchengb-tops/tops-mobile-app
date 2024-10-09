@@ -112,8 +112,12 @@ export const Xiaoyuzhou = () => {
         setNews(cloneNews);
     }
 
+    const isCurrentMediaItemPlayedComplete = (mediaItem) => {
+        return mediaItem.id === playingTrack?.id && progress.position >= progress.duration;
+    }
+
     const triggerTrackPlayerToPlay = async (mediaItem) => {
-        if (!playingTrack || playingTrack?.id !== mediaItem.id) {
+        if (!playingTrack || playingTrack?.id !== mediaItem.id || isCurrentMediaItemPlayedComplete(mediaItem)) {
             setPlayerBarShowing();
             let tracks = await TrackPlayer.getQueue();
             const trackIndex = tracks.findIndex(item => item.id === mediaItem.id)
@@ -130,7 +134,7 @@ export const Xiaoyuzhou = () => {
 
             if (trackIndex !== -1) {
                 console.log('start to skip.');
-                await TrackPlayer.skip(trackIndex, mediaItem.position);
+                await TrackPlayer.skip(trackIndex, isCurrentMediaItemPlayedComplete(mediaItem) ? 0 : mediaItem.position);
             } else {
                 console.log('add new track to queue.');
                 await TrackPlayer.add(track);

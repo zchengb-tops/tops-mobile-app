@@ -28,6 +28,10 @@ export const PlayerBar = () => {
         return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
     }
 
+    const hasPlayedComplete = () => {
+        return progress.position >= progress.duration
+    }
+
     if (!isPlayBarVisible) return null;
 
     return (
@@ -95,9 +99,13 @@ export const PlayerBar = () => {
                                             ?
                                             <ActivityIndicator size="small" color={'#464646'}/>
                                             :
-                                            <TouchableOpacity onPress={() => {
-                                                TrackPlayer.play();
-                                            }}>
+                                            <TouchableOpacity
+                                                onPress={() => {
+                                                    if (hasPlayedComplete()) {
+                                                        TrackPlayer.seekTo(0);
+                                                    }
+                                                    TrackPlayer.play();
+                                                }}>
                                                 <Icon
                                                     size={20}
                                                     name='play'
@@ -106,13 +114,15 @@ export const PlayerBar = () => {
                                                 />
                                             </TouchableOpacity>
                                     )}
-                                    <TouchableOpacity style={styles.playForward} onPress={() => {
-                                        TrackPlayer.getProgress().then((progress) => {
-                                            let newPosition = progress.position + 15;
-                                            newPosition = newPosition > progress.duration ? progress.duration : newPosition;
-                                            TrackPlayer.seekTo(newPosition);
-                                        })
-                                    }}>
+                                    <TouchableOpacity style={styles.playForward}
+                                                      disabled={hasPlayedComplete()}
+                                                      onPress={() => {
+                                                          TrackPlayer.getProgress().then((progress) => {
+                                                              let newPosition = progress.position + 15;
+                                                              newPosition = newPosition > progress.duration ? progress.duration : newPosition;
+                                                              TrackPlayer.seekTo(newPosition);
+                                                          })
+                                                      }}>
                                         <Icon
                                             size={20}
                                             name='play-forward'
