@@ -18,6 +18,7 @@ import HotIcon from "../assets/icons/hot.svg";
 import {DoubanMovie} from "./tabs/DoubanMovie";
 import {Bilibili} from "./tabs/Bilibili";
 import {Stock} from "./tabs/Stock";
+import {NnGroup} from "./tabs/NnGroup";
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -89,7 +90,7 @@ export const DEFAULT_CHANNEL_LIST = [
         title: 'Nielsen Norman Group',
         tabTitle: 'NN/g',
         desc: 'World Leaders in Research-Based User Experience',
-        enable: false,
+        enable: true,
         isOrigin: true
     },
     {
@@ -161,7 +162,7 @@ export const CHANNEL_COMPONENT_MAP = {
     'nnGroup': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <NngroupIcon width={width} height={height}
                                                                                          style={style}/>,
-        component: <></>
+        component: <NnGroup/>
     },
     'tiobe': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <TiobeIcon width={width} height={height}

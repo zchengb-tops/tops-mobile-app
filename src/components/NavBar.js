@@ -121,7 +121,7 @@ export const NavBar = () => {
                 <View style={styles.navBar}>
                     <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
                     <TouchableOpacity
-                        activeOpacity={0.9}
+                        activeOpacity={0.8}
                         style={styles.navButton}
                         onPress={() => goto(routeMapping.DISCOVERY, 0)}
                         onLayout={(event) => handleLayout(routeMapping.DISCOVERY, event.nativeEvent.layout)}
@@ -130,7 +130,7 @@ export const NavBar = () => {
                         {renderLabel(routeMapping.DISCOVERY, '发现')}
                     </TouchableOpacity>
                     <TouchableOpacity
-                        activeOpacity={0.9}
+                        activeOpacity={0.8}
                         style={styles.navButton}
                         onPress={() => goto(routeMapping.SUBSCRIBE, 1)}
                         onLayout={(event) => handleLayout(routeMapping.SUBSCRIBE, event.nativeEvent.layout)}
@@ -139,7 +139,7 @@ export const NavBar = () => {
                         {renderLabel(routeMapping.SUBSCRIBE, '订阅')}
                     </TouchableOpacity>
                     <TouchableOpacity
-                        activeOpacity={0.9}
+                        activeOpacity={0.8}
                         style={styles.navButton}
                         onPress={() => goto(routeMapping.PROFILE, 2)}
                         onLayout={(event) => handleLayout(routeMapping.PROFILE, event.nativeEvent.layout)}

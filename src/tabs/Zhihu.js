@@ -30,6 +30,7 @@ export const Zhihu = () => {
         }
         renderItem={({item, index}) => (
             <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}
             >
                 <View style={styles.newsItemWrapper}>

@@ -92,7 +92,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                     .map((channel, index) => {
                         return (
                             <TouchableOpacity
-                                activeOpacity={0.9}
+                                activeOpacity={0.8}
                                 style={[styles.tabBarItem]}
                                 key={index}
                                 disabled={isAnimating}

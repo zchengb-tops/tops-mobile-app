@@ -42,6 +42,7 @@ export const Sspai = () => {
         contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         renderItem={({item, index}) => (
             <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
                         url: "https://zchengb.top/api/t/" + item.shortLink,
