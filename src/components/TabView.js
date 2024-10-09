@@ -14,6 +14,7 @@ import {ErrorScreen} from "../screens/ErrorScreen";
 import {useTrackShowing} from "../hooks/TrackHooks";
 import {NewsContext} from "../../utils/NewsProvider";
 import {useVisibility} from "../../utils/VisibilityProvider";
+import {useIsFocused} from "@react-navigation/native";
 
 export const TabView = ({channelList, tabIndex, setTabIndex}) => {
     const {refreshing, loading, loadError} = useContext(NewsContext);
@@ -22,15 +23,15 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
     const screenWidth = Dimensions.get('window').width;
     const [dragging, setDragging] = useState(false);
     const {setIsPlayBarVisible} = useVisibility();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         if (!dragging && tabViewRef.current) {
             saveLoadedTab();
             tabViewRef.current.scrollTo({x: screenWidth * tabIndex, animated: true});
         }
-
-        setIsPlayBarVisible(channelList.filter(channel => channel.enable)[tabIndex]?.id !== 'stock');
-    }, [tabIndex]);
+        setIsPlayBarVisible(isFocused && channelList.filter(channel => channel.enable)[tabIndex]?.id !== 'stock');
+    }, [tabIndex, channelList]);
 
     useEffect(() => {
         console.log('render tabview');
