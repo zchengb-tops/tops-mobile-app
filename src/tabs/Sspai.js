@@ -114,7 +114,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#464646',
         lineHeight: 16 * 1.5,
-        fontWeight: '500'
     },
     infoWrapper: {
         flexDirection: 'row',
