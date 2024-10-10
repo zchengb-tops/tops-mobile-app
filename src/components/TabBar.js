@@ -1,9 +1,7 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity} from 'react-native';
-import {NewsContext} from "../../utils/NewsProvider";
 
-export const TabBar = ({channelList}) => {
-    const {tabIndex, setTabIndex} = useContext(NewsContext);
+export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);
     const animatedPosition = useRef(new Animated.Value(0)).current;
     const animatedWidth = useRef(new Animated.Value(0)).current;
