@@ -8,8 +8,7 @@ import {TabView} from "../components/TabView";
 import {NewsContext} from "../../utils/NewsProvider";
 
 export const DiscoveryScreen = () => {
-    const [tabIndex, setTabIndex] = useState(0);
-    const {fetchNews} = useContext(NewsContext);
+    const {fetchNews, setTabIndex} = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
 
@@ -74,8 +73,8 @@ export const DiscoveryScreen = () => {
 
 
     return <SafeAreaView style={styles.container}>
-        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
-        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
+        <TabBar channelList={channelList}/>
+        <TabView channelList={channelList}/>
     </SafeAreaView>
 };
 

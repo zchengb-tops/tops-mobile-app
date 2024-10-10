@@ -3,6 +3,7 @@ import React, {createContext, useState} from 'react';
 export const NewsContext = createContext();
 
 export const NewsProvider = ({children}) => {
+    const [tabIndex, setTabIndex] = useState(0);
     const [allNews, setAllNews] = useState({"sina": [], "zhihu": [], 'sspai': []});
     const [loading, setLoading] = useState(false);
     const [loadError, setLoadError] = useState(false);
@@ -32,7 +33,7 @@ export const NewsProvider = ({children}) => {
 
     return (
         <NewsContext.Provider
-            value={{allNews, fetchNews, refreshNews, loading, loadError, refreshing}}>
+            value={{allNews, fetchNews, refreshNews, loading, loadError, refreshing, tabIndex, setTabIndex}}>
             {children}
         </NewsContext.Provider>
     );
