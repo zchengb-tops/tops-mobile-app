@@ -9,6 +9,8 @@ import {useVisibility} from "../../utils/VisibilityProvider";
 import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";
 import Animated, {runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
 import {BlurView} from "@react-native-community/blur";
+import {storage} from "../storage";
+import {useTrackStateStore} from "../AudioTrackStore";
 
 
 export const PlayerBar = () => {
@@ -21,6 +23,11 @@ export const PlayerBar = () => {
     const screenWidth = Dimensions.get('window').width;
     const position = useSharedValue(0);
     const [isShrunk, setIsShrunk] = useState(false);
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{translateX: position.value}],
+    }));
+    const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
+    const setTrack = useTrackStateStore.getState().setTrack;
 
     const formatTime = (time) => {
         const hours = Math.floor(time / 3600);
@@ -63,9 +70,12 @@ export const PlayerBar = () => {
             runOnJS(setIsShrunk)(false);
         });
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: position.value}],
-    }));
+    const cleanTrackPlay = () => {
+        storage.set('currentTrack', JSON.stringify({}));
+        setTrack({});
+        setPlayerBarShowing(false);
+        TrackPlayer.reset().then(r => console.log('clean track play.'));
+    }
 
     if (!isPlayBarVisible) return null;
 
@@ -173,18 +183,11 @@ export const PlayerBar = () => {
                                                     />
                                                 </TouchableOpacity>
                                         )}
-                                        <TouchableOpacity style={styles.playForward}
-                                                          disabled={hasPlayedComplete()}
-                                                          onPress={() => {
-                                                              TrackPlayer.getProgress().then((progress) => {
-                                                                  let newPosition = progress.position + 15;
-                                                                  newPosition = newPosition > progress.duration ? progress.duration : newPosition;
-                                                                  TrackPlayer.seekTo(newPosition);
-                                                              })
-                                                          }}>
+                                        <TouchableOpacity style={styles.closeButton}
+                                                          onPress={cleanTrackPlay}>
                                             <Icon
                                                 size={20}
-                                                name='play-forward'
+                                                name='close-circle'
                                                 type='ionicon'
                                                 color='#464646'
                                             />
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 8,
     },
-    playForward: {
+    closeButton: {
         marginLeft: 8
     },
     gradient: {
