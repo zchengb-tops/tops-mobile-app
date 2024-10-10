@@ -3,8 +3,8 @@ import {ActivityIndicator, Dimensions, ScrollView, StyleSheet, View} from 'react
 import {ErrorScreen} from "../screens/ErrorScreen";
 import {NewsContext} from "../../utils/NewsProvider";
 
-export const TabView = () => {
-    const {tabIndex, setTabIndex, channelList} = useContext(NewsContext);
+export const TabView = ({channelList}) => {
+    const {tabIndex, setTabIndex} = useContext(NewsContext);
     const {refreshing, loading, loadError} = useContext(NewsContext);
     const [loadedTabs, setLoadedTabs] = useState(new Set());
     const tabViewRef = useRef(null);
