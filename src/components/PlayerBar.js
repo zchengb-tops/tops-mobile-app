@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {ActivityIndicator, Dimensions, Image, StyleSheet, Text, Touchable, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
@@ -11,6 +11,7 @@ import Animated, {runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withTiming
 import {BlurView} from "@react-native-community/blur";
 import {storage} from "../storage";
 import {useTrackStateStore} from "../AudioTrackStore";
+import {initializeTrackPlayer} from "../../App";
 
 
 export const PlayerBar = () => {
@@ -74,11 +75,12 @@ export const PlayerBar = () => {
             runOnJS(setIsShrunk)(false);
         });
 
-    const cleanTrackPlay = () => {
+    const cleanTrackPlay = async () => {
+        setPlayerBarShowing(false);
         storage.set('currentTrack', JSON.stringify({}));
         setTrack({});
-        setPlayerBarShowing(false);
-        TrackPlayer.reset().then(r => console.log('clean track play.'));
+        await TrackPlayer.reset();
+        initializeTrackPlayer().then(() => console.log('clean track play.'));
     }
 
     if (!isPlayBarVisible) return null;

@@ -45,7 +45,7 @@ const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
 
-const initializeTrackPlayer = async () => {
+export const initializeTrackPlayer = async () => {
     await TrackPlayer.setupPlayer();
 
     await TrackPlayer.updateOptions({
@@ -81,7 +81,10 @@ const initializeTrackPlayer = async () => {
             Capability.JumpBackward
         ],
     });
+    console.log('initialize track player');
+}
 
+const loadCacheTrackPlay = async () => {
     const currentTrack = storage.getString('currentTrack');
     if (currentTrack) {
         const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
@@ -96,7 +99,7 @@ const initializeTrackPlayer = async () => {
     }
 }
 
-initializeTrackPlayer().then(r => console.log('initialize track player'));
+initializeTrackPlayer().then(r => loadCacheTrackPlay());
 
 const DiscoveryStackNavigator = () => {
     return (
