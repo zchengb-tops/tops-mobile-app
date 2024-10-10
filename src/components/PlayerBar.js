@@ -23,9 +23,13 @@ export const PlayerBar = () => {
     const screenWidth = Dimensions.get('window').width;
     const position = useSharedValue(0);
     const [isShrunk, setIsShrunk] = useState(false);
-    const animatedStyle = useAnimatedStyle(() => ({
+    const animatedPlayBarStyle = useAnimatedStyle(() => ({
         transform: [{translateX: position.value}],
     }));
+    const animatedBlurStyle = useAnimatedStyle(() => ({
+        opacity: withTiming(isShrunk ? 1 : 0, {duration: 200}),
+    }));
+
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
 
@@ -55,7 +59,7 @@ export const PlayerBar = () => {
         .direction(Directions.RIGHT)
         .onStart((e) => {
             position.value = withTiming(screenWidth - 24, {duration: 300});
-            runOnJS(delayedSetIsShrunk)(true, 180);
+            runOnJS(delayedSetIsShrunk)(true, 100);
         });
 
     const handleFlingLeft = () => {
@@ -83,24 +87,25 @@ export const PlayerBar = () => {
         showing ?
             <GestureDetector gesture={Gesture.Exclusive(flingRightGesture, flingLeftGesture)}>
                 <Animated.View
-                    style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}, animatedStyle]}>
+                    style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}, animatedPlayBarStyle]}>
                     {
                         isShrunk
                             ?
-                            <TouchableOpacity style={styles.blurViewWrapper} onPress={handleFlingLeft}
-                                              activeOpacity={0.9}>
-                                <BlurView
-                                    style={styles.blurView}
-                                    blurType="dark"
-                                    blurAmount={3}
-                                >
-                                    <Icon size={16}
-                                          name='chevron-back-outline'
-                                          type='ionicon'
-                                          style={styles.shrinkIcon}
-                                          color='#fff'/>
-                                </BlurView>
-                            </TouchableOpacity>
+                            <Animated.View style={[styles.blurViewWrapper, animatedBlurStyle]}>
+                                <TouchableOpacity onPress={handleFlingLeft} activeOpacity={0.9}>
+                                    <BlurView
+                                        style={styles.blurView}
+                                        blurType="dark"
+                                        blurAmount={3}
+                                    >
+                                        <Icon size={16}
+                                              name='chevron-back-outline'
+                                              type='ionicon'
+                                              style={styles.shrinkIcon}
+                                              color='#fff'/>
+                                    </BlurView>
+                                </TouchableOpacity>
+                            </Animated.View>
                             :
                             <></>
                     }
