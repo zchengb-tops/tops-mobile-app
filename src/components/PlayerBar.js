@@ -1,20 +1,22 @@
 import React from 'react';
-import {ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
 import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useVisibility} from "../../utils/VisibilityProvider";
+import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
 
 export const PlayerBar = () => {
     const progress = useProgress(800);
-
     const currentTrack = useTrack();
     const showing = useTrackShowing();
     const status = useTrackStatus();
     const insets = useSafeAreaInsets();
     const {isPlayBarVisible} = useVisibility();
+    const screenWidth = Dimensions.get('window').width;
 
     const formatTime = (time) => {
         const hours = Math.floor(time / 3600);
@@ -32,110 +34,131 @@ export const PlayerBar = () => {
         return progress.position >= progress.duration
     }
 
+    const position = useSharedValue(0);
+
+    const flingRightGesture = Gesture.Fling()
+        .direction(Directions.RIGHT)
+        .onStart((e) => {
+            position.value = withTiming(screenWidth - 24, {duration: 300});
+        });
+
+    const flingLeftGesture = Gesture.Fling()
+        .direction(Directions.LEFT)
+        .onStart(() => {
+            position.value = withTiming(0, {duration: 300});
+        });
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{translateX: position.value}],
+    }));
+
     if (!isPlayBarVisible) return null;
 
     return (
         showing ?
-            <View style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}]}>
-                <View style={styles.playerBarInternalWrapper}>
-                    <View style={styles.trackInfo}>
-                        {
-                            currentTrack?.artwork
-                                ?
-                                <Image style={styles.cover} source={{uri: currentTrack?.artwork}}/>
-                                :
-                                <TopsIcon width={40} height={40}/>
-                        }
-
-                        <View style={styles.trackTextInfo}>
-                            <Text style={styles.title} numberOfLines={1}
-                                  ellipsizeMode='tail'>{currentTrack?.title}</Text>
-                            <Text style={styles.author} numberOfLines={1}
-                                  ellipsizeMode='tail'>{currentTrack?.artist}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.controls}>
-                        <Text style={{color: '#888888', width: 64, textAlign: 'center', fontSize: 12}}>
+            <GestureDetector gesture={Gesture.Exclusive(flingRightGesture, flingLeftGesture)}>
+                <Animated.View
+                    style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}, animatedStyle]}>
+                    <View style={styles.playerBarInternalWrapper}>
+                        <View style={styles.trackInfo}>
                             {
-                                formatTime(progress.position)
+                                currentTrack?.artwork
+                                    ?
+                                    <Image style={styles.cover} source={{uri: currentTrack?.artwork}}/>
+                                    :
+                                    <TopsIcon width={40} height={40}/>
                             }
-                        </Text>
-                        <Slider
-                            maximumTrackTintColor={"#D9D9D9"}
-                            maximumValue={progress.duration}
-                            minimumTrackTintColor={"#464646"}
-                            step={1}
-                            style={{
-                                height: 18,
-                                marginLeft: 8,
-                                marginRight: 8,
-                                width: 150,
-                            }}
-                            trackStyle={{height: 6}}
-                            thumbStyle={{height: 6, width: 6}}
-                            thumbTintColor="#464646"
-                            value={progress.position}
-                            onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
-                        />
-                        <Text style={{color: '#888888', width: 70, textAlign: 'center', fontSize: 12}}>
-                            -{formatTime(progress.duration - progress.position)}
-                        </Text>
-                        {
-                            currentTrack ?
-                                <View style={{flexDirection: 'row', marginLeft: 12}}>
-                                    {status === State.Playing ? (
-                                        <TouchableOpacity onPress={() => {
-                                            TrackPlayer.pause();
-                                        }}>
-                                            <Icon
-                                                size={20}
-                                                name='pause'
-                                                type='ionicon'
-                                                color='#464646'
-                                            />
-                                        </TouchableOpacity>
-                                    ) : (
-                                        status === State.Loading
-                                            ?
-                                            <ActivityIndicator size="small" color={'#464646'}/>
-                                            :
-                                            <TouchableOpacity
-                                                onPress={() => {
-                                                    if (hasPlayedComplete()) {
-                                                        TrackPlayer.seekTo(0);
-                                                    }
-                                                    TrackPlayer.play();
-                                                }}>
+
+                            <View style={styles.trackTextInfo}>
+                                <Text style={styles.title} numberOfLines={1}
+                                      ellipsizeMode='tail'>{currentTrack?.title}</Text>
+                                <Text style={styles.author} numberOfLines={1}
+                                      ellipsizeMode='tail'>{currentTrack?.artist}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.controls}>
+                            <Text style={{color: '#888888', width: 64, textAlign: 'center', fontSize: 12}}>
+                                {
+                                    formatTime(progress.position)
+                                }
+                            </Text>
+                            <Slider
+                                maximumTrackTintColor={"#D9D9D9"}
+                                maximumValue={progress.duration}
+                                minimumTrackTintColor={"#464646"}
+                                step={1}
+                                style={{
+                                    height: 18,
+                                    marginLeft: 8,
+                                    marginRight: 8,
+                                    width: 150,
+                                }}
+                                trackStyle={{height: 6}}
+                                thumbStyle={{height: 6, width: 6}}
+                                thumbTintColor="#464646"
+                                value={progress.position}
+                                onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
+                            />
+                            <Text style={{color: '#888888', width: 70, textAlign: 'center', fontSize: 12}}>
+                                -{formatTime(progress.duration - progress.position)}
+                            </Text>
+                            {
+                                currentTrack ?
+                                    <View style={{flexDirection: 'row', marginLeft: 12}}>
+                                        {status === State.Playing ? (
+                                            <TouchableOpacity onPress={() => {
+                                                TrackPlayer.pause();
+                                            }}>
                                                 <Icon
                                                     size={20}
-                                                    name='play'
+                                                    name='pause'
                                                     type='ionicon'
                                                     color='#464646'
                                                 />
                                             </TouchableOpacity>
-                                    )}
-                                    <TouchableOpacity style={styles.playForward}
-                                                      disabled={hasPlayedComplete()}
-                                                      onPress={() => {
-                                                          TrackPlayer.getProgress().then((progress) => {
-                                                              let newPosition = progress.position + 15;
-                                                              newPosition = newPosition > progress.duration ? progress.duration : newPosition;
-                                                              TrackPlayer.seekTo(newPosition);
-                                                          })
-                                                      }}>
-                                        <Icon
-                                            size={20}
-                                            name='play-forward'
-                                            type='ionicon'
-                                            color='#464646'
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                                : <></>
-                        }
+                                        ) : (
+                                            status === State.Loading
+                                                ?
+                                                <ActivityIndicator size="small" color={'#464646'}/>
+                                                :
+                                                <TouchableOpacity
+                                                    onPress={() => {
+                                                        if (hasPlayedComplete()) {
+                                                            TrackPlayer.seekTo(0);
+                                                        }
+                                                        TrackPlayer.play();
+                                                    }}>
+                                                    <Icon
+                                                        size={20}
+                                                        name='play'
+                                                        type='ionicon'
+                                                        color='#464646'
+                                                    />
+                                                </TouchableOpacity>
+                                        )}
+                                        <TouchableOpacity style={styles.playForward}
+                                                          disabled={hasPlayedComplete()}
+                                                          onPress={() => {
+                                                              TrackPlayer.getProgress().then((progress) => {
+                                                                  let newPosition = progress.position + 15;
+                                                                  newPosition = newPosition > progress.duration ? progress.duration : newPosition;
+                                                                  TrackPlayer.seekTo(newPosition);
+                                                              })
+                                                          }}>
+                                            <Icon
+                                                size={20}
+                                                name='play-forward'
+                                                type='ionicon'
+                                                color='#464646'
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                    : <></>
+                            }
+                        </View>
                     </View>
-                </View>
-            </View>
+                </Animated.View>
+            </GestureDetector>
             : <></>
     );
 };

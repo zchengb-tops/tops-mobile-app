@@ -16,6 +16,7 @@ import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {Capability} from "react-native-track-player";
 import {storage} from "./src/storage";
 import {useTrackStateStore} from "./src/AudioTrackStore";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -117,22 +118,24 @@ export default function App() {
             <VisibilityProvider>
                 <NewsProvider>
                     <NavigationContainer>
-                        <View style={{flex: 1}}>
-                            <Tab.Navigator
-                                initialRouteName="DiscoveryScreen"
-                                screenOptions={{
-                                    headerShown: false,
-                                    animationEnabled: false,
-                                    tabBarStyle: {display: 'none'},
-                                }}
-                            >
-                                <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
-                                <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
-                                <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
-                            </Tab.Navigator>
-                            <PlayerBar/>
-                            <NavBar/>
-                        </View>
+                        <GestureHandlerRootView style={{flex: 1}}>
+                            <View style={{flex: 1}}>
+                                <Tab.Navigator
+                                    initialRouteName="DiscoveryScreen"
+                                    screenOptions={{
+                                        headerShown: false,
+                                        animationEnabled: false,
+                                        tabBarStyle: {display: 'none'},
+                                    }}
+                                >
+                                    <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
+                                    <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
+                                    <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
+                                </Tab.Navigator>
+                                <PlayerBar/>
+                                <NavBar/>
+                            </View>
+                        </GestureHandlerRootView>
                     </NavigationContainer>
                 </NewsProvider>
             </VisibilityProvider>
