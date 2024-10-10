@@ -2,14 +2,12 @@ import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, Vie
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
-import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
 
 export const Zhihu = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(allNews['zhihu'])
@@ -23,7 +21,6 @@ export const Zhihu = () => {
 
     return <FlatList
         data={news}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>

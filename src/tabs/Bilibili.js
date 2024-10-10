@@ -5,14 +5,12 @@ import {useNavigation} from "@react-navigation/native";
 import AuthorIcon from "../../assets/icons/author.svg"
 import ViewIcon from "../../assets/icons/view.svg"
 import LikeIcon from "../../assets/icons/like.svg"
-import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
 
 export const Bilibili = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(allNews['bilibili'])
@@ -37,7 +35,6 @@ export const Bilibili = () => {
             <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         renderItem={({item, index}) => {
             return <TouchableOpacity style={[styles.itemWrapper, {marginTop: index === 0 ? 16 : 8}]}
                                      activeOpacity={0.8}

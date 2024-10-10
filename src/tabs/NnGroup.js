@@ -2,7 +2,6 @@ import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, Vie
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
-import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
 import CoverPlayIcon from "../../assets/icons/cover-play.svg"
 
@@ -10,7 +9,6 @@ export const NnGroup = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(allNews['nnGroup'])
@@ -24,7 +22,6 @@ export const NnGroup = () => {
             <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         renderItem={({item, index}) => (
             <TouchableOpacity
                 style={styles.newsItemWrapper}

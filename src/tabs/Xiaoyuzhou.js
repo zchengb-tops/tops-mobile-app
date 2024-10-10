@@ -11,9 +11,9 @@ import {
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../../utils/NewsProvider";
 import AuthorIcon from "../../assets/icons/author.svg";
-import TrackPlayer, {Capability, Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
+import TrackPlayer, {Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
 import {useTrackStateStore} from "../AudioTrackStore";
-import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
 import {globalStyles} from "../globalStyle";
@@ -24,7 +24,6 @@ export const Xiaoyuzhou = () => {
     const progress = useProgress();
     const playStatus = useTrackStatus();
     const playingTrack = useTrack();
-    const playBarShowing = useTrackShowing();
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
@@ -191,7 +190,6 @@ export const Xiaoyuzhou = () => {
                 <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
             }
             keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
             renderItem={({item, index}) => (
                 <View style={styles.newsItemWrapper}>
                     <View style={styles.newItemContainer}>

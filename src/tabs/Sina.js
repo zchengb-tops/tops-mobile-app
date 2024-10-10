@@ -10,7 +10,6 @@ export const Sina = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(allNews['sina'])
@@ -31,10 +30,9 @@ export const Sina = () => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews} />
+            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
         data={news}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
             return (

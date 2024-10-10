@@ -4,14 +4,12 @@ import {NewsContext} from "../../utils/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import FlashlightIcon from "../../assets/icons/flashlight.svg";
 import CommentIcon from "../../assets/icons/comment.svg";
-import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
 
 export const Sspai = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const playBarShowing = useTrackShowing();
 
     useEffect(() => {
         setNews(allNews['sspai'])
@@ -39,7 +37,6 @@ export const Sspai = () => {
             <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100 : 0}}
         renderItem={({item, index}) => (
             <TouchableOpacity
                 activeOpacity={0.8}
