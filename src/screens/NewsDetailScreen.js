@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {WebView} from "react-native-webview";
-import {ActivityIndicator, Alert, Linking, StyleSheet, View} from "react-native";
+import {ActivityIndicator, StyleSheet, View} from "react-native";
 import {useIsFocused} from "@react-navigation/native";
 import {useVisibility} from "../../utils/VisibilityProvider";
 
@@ -9,10 +9,9 @@ export const NewsDetailScreen = ({route}) => {
     const [loading, setLoading] = useState(true);
     const [webviewKey, setWebviewKey] = useState(1);
     const isFocused = useIsFocused();
-    const {setIsNavBarVisible, setIsPlayBarVisible} = useVisibility();
+    const {setIsNavBarVisible} = useVisibility();
 
     useEffect(() => {
-        setIsPlayBarVisible(!isFocused);
         setIsNavBarVisible(!isFocused);
 
         if (!isFocused) {
@@ -20,7 +19,6 @@ export const NewsDetailScreen = ({route}) => {
         }
 
         return () => {
-            setIsPlayBarVisible(true);
             setIsNavBarVisible(true);
         };
     }, [isFocused]);

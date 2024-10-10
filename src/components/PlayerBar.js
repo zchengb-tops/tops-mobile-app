@@ -1,5 +1,5 @@
-import React from 'react';
-import {ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState} from 'react';
+import {ActivityIndicator, Dimensions, Image, StyleSheet, Text, Touchable, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
@@ -7,7 +7,9 @@ import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useVisibility} from "../../utils/VisibilityProvider";
 import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
+import Animated, {runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
+import {BlurView} from "@react-native-community/blur";
+
 
 export const PlayerBar = () => {
     const progress = useProgress(800);
@@ -17,6 +19,8 @@ export const PlayerBar = () => {
     const insets = useSafeAreaInsets();
     const {isPlayBarVisible} = useVisibility();
     const screenWidth = Dimensions.get('window').width;
+    const position = useSharedValue(0);
+    const [isShrunk, setIsShrunk] = useState(false);
 
     const formatTime = (time) => {
         const hours = Math.floor(time / 3600);
@@ -34,18 +38,29 @@ export const PlayerBar = () => {
         return progress.position >= progress.duration
     }
 
-    const position = useSharedValue(0);
+    const delayedSetIsShrunk = (value, delay) => {
+        setTimeout(() => {
+            setIsShrunk(value);
+        }, delay);
+    };
 
     const flingRightGesture = Gesture.Fling()
         .direction(Directions.RIGHT)
         .onStart((e) => {
             position.value = withTiming(screenWidth - 24, {duration: 300});
+            runOnJS(delayedSetIsShrunk)(true, 180);
         });
+
+    const handleFlingLeft = () => {
+        runOnUI(() => position.value = withTiming(0, {duration: 300}))();
+        runOnJS(setIsShrunk)(false);
+    }
 
     const flingLeftGesture = Gesture.Fling()
         .direction(Directions.LEFT)
         .onStart(() => {
             position.value = withTiming(0, {duration: 300});
+            runOnJS(setIsShrunk)(false);
         });
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -59,7 +74,29 @@ export const PlayerBar = () => {
             <GestureDetector gesture={Gesture.Exclusive(flingRightGesture, flingLeftGesture)}>
                 <Animated.View
                     style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}, animatedStyle]}>
-                    <View style={styles.playerBarInternalWrapper}>
+                    {
+                        isShrunk
+                            ?
+                            <TouchableOpacity style={styles.blurViewWrapper} onPress={handleFlingLeft}
+                                              activeOpacity={0.9}>
+                                <BlurView
+                                    style={styles.blurView}
+                                    blurType="dark"
+                                    blurAmount={3}
+                                >
+                                    <Icon size={16}
+                                          name='chevron-back-outline'
+                                          type='ionicon'
+                                          style={styles.shrinkIcon}
+                                          color='#fff'/>
+                                </BlurView>
+                            </TouchableOpacity>
+                            :
+                            <></>
+                    }
+                    <View
+                        activeOpacity={1}
+                        style={[styles.playerBarInternalWrapper, {backgroundColor: isShrunk ? 'transparent' : '#ffffff',}]}>
                         <View style={styles.trackInfo}>
                             {
                                 currentTrack?.artwork
@@ -179,7 +216,6 @@ const styles = StyleSheet.create({
         shadowRadius: 8.84,
     },
     playerBarInternalWrapper: {
-        backgroundColor: '#ffffff',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 18,
@@ -220,5 +256,29 @@ const styles = StyleSheet.create({
     },
     playForward: {
         marginLeft: 8
+    },
+    gradient: {
+        position: 'absolute',
+        width: 24,
+        height: '100%',
+        left: 12,
+    },
+    blurViewWrapper: {
+        zIndex: 10,
+        position: 'absolute',
+        width: 24,
+        height: '100%',
+        left: 8,
+    },
+    blurView: {
+        height: '100%',
+        borderRadius: 6,
+        backgroundColor: 'transparent',
+        justifyContent: 'center',
+    },
+    shrinkIcon: {
+        transform: [
+            {translateX: -3}
+        ]
     }
 });

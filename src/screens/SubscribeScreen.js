@@ -5,22 +5,10 @@ import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
-import {useVisibility} from "../../utils/VisibilityProvider";
-import {useIsFocused} from "@react-navigation/native";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
-    const {setIsPlayBarVisible} = useVisibility();
-    const isFocused = useIsFocused();
-
-    useEffect(() => {
-        setIsPlayBarVisible(!isFocused);
-
-        return () => {
-            setIsPlayBarVisible(true);
-        };
-    }, [isFocused]);
 
     useEffect(() => {
         const stringifyChannelList = storage.getString('channelList')
