@@ -12,7 +12,7 @@ import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../providers/NewsProvider";
 import AuthorIcon from "../../assets/icons/author.svg";
 import TrackPlayer, {Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
-import {useTrackStateStore} from "../AudioTrackStore";
+import {useTrackStateStore} from "../hooks/AudioTrackStore";
 import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";

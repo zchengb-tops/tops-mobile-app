@@ -15,7 +15,7 @@ import {SubscribeScreen} from "./src/screens/SubscribeScreen";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {Capability} from "react-native-track-player";
 import {storage} from "./src/storage";
-import {useTrackStateStore} from "./src/AudioTrackStore";
+import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 
