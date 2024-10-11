@@ -4,7 +4,7 @@ import {ErrorScreen} from "../screens/ErrorScreen";
 import {NewsContext} from "../../utils/NewsProvider";
 
 export const TabView = ({channelList, tabIndex, setTabIndex}) => {
-    const {refreshing, loading, loadError} = useContext(NewsContext);
+    const {refreshing, loading, loadError, fetchNews} = useContext(NewsContext);
     const [loadedTabs, setLoadedTabs] = useState(new Set());
     const tabViewRef = useRef(null);
     const screenWidth = Dimensions.get('window').width;
