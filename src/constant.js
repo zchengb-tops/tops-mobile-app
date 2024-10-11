@@ -19,6 +19,7 @@ import {DoubanMovie} from "./tabs/DoubanMovie";
 import {Bilibili} from "./tabs/Bilibili";
 import {Stock} from "./tabs/Stock";
 import {NnGroup} from "./tabs/NnGroup";
+import {Tiobe} from "./tabs/Tiobe";
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -26,7 +27,7 @@ export const DEFAULT_CHANNEL_LIST = [
         title: '今日热门',
         tabTitle: '今日热门',
         desc: '今日热门事件',
-        enable: true,
+        enable: false,
         isOrigin: true
     },
     {
@@ -98,7 +99,7 @@ export const DEFAULT_CHANNEL_LIST = [
         title: 'TIOBE编程语言榜单',
         tabTitle: 'TIOBE',
         desc: '每月最新的全球编程语言排行榜',
-        enable: false,
+        enable: true,
         isOrigin: true
     },
     {
@@ -167,7 +168,7 @@ export const CHANNEL_COMPONENT_MAP = {
     'tiobe': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <TiobeIcon width={width} height={height}
                                                                                        style={style}/>,
-        component: <></>
+        component: <Tiobe/>
     },
     'history': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HistoryIcon width={width} height={height}

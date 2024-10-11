@@ -1,0 +1,131 @@
+import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import React, {useContext, useEffect, useState} from "react";
+import {NewsContext} from "../providers/NewsProvider";
+import {useNavigation} from "@react-navigation/native";
+import AuthorIcon from "../../assets/icons/author.svg"
+import ViewIcon from "../../assets/icons/view.svg"
+import LikeIcon from "../../assets/icons/like.svg"
+import {globalStyles} from "../globalStyle";
+
+export const Tiobe = () => {
+    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const [news, setNews] = useState([]);
+    const navigation = useNavigation();
+    const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    useEffect(() => {
+        setNews(allNews['tiobe'])
+    }, [allNews]);
+
+    useEffect(() => console.log('start to render tiobe'), []);
+
+    const getCurrentMonthLabel = () => {
+        const date = new Date();
+        return month[date.getMonth()] + " " + date.getFullYear();
+    }
+
+    const getMonthOfLastYearLabel = () => {
+        const date = new Date();
+        return month[date.getMonth()] + " " + (date.getFullYear() - 1);
+    };
+
+    const renderHeader = () => (
+        <View style={styles.header}>
+            <Text style={[styles.headerText, styles.rankCol]}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5} numberOfLines={1}>{getCurrentMonthLabel()}</Text>
+            <Text style={[styles.headerText, styles.rankLastYearCol]}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5} numberOfLines={1}>{getMonthOfLastYearLabel()}</Text>
+            <Text style={[styles.headerText, styles.languageCol]}>语言</Text>
+            <Text style={[styles.headerText, styles.percentageCol]}>占比</Text>
+            <Text style={[styles.headerText, styles.changeCol]}>变化</Text>
+        </View>
+    );
+
+    const renderItem = (item, index) => {
+        return (
+            <TouchableOpacity style={styles.itemWrapper}
+                              activeOpacity={0.8}
+                              onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}
+            >
+                <Text style={[styles.itemText, styles.rankCol]}>{item.rankNum}</Text>
+                <Text style={[styles.itemText, styles.rankLastYearCol]}>{item.properties.rankOfMonthLastYear}</Text>
+                <Text style={[styles.itemText, styles.languageCol, styles.languageText]}>{item.title}</Text>
+                <Text style={[styles.itemText, styles.percentageCol]}>{item.properties.ratings}</Text>
+                <Text
+                    style={[styles.itemText, styles.changeCol, {color: item.properties.isUp ? 'green' : 'red'}]}>{item.properties.change}</Text>
+            </TouchableOpacity>
+        );
+    }
+
+
+    return <FlatList
+        style={styles.container}
+        initialNumToRender={20}
+        data={news}
+        refreshControl={
+            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+        }
+        keyExtractor={(item, index) => index.toString()}
+        ListHeaderComponent={renderHeader}
+        renderItem={({item, index}) => renderItem(item, index)}
+    />
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    header: {
+        flexDirection: 'row',
+        marginTop: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.08)',
+    },
+    headerText: {
+        color: '#939393',
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    itemWrapper: {
+        flexDirection: 'row',
+        paddingHorizontal: 12,
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: 'rgba(0,0,0,0.08)',
+    },
+    itemText: {
+        fontSize: 14,
+        color: '#464646',
+    },
+    rankCol: {
+        flexBasis: 40,
+        textAlign: 'center',
+    },
+    rankLastYearCol: {
+        flexBasis: 40,
+        textAlign: 'center',
+    },
+    languageCol: {
+        flexBasis: 100,
+        textAlign: 'center',
+    },
+    languageText: {
+        fontWeight: '500'
+    },
+    percentageCol: {
+        flexBasis: 60,
+        textAlign: 'center',
+    },
+    changeCol: {
+        flexBasis: 60,
+        textAlign: 'center',
+    },
+})
