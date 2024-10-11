@@ -1,7 +1,7 @@
 import {FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {ListItem} from "@rneui/themed";
 import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../../utils/NewsProvider";
+import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Animated, Easing, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {useVisibility} from "../../utils/VisibilityProvider";
+import {useVisibility} from "../providers/VisibilityProvider";
 import {Icon} from "@rneui/themed";
 import {useNavigation} from "@react-navigation/native";
 

@@ -9,7 +9,7 @@ import {
     View
 } from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../../utils/NewsProvider";
+import {NewsContext} from "../providers/NewsProvider";
 import AuthorIcon from "../../assets/icons/author.svg";
 import TrackPlayer, {Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
 import {useTrackStateStore} from "../AudioTrackStore";

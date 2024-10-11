@@ -5,7 +5,7 @@ import {GridComponent, TooltipComponent, VisualMapComponent} from 'echarts/compo
 import {SvgChart, SVGRenderer} from '@wuba/react-native-echarts';
 import {BarChart, TreemapChart} from "echarts/charts";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
-import {NewsContext} from "../../utils/NewsProvider";
+import {NewsContext} from "../providers/NewsProvider";
 import {globalStyles} from "../globalStyle";
 import {useNavigation} from "@react-navigation/native";
 

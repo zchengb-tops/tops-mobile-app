@@ -1,6 +1,6 @@
 import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../../utils/NewsProvider";
+import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
 import CoverPlayIcon from "../../assets/icons/cover-play.svg"

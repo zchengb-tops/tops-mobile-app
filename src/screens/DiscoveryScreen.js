@@ -5,7 +5,7 @@ import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import {useIsFocused} from "@react-navigation/native";
 import {TabView} from "../components/TabView";
-import {NewsContext} from "../../utils/NewsProvider";
+import {NewsContext} from "../providers/NewsProvider";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);

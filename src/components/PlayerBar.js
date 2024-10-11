@@ -5,7 +5,7 @@ import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
 import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
-import {useVisibility} from "../../utils/VisibilityProvider";
+import {useVisibility} from "../providers/VisibilityProvider";
 import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";
 import Animated, {runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
 import {BlurView} from "@react-native-community/blur";

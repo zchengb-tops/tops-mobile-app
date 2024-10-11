@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Dimensions, ScrollView, StyleSheet, View} from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
-import {NewsContext} from "../../utils/NewsProvider";
+import {NewsContext} from "../providers/NewsProvider";
 
 export const TabView = ({channelList, tabIndex, setTabIndex}) => {
     const {refreshing, loading, loadError, fetchNews} = useContext(NewsContext);

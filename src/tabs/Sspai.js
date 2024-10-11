@@ -1,6 +1,6 @@
 import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../../utils/NewsProvider";
+import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import FlashlightIcon from "../../assets/icons/flashlight.svg";
 import CommentIcon from "../../assets/icons/comment.svg";
