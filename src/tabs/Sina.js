@@ -32,18 +32,22 @@ export const Sina = () => {
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
         }
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
         data={news}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
             return (
                 <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.newsItem}
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
                             url: "https://zchengb.top/api/t/" + item.shortLink,
                         })
                     }
                 >
-                    <ListItem containerStyle={styles.newItemContainer}>
+                    <View style={styles.newsInfoWrapper}>
                         <View
                             style={[
                                 styles.rankNumCircle,
@@ -54,19 +58,15 @@ export const Sina = () => {
                                 {item.rankNum}
                             </Text>
                         </View>
-                        <ListItem.Content>
-                            <ListItem.Title
-                                style={styles.title}
-                                numberOfLines={1}
-                                ellipsizeMode="tail"
-                            >
-                                {item.title}
-                            </ListItem.Title>
-                        </ListItem.Content>
-                        <Text style={styles.viewerText}>
-                            {prettifyNumber(item.properties.viewers)}
+                        <Text style={styles.title}
+                              numberOfLines={1}
+                              ellipsizeMode="tail">
+                            {item.title}
                         </Text>
-                    </ListItem>
+                    </View>
+                    <Text style={styles.viewerText}>
+                        {prettifyNumber(item.properties.viewers)}
+                    </Text>
                 </TouchableOpacity>
             );
         }}
@@ -74,16 +74,33 @@ export const Sina = () => {
 }
 
 const styles = StyleSheet.create({
-    newItemContainer: {
-        marginBottom: -4,
+    container: {
+        flex: 1,
+    },
+    contentContainer: {
+      marginTop: 4,
+    },
+    newsItem: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        marginTop: 10,
+        marginBottom: 12,
+    },
+    newsInfoWrapper: {
+        flexDirection: 'row',
+        maxWidth: '84%'
     },
     title: {
+        marginLeft: 16,
         fontSize: 16,
-        color: 'rgba(0,0,0,0.85)'
+        color: '#464646'
     },
     viewerText: {
         color: '#939393',
-        fontSize: 14
+        fontSize: 14,
     },
     rankNumCircle: {
         width: 18,
