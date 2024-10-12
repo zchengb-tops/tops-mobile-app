@@ -20,6 +20,7 @@ import {Bilibili} from "./tabs/Bilibili";
 import {Stock} from "./tabs/Stock";
 import {NnGroup} from "./tabs/NnGroup";
 import {Tiobe} from "./tabs/Tiobe";
+import {History} from "./tabs/History";
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -107,7 +108,7 @@ export const DEFAULT_CHANNEL_LIST = [
         title: '历史上的今天',
         tabTitle: '历史薄',
         desc: '所以历史上的今天都发生了什么？🧐',
-        enable: false,
+        enable: true,
         isOrigin: true
     }
 ];
@@ -173,6 +174,6 @@ export const CHANNEL_COMPONENT_MAP = {
     'history': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HistoryIcon width={width} height={height}
                                                                                          style={style}/>,
-        component: <></>
+        component: <History/>
     },
 };
