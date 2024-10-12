@@ -16,16 +16,11 @@ export const Stock = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
     const [acquisitionTime, setAcquisitionTime] = useState(null);
     const [chartOption, setChartOption] = useState({
-        label: {
-            formatter: (value) => {
-                return `${value.name}\n${value.value[2]}%`;
-            },
-            fontSize: 12
-        },
         series: {
             itemStyle: {
                 borderColor: "white",
-                gapWidth: 0.5
+                gapWidth: 2,
+                borderRadius: 2,
             },
             levels: [
                 {
@@ -44,19 +39,58 @@ export const Stock = () => {
             breadcrumb: {
                 show: false
             },
+            labelLayout: (params) => { return { y: params.labelRect.y, align: 'center', } },
             label: {
                 show: true,
+                color: '#464646',
+                formatter: (value) => {
+                    const changeValue = value.value[2];
+                    let changeClass = 'neutralChange';
+
+                    if (changeValue.startsWith('+')) {
+                        changeClass = 'upChange';
+                    } else if (changeValue.startsWith('-')) {
+                        changeClass = 'downChange';
+                    }
+
+                    return `{name|${value.name}}\n{${changeClass}|${changeValue}%}`;
+                },
+                lineHeight: 14,
+                rich: {
+                    name: {
+                        fontSize: 12,
+                        color: '#464646',
+                    },
+                    neutralChange: {
+                        fontSize: 12,
+                        color: '#939393',
+                    },
+                    upChange: {
+                        fontSize: 12,
+                        color: '#f03a55',
+                    },
+                    downChange: {
+                        fontSize: 12,
+                        color: '#00a870',
+                    }
+                }
             }
         },
         visualMap: {
             show: false,
             precision: 2,
-            type: "continuous",
-            min: -4.0,
-            max: 4.0,
-            inRange: {
-                color: ["#62cda4", "#4d9e81", "#417d6b", "#334e49", "#543b3f", "#7a494b", "#c76663", "#ed7470"]
-            }
+            type: "piecewise",
+            min: -3.0,
+            max: 3.0,
+            pieces: [
+                {min: -Infinity, max: -3.01, color: "#CEEADB"},
+                {min: -2.99, max: -1.01, color: "#E2F2E9"},
+                {min: -1.0, max: -0.01, color: "#F0F9F4"},
+                {value: 0, color: "#E1E5E9"},
+                {min: 0.01, max: 1.00, color: "#FFF0F2"},
+                {min: 1.01, max: 2.99, color: "#FFE4E6"},
+                {min: 3.0, max: +Infinity, color: "#FED0D5"},
+            ],
         }
     });
     const chartRef = useRef(null);
