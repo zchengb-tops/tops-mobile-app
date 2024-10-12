@@ -67,11 +67,11 @@ export const Stock = () => {
                     },
                     upChange: {
                         fontSize: 12,
-                        color: '#f03a55',
+                        color: '#f05e73',
                     },
                     downChange: {
                         fontSize: 12,
-                        color: '#00a870',
+                        color: '#489c80',
                     }
                 }
             }
