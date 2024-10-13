@@ -17,6 +17,7 @@ import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
 import {globalStyles} from "../globalStyle";
+import {useNavigation} from "@react-navigation/native";
 
 export const Xiaoyuzhou = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -24,6 +25,7 @@ export const Xiaoyuzhou = () => {
     const progress = useProgress();
     const playStatus = useTrackStatus();
     const playingTrack = useTrack();
+    const navigation = useNavigation();
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
@@ -191,7 +193,9 @@ export const Xiaoyuzhou = () => {
             }
             keyExtractor={(item, index) => index.toString()}
             renderItem={({item, index}) => (
-                <View style={styles.newsItemWrapper}>
+                <TouchableOpacity style={styles.newsItemWrapper} activeOpacity={0.8} onPress={() =>
+                    navigation.navigate('NewsDetailScreen', {url: item.url})
+                }>
                     <View style={styles.newItemContainer}>
                         <Image
                             style={styles.image}
@@ -256,7 +260,7 @@ export const Xiaoyuzhou = () => {
                             </AnimatedCircularProgress>
                         </View>
                     </View>
-                </View>
+                </TouchableOpacity>
             )}
         />
     );
