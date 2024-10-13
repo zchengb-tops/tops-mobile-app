@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        color: 'rgba(0,0,0,0.85)',
+        color: '#464646',
         lineHeight: 16 * 1.5,
     },
     viewerText: {
