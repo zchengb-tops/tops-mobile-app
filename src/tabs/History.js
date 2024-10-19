@@ -19,7 +19,10 @@ export const History = () => {
         return (
             <TouchableOpacity style={[styles.itemWrapper]}
                               activeOpacity={0.8}
-                              onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}
+                              onPress={() => navigation.navigate('NewsDetailScreen', {
+                                  url: "https://zchengb.top/api/t/" + item.shortLink,
+                                  title: item.title
+                              })}
             >
                 <View style={styles.symbol}/>
                 <View style={styles.textInfoWrapper}>

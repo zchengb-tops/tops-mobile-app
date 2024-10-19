@@ -15,5 +15,7 @@ module.exports = (() => {
         sourceExts: [...resolver.sourceExts, "svg"],
     };
 
+    config.resetCache = true;
+
     return config;
 })();

@@ -37,6 +37,7 @@ export const DoubanMovie = () => {
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
                             url: "https://zchengb.top/api/t/" + item.shortLink,
+                            title: item.title
                         })
                     }
                 >

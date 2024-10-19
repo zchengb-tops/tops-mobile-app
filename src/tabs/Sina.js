@@ -5,6 +5,7 @@ import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
+import {API_URL} from '@env';
 
 export const Sina = () => {
     const {allNews, refreshing, refreshNews} = useContext(NewsContext);
@@ -43,7 +44,8 @@ export const Sina = () => {
                     style={styles.newsItem}
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
-                            url: "https://zchengb.top/api/t/" + item.shortLink,
+                            url: API_URL + "/t/" + item.shortLink,
+                            title: item.title
                         })
                     }
                 >
@@ -78,7 +80,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     contentContainer: {
-      marginTop: 4,
+        marginTop: 4,
     },
     newsItem: {
         flex: 1,

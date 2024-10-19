@@ -1,4 +1,5 @@
 import React, {createContext, useState} from 'react';
+import {API_URL} from '@env';
 
 export const NewsContext = createContext();
 
@@ -12,7 +13,8 @@ export const NewsProvider = ({children}) => {
         setLoadError(false);
         setLoading(true);
         try {
-            const response = await fetch('https://zchengb.top/api/normal-news');
+            console.log('API URL:', API_URL);
+            const response = await fetch(API_URL + '/normal-news');
             const data = await response.json();
             setAllNews(data);
         } catch (error) {

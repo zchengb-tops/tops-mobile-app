@@ -133,6 +133,7 @@ export const Stock = () => {
             chart.on("click", (e) => {
                 navigation.navigate('NewsDetailScreen', {
                     url: "https://zchengb.top/api/t/" + e.data.link,
+                    title: item.title
                 })
             });
         }

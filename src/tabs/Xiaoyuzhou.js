@@ -194,7 +194,10 @@ export const Xiaoyuzhou = () => {
             keyExtractor={(item, index) => index.toString()}
             renderItem={({item, index}) => (
                 <TouchableOpacity style={styles.newsItemWrapper} activeOpacity={0.8} onPress={() =>
-                    navigation.navigate('NewsDetailScreen', {url: item.url})
+                    navigation.navigate('NewsDetailScreen', {
+                        url: item.url,
+                        title: item.title
+                    })
                 }>
                     <View style={styles.newItemContainer}>
                         <Image

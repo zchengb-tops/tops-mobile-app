@@ -47,7 +47,10 @@ export const Tiobe = () => {
         return (
             <TouchableOpacity style={styles.itemWrapper}
                               activeOpacity={0.8}
-                              onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink})}
+                              onPress={() => navigation.navigate('NewsDetailScreen', {
+                                  url: "https://zchengb.top/api/t/" + item.shortLink,
+                                  title: item.title
+                              })}
             >
                 <Text style={[styles.itemText, styles.rankCol]}>{item.rankNum}</Text>
                 <Text style={[styles.itemText, styles.rankLastYearCol]}>{item.properties.rankOfMonthLastYear}</Text>

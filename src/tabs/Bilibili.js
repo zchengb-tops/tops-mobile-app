@@ -38,7 +38,10 @@ export const Bilibili = () => {
         renderItem={({item, index}) => {
             return <TouchableOpacity style={[styles.itemWrapper, {marginTop: index === 0 ? 16 : 8}]}
                                      activeOpacity={0.8}
-                                     onPress={() => navigation.navigate('NewsDetailScreen', {url: "https://zchengb.top/api/t/" + item.shortLink,})}
+                                     onPress={() => navigation.navigate('NewsDetailScreen', {
+                                         url: "https://zchengb.top/api/t/" + item.shortLink,
+                                         title: item.title
+                                     })}
             >
                 <Image style={styles.cover} source={{uri: item.properties.firstFrame.replace('http://', 'https://')}}/>
                 <View style={styles.itemInfoWrapper}>
