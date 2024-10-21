@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Platform} from "react-native";
-import Share from 'react-native-share';
+import {Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {Icon} from "@rneui/themed";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
@@ -114,26 +113,7 @@ export const SubscribeScreen = () => {
         <View style={styles.topBar}>
             <Text style={styles.pageTitle}>资讯订阅</Text>
             <TouchableOpacity style={styles.addButton} onPress={() => {
-                const url = 'https://site.zchengb.top/';
-                const title = '美国水蝮蛇窃密设备伪装成USB键盘';
-                const options = Platform.select({
-                    ios: {
-                        activityItemSources: [
-                            {
-                                placeholderItem: {type: 'url', content: url},
-                                item: {
-                                    default: {type: 'url', content: url},
-                                },
-                                subject: {
-                                    default: title,
-                                },
-                                linkMetadata: {originalUrl: url, url, title},
-                            },
-                        ],
-                    },
-                });
 
-                Share.open(options);
             }}>
                 <Icon
                     size={16}

@@ -42,7 +42,7 @@ export const Sspai = () => {
                 activeOpacity={0.8}
                 onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
-                        url: "https://zchengb.top/api/t/" + item.shortLink,
+                        url: "https://infohub.net.cn/api/t/" + item.shortLink,
                         title: item.title
                     })
                 }

@@ -27,7 +27,7 @@ export const NnGroup = () => {
                 style={styles.newsItemWrapper}
                 onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
-                        url: "https://zchengb.top/api/t/" + item.shortLink,
+                        url: "https://infohub.net.cn/api/t/" + item.shortLink,
                         title: item.title
                     })
                 }
