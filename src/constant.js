@@ -14,7 +14,6 @@ import TiobeIcon from "../assets/icons/tiobe.svg";
 import HistoryIcon from "../assets/icons/history.svg";
 import React from "react";
 import {StyleSheet} from 'react-native';
-import HotIcon from "../assets/icons/hot.svg";
 import {DoubanMovie} from "./tabs/DoubanMovie";
 import {Bilibili} from "./tabs/Bilibili";
 import {Stock} from "./tabs/Stock";
@@ -23,14 +22,6 @@ import {Tiobe} from "./tabs/Tiobe";
 import {History} from "./tabs/History";
 
 export const DEFAULT_CHANNEL_LIST = [
-    {
-        id: 'hot',
-        title: '今日热门',
-        tabTitle: '今日热门',
-        desc: '今日热门事件',
-        enable: false,
-        isOrigin: true
-    },
     {
         id: 'sina',
         title: '新浪微博',
@@ -120,11 +111,6 @@ const styles = StyleSheet.create({
 })
 
 export const CHANNEL_COMPONENT_MAP = {
-    'hot': {
-        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <HotIcon width={width} height={height}
-                                                                                     style={style}/>,
-        component: <Sina/>,
-    },
     'sina': {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) => <WeiboIcon width={width} height={height}
                                                                                        style={style}/>,
