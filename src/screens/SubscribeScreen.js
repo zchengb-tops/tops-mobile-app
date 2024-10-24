@@ -169,7 +169,9 @@ const styles = StyleSheet.create({
         marginTop: 12,
         flex: 1,
     },
-    dragContainer: {},
+    dragContainer: {
+        flex: 1,
+    },
     channelItem: {
         flexDirection: 'row',
         alignItems: 'center',
