@@ -1,5 +1,15 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {
+    Alert,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
+} from "react-native";
+import ModalComponent from "react-native-modal";
 import {Icon} from "@rneui/themed";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
@@ -9,6 +19,9 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [rssName, setRssName] = useState('');
+    const [rssLink, setRssLink] = useState('');
 
     useEffect(() => {
         const stringifyChannelList = storage.getString('channelList')
@@ -22,12 +35,13 @@ export const SubscribeScreen = () => {
     }, []);
 
     const injectChannelComponentFields = (channelList) => {
-        return channelList.map((channel, index) => (
-            {
-                ...channel,
-                renderIcon: CHANNEL_COMPONENT_MAP[channel.id].renderIcon
-            }
-        ));
+        return channelList.filter(channel => CHANNEL_COMPONENT_MAP[channel.id])
+            .map((channel, index) => (
+                {
+                    ...channel,
+                    renderIcon: CHANNEL_COMPONENT_MAP[channel.id]?.renderIcon
+                }
+            ));
     }
 
     const reorderChannelList = (newChannelList) => {
@@ -109,12 +123,21 @@ export const SubscribeScreen = () => {
         );
     }, [channelList])
 
+    const handleAddRss = () => {
+        console.log('RSS 名称:', rssName);
+        console.log('RSS 链接:', rssLink);
+        setModalVisible(false);
+    }
+
+    const closeAddModal = () => {
+        TextInput.State.currentlyFocusedInput() && TextInput.State.blurTextInput(TextInput.State.currentlyFocusedInput());
+        setModalVisible(false);
+    }
+
     return <SafeAreaView style={styles.container}>
         <View style={styles.topBar}>
             <Text style={styles.pageTitle}>资讯订阅</Text>
-            <TouchableOpacity style={styles.addButton} onPress={() => {
-
-            }}>
+            <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
                 <Icon
                     size={16}
                     name='add-outline'
@@ -138,11 +161,59 @@ export const SubscribeScreen = () => {
                 />
             </GestureHandlerRootView>
         </View>
+
+        <ModalComponent
+            isVisible={modalVisible}
+            swipeDirection="down"
+            onBackdropPress={closeAddModal}
+            onSwipeComplete={closeAddModal}
+            style={styles.bottomModal}
+        >
+            <TouchableOpacity style={styles.modalContainer} onPress={closeAddModal} activeOpacity={1}>
+                <TouchableWithoutFeedback>
+                    <View style={styles.modalContent}>
+                        <View style={styles.operationBar}>
+                            <TouchableOpacity style={styles.button} onPress={closeAddModal}><Text style={styles.cancelButtonLabel}>取消</Text></TouchableOpacity>
+                            <Text style={styles.modalTitle}>添加RSS订阅</Text>
+                            <TouchableOpacity style={styles.button}><Text style={styles.saveButtonLabel}>保存</Text></TouchableOpacity>
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <Text style={styles.inputLabel}>资讯名称：</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="资讯名称"
+                                value={rssName}
+                                onChangeText={setRssName}
+                                autoFocus={true}
+                            />
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <Text style={styles.inputLabel}>RSS链接：</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="RSS链接"
+                                value={rssLink}
+                                onChangeText={setRssLink}
+                            />
+                        </View>
+
+                        <Text style={styles.tips}>
+                            💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
+                        </Text>
+                    </View>
+                </TouchableWithoutFeedback>
+            </TouchableOpacity>
+        </ModalComponent>
     </SafeAreaView>;
 };
 
 const styles = StyleSheet.create({
-    container: {flex: 1, backgroundColor: '#fff'},
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
     topBar: {
         marginTop: 12,
         flexDirection: 'row',
@@ -219,16 +290,66 @@ const styles = StyleSheet.create({
     subscribeButtonLabel: {
         fontSize: 12
     },
-    rowItem: {
-        height: 100,
-        width: 100,
-        alignItems: "center",
-        justifyContent: "center",
+    bottomModal: {
+        margin: 0,
+        borderRadius: 10,
     },
-    text: {
-        color: "white",
-        fontSize: 24,
-        fontWeight: "bold",
-        textAlign: "center",
+    modalContainer: {
+        flex: 1,
     },
+    modalContent: {
+        backgroundColor: '#FFFFFF',
+        flex: 1,
+        marginTop: 56,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 20,
+        paddingBottom: 40,
+    },
+    operationBar: {
+        flexDirection: 'row',
+        marginTop: 4,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 48,
+    },
+    button: {},
+    saveButtonLabel: {
+        fontSize: 18,
+        color: '#F76F00',
+        fontWeight: "500"
+    },
+    cancelButtonLabel: {
+        fontSize: 18,
+        color: '#F76F00',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#464646',
+    },
+    inputWrapper: {
+        marginBottom: 28,
+    },
+    inputLabel: {
+        color: '#606266',
+        fontSize: 16,
+        fontWeight: '500',
+        marginBottom: 12,
+    },
+    input: {
+        height: 44,
+        borderRadius: 10,
+        paddingHorizontal: 16,
+        backgroundColor: '#F7F7F7',
+        color: '#464646',
+        fontSize: 16,
+    },
+    tips: {
+        fontSize: 14,
+        color: '#939393',
+        lineHeight: 20
+    }
 });
+
+export default SubscribeScreen;
