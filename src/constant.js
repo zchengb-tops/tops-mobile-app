@@ -28,7 +28,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '微博',
         desc: '新浪微博TOP50热搜榜',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'zhihu',
@@ -36,7 +36,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '知乎',
         desc: '知乎TOP50热榜',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'sspai',
@@ -44,7 +44,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '少数派',
         desc: '高效工作，品质生活',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'xiaoyuzhou',
@@ -52,7 +52,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '小宇宙FM',
         desc: '小宇宙FM每日榜单（最热榜、锋芒榜、新星榜）',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'stock',
@@ -60,7 +60,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '实时沪深',
         desc: '汇集沪深股市各大板块热力图',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'doubanMovie',
@@ -68,7 +68,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '豆瓣',
         desc: '每周最新的全球電影口碑排行榜',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'bilibili',
@@ -76,7 +76,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '哔哩哔哩',
         desc: '哔哩哔哩每周必看榜单',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'nnGroup',
@@ -84,7 +84,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: 'NN/g',
         desc: 'World Leaders in Research-Based User Experience',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'tiobe',
@@ -92,7 +92,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: 'TIOBE',
         desc: '每月最新的全球编程语言排行榜',
         enable: true,
-        isOrigin: true
+        isRss: false
     },
     {
         id: 'history',
@@ -100,7 +100,7 @@ export const DEFAULT_CHANNEL_LIST = [
         tabTitle: '历史薄',
         desc: '所以历史上的今天都发生了什么？🧐',
         enable: true,
-        isOrigin: true
+        isRss: false
     }
 ];
 
