@@ -57,13 +57,13 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
             onScrollBeginDrag={() => setDragging(true)}
             onScrollEndDrag={() => setTimeout(() => setDragging(false), 100)}
             scrollEventThrottle={16}
-            contentContainerStyle={{width: screenWidth * channelList.filter(channel => channel.enable).length}}
+            contentContainerStyle={{width: screenWidth * channelList.filter(channel => channel.enable && !channel.isRss).length}}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
         >
             {
                 channelList
-                    .filter(channel => channel.enable)
+                    .filter(channel => channel.enable && !channel.isRss)
                     .map(
                         (channel, index) => {
                             if (loadedTabs.has(index) || Math.abs(tabIndex - index) <= 1) {

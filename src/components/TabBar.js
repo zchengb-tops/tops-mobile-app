@@ -88,7 +88,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
             <Animated.View style={[styles.selectedIndicator, animatedStyle]}/>
             {
                 channelList
-                    .filter(channel => channel.enable)
+                    .filter(channel => channel.enable && !channel.isRss)
                     .map((channel, index) => {
                         return (
                             <TouchableOpacity

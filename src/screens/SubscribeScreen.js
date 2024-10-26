@@ -7,7 +7,8 @@ import {
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    View
+    View,
+    Image
 } from "react-native";
 import ModalComponent from "react-native-modal";
 import {Icon} from "@rneui/themed";
@@ -16,12 +17,14 @@ import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {API_URL} from '@env';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [rssName, setRssName] = useState('');
     const [rssLink, setRssLink] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const stringifyChannelList = storage.getString('channelList')
@@ -35,7 +38,7 @@ export const SubscribeScreen = () => {
     }, []);
 
     const injectChannelComponentFields = (channelList) => {
-        return channelList.filter(channel => CHANNEL_COMPONENT_MAP[channel.id])
+        return channelList.filter(channel => CHANNEL_COMPONENT_MAP[channel.id] || channel.isRss)
             .map((channel, index) => (
                 {
                     ...channel,
@@ -101,12 +104,22 @@ export const SubscribeScreen = () => {
                         styles.channelItem
                     ]}
                 >
-                    {item.renderIcon(styles.channelIcon, 20, 20)}
+                    {
+                        item.isRss
+                            ?
+                            <Image source={{uri: item.iconUrl}} width={20} height={20} style={styles.channelIcon}/>
+                            :
+                            item.renderIcon(styles.channelIcon, 20, 20)
+                    }
                     <View style={styles.channelInfoWrapper}>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                             <View style={styles.channelTextInfoWrapper}>
-                                <Text style={styles.channelTitle}>{item.title}</Text>
-                                <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>
+                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                    <Text style={styles.channelTitle}>{item.title}</Text>
+                                    {item.isRss ? <Text style={styles.rssTagText}>RSS</Text> : <></>}
+                                </View>
+                                {item.isRss ? <></> :
+                                    <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
                             </View>
                             <TouchableOpacity
                                 style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
@@ -123,15 +136,69 @@ export const SubscribeScreen = () => {
         );
     }, [channelList])
 
-    const handleAddRss = () => {
-        console.log('RSS 名称:', rssName);
-        console.log('RSS 链接:', rssLink);
-        setModalVisible(false);
+    const generateUUID = () => {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0,
+                v = c === "x" ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    const handleAddRss = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(API_URL + '/rss-resource', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    rssUrl: rssLink
+                })
+            });
+            const data = await response.json();
+
+            console.log('handle add rss link:', data);
+
+            if (response.status === 200) {
+                const newChannelList = [...channelList];
+
+                newChannelList.unshift(
+                    {
+                        id: generateUUID(),
+                        title: rssName,
+                        tabTitle: rssName,
+                        iconUrl: data.iconUrl,
+                        enable: true,
+                        isRss: true
+                    }
+                );
+
+                setChannelList(newChannelList);
+                saveChannelListToStorage(newChannelList);
+
+                closeAddModal();
+                setRssName('');
+                setRssLink('');
+            } else {
+                Alert.alert(
+                    "添加失败",
+                    data.message,
+                    [{text: "确定"}]
+                );
+            }
+        } finally {
+            setLoading(false);
+        }
     }
 
     const closeAddModal = () => {
         TextInput.State.currentlyFocusedInput() && TextInput.State.blurTextInput(TextInput.State.currentlyFocusedInput());
         setModalVisible(false);
+    }
+
+    const saveButtonDisabled = () => {
+        return loading || (!rssName && !rssLink);
     }
 
     return <SafeAreaView style={styles.container}>
@@ -173,9 +240,27 @@ export const SubscribeScreen = () => {
                 <TouchableWithoutFeedback>
                     <View style={styles.modalContent}>
                         <View style={styles.operationBar}>
-                            <TouchableOpacity style={styles.button} onPress={closeAddModal}><Text style={styles.cancelButtonLabel}>取消</Text></TouchableOpacity>
+                            <TouchableOpacity style={[styles.button]} onPress={closeAddModal}>
+                                <Text
+                                    style={[styles.cancelButtonLabel, {color: loading ? 'rgba(0,0,0,0.25)' : '#F76F00'}]}>
+                                    取消
+                                </Text>
+                            </TouchableOpacity>
                             <Text style={styles.modalTitle}>添加RSS订阅</Text>
-                            <TouchableOpacity style={styles.button}><Text style={styles.saveButtonLabel}>保存</Text></TouchableOpacity>
+                            <TouchableOpacity style={styles.button} disabled={saveButtonDisabled()}
+                                              onPress={handleAddRss}
+                            >
+                                <Text style={
+                                    [
+                                        styles.saveButtonLabel,
+                                        {
+                                            color: saveButtonDisabled() ? 'rgba(0,0,0,0.25)' : '#F76F00',
+                                        }
+                                    ]
+                                }>
+                                    保存
+                                </Text>
+                            </TouchableOpacity>
                         </View>
 
                         <View style={styles.inputWrapper}>
@@ -266,6 +351,12 @@ const styles = StyleSheet.create({
     channelTitle: {
         fontSize: 16,
     },
+    rssTagText: {
+        fontSize: 12,
+        marginLeft: 6,
+        fontStyle: 'italic',
+        color: '#939393'
+    },
     channelDesc: {
         marginTop: 8,
         fontSize: 12,
@@ -276,19 +367,21 @@ const styles = StyleSheet.create({
         bottom: -4,
         alignItems: 'center',
         width: '100%',
-        height: 0.2,
+        height: 0.5,
         backgroundColor: '#B6B6B6',
     },
     subscribeButton: {
         width: 54,
+        height: 28,
         alignItems: 'center',
+        justifyContent: 'center',
         marginLeft: 8,
         paddingVertical: 6,
         borderRadius: 24,
         borderWidth: 0.4,
     },
     subscribeButtonLabel: {
-        fontSize: 12
+        fontSize: 12,
     },
     bottomModal: {
         margin: 0,
