@@ -17,6 +17,7 @@ import {Capability} from "react-native-track-player";
 import {storage} from "./src/storage";
 import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
+import Toast, {BaseToast, ErrorToast} from "react-native-toast-message";
 
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
@@ -115,6 +116,46 @@ const DiscoveryStackNavigator = () => {
         </Stack.Navigator>
     );
 }
+
+const toastConfig = {
+    /*
+      Overwrite 'success' type,
+      by modifying the existing `BaseToast` component
+    */
+    success: (props) => (
+        <BaseToast
+            {...props}
+            style={{borderLeftColor: 'pink', zIndex: 1000000}}
+            contentContainerStyle={{paddingHorizontal: 15}}
+            text1Style={{
+                fontSize: 15,
+                fontWeight: '400'
+            }}
+        />
+    ),
+    /*
+      Overwrite 'error' type,
+      by modifying the existing `ErrorToast` component
+    */
+    error: (props) => (
+        <ErrorToast
+            {...props}
+            text1Style={{
+                fontSize: 17
+            }}
+            text2Style={{
+                fontSize: 15
+            }}
+        />
+    ),
+    tomatoToast: ({ text1, props }) => (
+        <View style={{ height: 60, width: '100%', backgroundColor: 'tomato', bottom: 0, zIndex: 1000 }}>
+            <Text>{text1}</Text>
+            <Text>{props.uuid}</Text>
+        </View>
+    )
+}
+
 export default function App() {
     return (
         <SafeAreaProvider>
@@ -137,6 +178,7 @@ export default function App() {
                                 </Tab.Navigator>
                                 <PlayerBar/>
                                 <NavBar/>
+                                <Toast config={toastConfig}/>
                             </View>
                         </GestureHandlerRootView>
                     </NavigationContainer>
