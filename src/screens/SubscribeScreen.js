@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {
     Alert,
+    Image,
     SafeAreaView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    View,
-    Image
+    View
 } from "react-native";
 import ModalComponent from "react-native-modal";
 import {Icon} from "@rneui/themed";
@@ -198,7 +198,7 @@ export const SubscribeScreen = () => {
     }
 
     const saveButtonDisabled = () => {
-        return loading || (!rssName && !rssLink);
+        return loading || !rssName || !rssLink;
     }
 
     return <SafeAreaView style={styles.container}>
