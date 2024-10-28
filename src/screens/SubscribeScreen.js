@@ -144,7 +144,36 @@ export const SubscribeScreen = () => {
         });
     }
 
+    const validRssLink = () => {
+        const urlPattern = /^https?:\/\/.*$/;
+        if (!urlPattern.test(rssLink)) {
+            Alert.alert(
+                "添加失败",
+                "请输入有效的RSS链接",
+                [{text: "确定"}]
+            );
+            return false;
+        }
+        return true;
+    }
+
+    const validRssName = () => {
+        if (rssName && rssName.length > 24) {
+            Alert.alert(
+                "添加失败",
+                "RSS名称不能超过24个字符",
+                [{text: "确定"}]
+            );
+            return false;
+        }
+        return true;
+    }
+
     const handleAddRss = async () => {
+        if (!validRssName() || !validRssLink()) {
+            return;
+        }
+
         try {
             setLoading(true);
             const response = await fetch(API_URL + '/rss-resource', {
