@@ -121,13 +121,24 @@ export const SubscribeScreen = () => {
                                 {item.isRss ? <></> :
                                     <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
                             </View>
-                            <TouchableOpacity
-                                style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
-                                onPress={() => handleSubscribe(item)}
-                            >
-                                <Text
-                                    style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
-                            </TouchableOpacity>
+                            {
+                                item.isRss
+                                    ?
+                                    <TouchableOpacity style={styles.gotoDetailButton}>
+                                        <Text
+                                            style={styles.subscribeStatusText}>{item.enable ? '已订阅' : '未订阅'}</Text>
+                                        <Icon type={'ionicon'} name={'chevron-forward-outline'} color={'#464646'}
+                                              size={16}></Icon>
+                                    </TouchableOpacity>
+                                    :
+                                    <TouchableOpacity
+                                        style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
+                                        onPress={() => handleSubscribe(item)}
+                                    >
+                                        <Text
+                                            style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
+                                    </TouchableOpacity>
+                            }
                         </View>
                         <View style={styles.channelItemDivider}/>
                     </View>
@@ -402,6 +413,16 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 0.5,
         backgroundColor: '#B6B6B6',
+    },
+    gotoDetailButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    subscribeStatusText: {
+        color: '#939393',
+        fontSize: 13,
+        marginRight: 8,
     },
     subscribeButton: {
         width: 54,
