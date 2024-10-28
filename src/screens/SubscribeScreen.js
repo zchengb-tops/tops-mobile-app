@@ -263,18 +263,22 @@ export const SubscribeScreen = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <View style={styles.inputWrapper}>
+                        <View style={styles.inputItemWrapper}>
                             <Text style={styles.inputLabel}>资讯名称：</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="资讯名称"
-                                value={rssName}
-                                onChangeText={setRssName}
-                                autoFocus={true}
-                            />
+                            <View style={styles.inputWrapper}>
+                                <TextInput
+                                    style={[styles.input, styles.rssNameInput]}
+                                    placeholder="资讯名称"
+                                    value={rssName}
+                                    onChangeText={setRssName}
+                                    maxLength={24}
+                                    autoFocus={true}
+                                />
+                                <Text style={styles.inputLimitTips}>{rssName.length}/24</Text>
+                            </View>
                         </View>
 
-                        <View style={styles.inputWrapper}>
+                        <View style={styles.inputItemWrapper}>
                             <Text style={styles.inputLabel}>RSS链接：</Text>
                             <TextInput
                                 style={styles.input}
@@ -421,7 +425,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#464646',
     },
-    inputWrapper: {
+    inputItemWrapper: {
         marginBottom: 28,
     },
     inputLabel: {
@@ -437,6 +441,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#F7F7F7',
         color: '#464646',
         fontSize: 16,
+    },
+    inputWrapper: {
+        flexDirection: 'row',
+        position: 'relative',
+        alignItems: 'center'
+    },
+    rssNameInput: {
+        flex: 1,
+        paddingRight: 56
+    },
+    inputLimitTips: {
+        color: '#939393',
+        position: 'absolute',
+        right: 12
     },
     tips: {
         fontSize: 14,
