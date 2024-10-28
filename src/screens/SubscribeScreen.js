@@ -3,7 +3,7 @@ import {
     Alert,
     Image,
     SafeAreaView,
-    StyleSheet,
+    StyleSheet, Switch,
     Text,
     TextInput,
     TouchableOpacity,
@@ -24,6 +24,7 @@ export const SubscribeScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [rssName, setRssName] = useState('');
     const [rssLink, setRssLink] = useState('');
+    const [rssChannelEnabled, setRssChannelEnabled] = useState(true);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -241,6 +242,10 @@ export const SubscribeScreen = () => {
         return loading || !rssName || !rssLink;
     }
 
+    const toggleSwitchRssChannelEnabled = () => {
+        setRssChannelEnabled(!rssChannelEnabled);
+    }
+
     return <SafeAreaView style={styles.container}>
         <View style={styles.topBar}>
             <Text style={styles.pageTitle}>资讯订阅</Text>
@@ -325,6 +330,16 @@ export const SubscribeScreen = () => {
                                 placeholder="RSS链接"
                                 value={rssLink}
                                 onChangeText={setRssLink}
+                            />
+                        </View>
+
+                        <View style={styles.checkItemWrapper}>
+                            <Text style={styles.checkLabel}>订阅频道：</Text>
+                            <Switch
+                                trackColor={{false: '#D9D9D9', true: '#686767'}}
+                                onValueChange={toggleSwitchRssChannelEnabled}
+                                style={styles.switchBox}
+                                value={rssChannelEnabled}
                             />
                         </View>
 
@@ -477,6 +492,23 @@ const styles = StyleSheet.create({
     },
     inputItemWrapper: {
         marginBottom: 28,
+    },
+    checkItemWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 28,
+    },
+    checkLabel: {
+        color: '#606266',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    switchBox: {
+        transform: [
+            {scaleX: 0.75},
+            {scaleY: 0.75}
+        ]
     },
     inputLabel: {
         color: '#606266',
