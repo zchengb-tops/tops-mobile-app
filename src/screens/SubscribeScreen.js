@@ -26,6 +26,8 @@ export const SubscribeScreen = () => {
     const [rssLink, setRssLink] = useState('');
     const [rssChannelEnabled, setRssChannelEnabled] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [editingChannel, setEditingChannel] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     useEffect(() => {
         const stringifyChannelList = storage.getString('channelList')
@@ -87,12 +89,80 @@ export const SubscribeScreen = () => {
         saveChannelListToStorage(newChannelList);
     }
 
+    const saveRssResource = async (rssUrl) => {
+        const response = await fetch(API_URL + '/rss-resource', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rssUrl: rssUrl
+            })
+        });
+        const data = await response.json();
+        return {response, data};
+    }
+
+    const handleEditRss = async () => {
+        if (!validRssName() || !validRssLink()) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const {response, data} = await saveRssResource(rssLink);
+
+            if (response.status === 200) {
+                const newChannelList = channelList.map(channel => {
+                    if (channel.id === editingChannel.id) {
+                        return {
+                            ...channel,
+                            title: rssName,
+                            tabTitle: rssName,
+                            iconUrl: data.iconUrl,
+                            rssUrl: rssLink,
+                            enable: rssChannelEnabled
+                        };
+                    }
+                    return channel;
+                });
+
+                setChannelList(newChannelList);
+                saveChannelListToStorage(newChannelList);
+
+                closeRssInfoModal();
+                setRssName('');
+                setRssLink('');
+                setEditingChannel(null);
+                setIsEditMode(false);
+            } else {
+                Alert.alert(
+                    "修改失败",
+                    data.message,
+                    [{text: "确定"}]
+                );
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const handleRssItemClick = (item) => {
+        setIsEditMode(true);
+        setEditingChannel(item);
+        setRssName(item.title);
+        setRssLink(item.rssUrl);
+        setRssChannelEnabled(item.enable);
+        setModalVisible(true);
+    }
+
     const renderItem = useCallback(({item, index, drag, isActive}) => {
         return (
             <ScaleDecorator>
                 <TouchableOpacity
                     activeOpacity={0.8}
                     delayLongPress={300}
+                    onPress={() => item.isRss ? handleRssItemClick(item) : null}
                     onLongPress={() => {
                         trigger("impactLight", {
                             enableVibrateFallback: true,
@@ -125,12 +195,14 @@ export const SubscribeScreen = () => {
                             {
                                 item.isRss
                                     ?
-                                    <TouchableOpacity style={styles.gotoDetailButton}>
+                                    <View
+                                        style={styles.gotoDetailButton}
+                                    >
                                         <Text
                                             style={styles.subscribeStatusText}>{item.enable ? '已订阅' : '未订阅'}</Text>
                                         <Icon type={'ionicon'} name={'chevron-forward-outline'} color={'#464646'}
                                               size={16}></Icon>
-                                    </TouchableOpacity>
+                                    </View>
                                     :
                                     <TouchableOpacity
                                         style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
@@ -188,16 +260,7 @@ export const SubscribeScreen = () => {
 
         try {
             setLoading(true);
-            const response = await fetch(API_URL + '/rss-resource', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    rssUrl: rssLink
-                })
-            });
-            const data = await response.json();
+            const {response, data} = await saveRssResource(rssLink);
 
             console.log('handle add rss link:', data);
 
@@ -210,6 +273,7 @@ export const SubscribeScreen = () => {
                         title: rssName,
                         tabTitle: rssName,
                         iconUrl: data.iconUrl,
+                        rssUrl: rssLink,
                         enable: true,
                         isRss: true
                     }
@@ -218,7 +282,7 @@ export const SubscribeScreen = () => {
                 setChannelList(newChannelList);
                 saveChannelListToStorage(newChannelList);
 
-                closeAddModal();
+                closeRssInfoModal();
                 setRssName('');
                 setRssLink('');
             } else {
@@ -233,9 +297,14 @@ export const SubscribeScreen = () => {
         }
     }
 
-    const closeAddModal = () => {
+    const closeRssInfoModal = () => {
         TextInput.State.currentlyFocusedInput() && TextInput.State.blurTextInput(TextInput.State.currentlyFocusedInput());
         setModalVisible(false);
+        setIsEditMode(false);
+        setEditingChannel(null);
+        setRssName('');
+        setRssLink('');
+        setRssChannelEnabled(true);
     }
 
     const saveButtonDisabled = () => {
@@ -277,23 +346,23 @@ export const SubscribeScreen = () => {
         <ModalComponent
             isVisible={modalVisible}
             swipeDirection="down"
-            onBackdropPress={closeAddModal}
-            onSwipeComplete={closeAddModal}
+            onBackdropPress={closeRssInfoModal}
+            onSwipeComplete={closeRssInfoModal}
             style={styles.bottomModal}
         >
-            <TouchableOpacity style={styles.modalContainer} onPress={closeAddModal} activeOpacity={1}>
+            <TouchableOpacity style={styles.modalContainer} onPress={closeRssInfoModal} activeOpacity={1}>
                 <TouchableWithoutFeedback>
                     <View style={styles.modalContent}>
                         <View style={styles.operationBar}>
-                            <TouchableOpacity style={[styles.button]} onPress={closeAddModal}>
+                            <TouchableOpacity style={[styles.button]} onPress={closeRssInfoModal}>
                                 <Text
                                     style={[styles.cancelButtonLabel, {color: loading ? 'rgba(0,0,0,0.25)' : '#F76F00'}]}>
                                     取消
                                 </Text>
                             </TouchableOpacity>
-                            <Text style={styles.modalTitle}>添加RSS订阅</Text>
+                            <Text style={styles.modalTitle}>{isEditMode ? '编辑RSS订阅' : '添加RSS订阅'}</Text>
                             <TouchableOpacity style={styles.button} disabled={saveButtonDisabled()}
-                                              onPress={handleAddRss}
+                                              onPress={isEditMode ? handleEditRss : handleAddRss}
                             >
                                 <Text style={
                                     [
