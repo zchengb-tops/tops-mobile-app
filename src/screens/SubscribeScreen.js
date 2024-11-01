@@ -273,16 +273,16 @@ export const SubscribeScreen = () => {
                     {
                         item.isRss
                             ?
-                            <Image source={{uri: item.iconUrl}} width={20} height={20} style={styles.channelIcon}/>
+                            <Image source={{uri: item.iconUrl}} width={24} height={24} style={styles.channelIcon}/>
                             :
-                            item.renderIcon(styles.channelIcon, 20, 20)
+                            item.renderIcon(styles.channelIcon, 24, 24)
                     }
                     <View style={styles.channelInfoWrapper}>
                         <View style={{flexDirection: 'row', alignItems: 'center'}}>
                             <View style={styles.channelTextInfoWrapper}>
                                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                     <Text style={styles.channelTitle}>{item.title}</Text>
-                                    {item.isRss ? <Text style={styles.rssTagText}>RSS</Text> : <></>}
+                                    {item.isRss ? <Icon type={'ionicon'} name={'logo-rss'} color={'#f7a35e'} size={14} style={styles.rssTag}/> : <></>}
                                 </View>
                                 {item.isRss ? <></> :
                                     <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
@@ -482,11 +482,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500'
     },
-    rssTagText: {
-        fontSize: 12,
-        marginLeft: 6,
-        fontStyle: 'italic',
-        color: '#939393'
+    rssTag: {
+      marginLeft: 8
     },
     channelDesc: {
         marginTop: 8,
