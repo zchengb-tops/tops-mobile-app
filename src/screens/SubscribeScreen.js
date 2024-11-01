@@ -156,70 +156,6 @@ export const SubscribeScreen = () => {
         setModalVisible(true);
     }
 
-    const renderItem = useCallback(({item, index, drag, isActive}) => {
-        return (
-            <ScaleDecorator>
-                <TouchableOpacity
-                    activeOpacity={0.8}
-                    delayLongPress={300}
-                    onPress={() => item.isRss ? handleRssItemClick(item) : null}
-                    onLongPress={() => {
-                        trigger("impactLight", {
-                            enableVibrateFallback: true,
-                            ignoreAndroidSystemSettings: false,
-                        });
-                        drag();
-                    }}
-                    disabled={isActive}
-                    style={[
-                        styles.channelItem
-                    ]}
-                >
-                    {
-                        item.isRss
-                            ?
-                            <Image source={{uri: item.iconUrl}} width={20} height={20} style={styles.channelIcon}/>
-                            :
-                            item.renderIcon(styles.channelIcon, 20, 20)
-                    }
-                    <View style={styles.channelInfoWrapper}>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                            <View style={styles.channelTextInfoWrapper}>
-                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                                    <Text style={styles.channelTitle}>{item.title}</Text>
-                                    {item.isRss ? <Text style={styles.rssTagText}>RSS</Text> : <></>}
-                                </View>
-                                {item.isRss ? <></> :
-                                    <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
-                            </View>
-                            {
-                                item.isRss
-                                    ?
-                                    <View
-                                        style={styles.gotoDetailButton}
-                                    >
-                                        <Text
-                                            style={styles.subscribeStatusText}>{item.enable ? '已订阅' : '未订阅'}</Text>
-                                        <Icon type={'ionicon'} name={'chevron-forward-outline'} color={'#464646'}
-                                              size={16}></Icon>
-                                    </View>
-                                    :
-                                    <TouchableOpacity
-                                        style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
-                                        onPress={() => handleSubscribe(item)}
-                                    >
-                                        <Text
-                                            style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
-                                    </TouchableOpacity>
-                            }
-                        </View>
-                        <View style={styles.channelItemDivider}/>
-                    </View>
-                </TouchableOpacity>
-            </ScaleDecorator>
-        );
-    }, [channelList])
-
     const generateUUID = () => {
         return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
             const r = Math.random() * 16 | 0,
@@ -314,6 +250,70 @@ export const SubscribeScreen = () => {
     const toggleSwitchRssChannelEnabled = () => {
         setRssChannelEnabled(!rssChannelEnabled);
     }
+
+    const renderItem = useCallback(({item, index, drag, isActive}) => {
+        return (
+            <ScaleDecorator>
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    delayLongPress={300}
+                    onPress={() => item.isRss ? handleRssItemClick(item) : null}
+                    onLongPress={() => {
+                        trigger("impactLight", {
+                            enableVibrateFallback: true,
+                            ignoreAndroidSystemSettings: false,
+                        });
+                        drag();
+                    }}
+                    disabled={isActive}
+                    style={[
+                        styles.channelItem
+                    ]}
+                >
+                    {
+                        item.isRss
+                            ?
+                            <Image source={{uri: item.iconUrl}} width={20} height={20} style={styles.channelIcon}/>
+                            :
+                            item.renderIcon(styles.channelIcon, 20, 20)
+                    }
+                    <View style={styles.channelInfoWrapper}>
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                            <View style={styles.channelTextInfoWrapper}>
+                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                    <Text style={styles.channelTitle}>{item.title}</Text>
+                                    {item.isRss ? <Text style={styles.rssTagText}>RSS</Text> : <></>}
+                                </View>
+                                {item.isRss ? <></> :
+                                    <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
+                            </View>
+                            {
+                                false && item.isRss
+                                    ?
+                                    <View
+                                        style={styles.gotoDetailButton}
+                                    >
+                                        <Text
+                                            style={styles.subscribeStatusText}>{item.enable ? '已订阅' : '未订阅'}</Text>
+                                        <Icon type={'ionicon'} name={'chevron-forward-outline'} color={'#464646'}
+                                              size={16}></Icon>
+                                    </View>
+                                    :
+                                    <TouchableOpacity
+                                        style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
+                                        onPress={() => handleSubscribe(item)}
+                                    >
+                                        <Text
+                                            style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
+                                    </TouchableOpacity>
+                            }
+                        </View>
+                    </View>
+                    <View style={styles.channelItemDivider}/>
+                </TouchableOpacity>
+            </ScaleDecorator>
+        );
+    }, [channelList])
 
     return <SafeAreaView style={styles.container}>
         <View style={styles.topBar}>
@@ -459,8 +459,10 @@ const styles = StyleSheet.create({
     channelItem: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         paddingHorizontal: 20,
-        marginTop: 12,
+        paddingVertical: 6,
+        minHeight: 64,
     },
     channelIcon: {
         marginLeft: 2,
@@ -478,6 +480,7 @@ const styles = StyleSheet.create({
     },
     channelTitle: {
         fontSize: 16,
+        fontWeight: '500'
     },
     rssTagText: {
         fontSize: 12,
@@ -492,8 +495,7 @@ const styles = StyleSheet.create({
     },
     channelItemDivider: {
         position: 'absolute',
-        bottom: -4,
-        alignItems: 'center',
+        bottom: 0,
         width: '100%',
         height: 0.5,
         backgroundColor: '#B6B6B6',
