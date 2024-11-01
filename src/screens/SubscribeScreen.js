@@ -146,6 +146,29 @@ export const SubscribeScreen = () => {
         }
     }
 
+    const handleDeleteRss = () => {
+        Alert.alert(
+            "删除RSS订阅",
+            "确定要删除该RSS订阅吗？",
+            [
+                {
+                    text: "取消",
+                    style: "cancel"
+                },
+                {
+                    text: "删除",
+                    style: "destructive",
+                    onPress: () => {
+                        const newChannelList = channelList.filter(channel => channel.id !== editingChannel.id);
+                        setChannelList(newChannelList);
+                        saveChannelListToStorage(newChannelList);
+                        closeRssInfoModal();
+                    }
+                }
+            ]
+        );
+    }
+
     const handleRssItemClick = (item) => {
         setIsEditMode(true);
         setEditingChannel(item);
@@ -401,6 +424,15 @@ export const SubscribeScreen = () => {
                         <Text style={styles.tips}>
                             💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
                         </Text>
+
+                        {isEditMode && (
+                            <TouchableOpacity 
+                                style={styles.deleteButton}
+                                onPress={handleDeleteRss}
+                            >
+                                <Text style={styles.deleteButtonText}>删除此订阅</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </TouchableWithoutFeedback>
             </TouchableOpacity>
@@ -585,6 +617,18 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#939393',
         lineHeight: 20
+    },
+    deleteButton: {
+        marginTop: 40,
+        height: 44,
+        borderRadius: 10,
+        backgroundColor: '#F7F7F7',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    deleteButtonText: {
+        fontSize: 16,
+        color: '#FF3B30',
     }
 });
 
