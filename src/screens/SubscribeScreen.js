@@ -119,6 +119,7 @@ export const SubscribeScreen = () => {
                             ...channel,
                             title: rssName,
                             tabTitle: rssName,
+                            desc: data.description,
                             iconUrl: data.iconUrl,
                             rssUrl: rssLink,
                         };
@@ -229,6 +230,7 @@ export const SubscribeScreen = () => {
                         id: generateUUID(),
                         title: rssName,
                         tabTitle: rssName,
+                        desc: data.description,
                         iconUrl: data.iconUrl,
                         rssUrl: rssLink,
                         enable: true,
@@ -301,7 +303,7 @@ export const SubscribeScreen = () => {
                                     {item.isRss ? <Icon type={'ionicon'} name={'logo-rss'} color={'#f7a35e'} size={14}
                                                         style={styles.rssTag}/> : <></>}
                                 </View>
-                                {item.isRss ? <></> :
+                                {item.isRss && !item.desc ? <></> :
                                     <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
                             </View>
                             {
@@ -509,7 +511,7 @@ const styles = StyleSheet.create({
     },
     channelTitleRow: {
         flexDirection: 'row', 
-        alignItems: 'center'
+        alignItems: 'center',
     },
     channelTitle: {
         fontSize: 16,
@@ -521,7 +523,7 @@ const styles = StyleSheet.create({
     channelDesc: {
         marginTop: 8,
         fontSize: 12,
-        color: '#939393'
+        color: '#939393',
     },
     channelItemDivider: {
         position: 'absolute',
