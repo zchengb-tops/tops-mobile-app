@@ -312,8 +312,8 @@ export const SubscribeScreen = () => {
                                     style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
                             </TouchableOpacity>
                         </View>
+                        <View style={styles.channelItemDivider}/>
                     </View>
-                    <View style={styles.channelItemDivider}/>
                 </TouchableOpacity>
             </ScaleDecorator>
         );
@@ -512,10 +512,10 @@ const styles = StyleSheet.create({
     },
     channelItemDivider: {
         position: 'absolute',
-        bottom: 0,
+        bottom: -10,
         width: '100%',
-        height: 0.5,
-        backgroundColor: '#B6B6B6',
+        height: 0.6,
+        backgroundColor: 'rgba(0,0,0,0.08)',
     },
     gotoDetailButton: {
         flexDirection: 'row',
