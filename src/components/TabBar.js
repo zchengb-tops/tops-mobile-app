@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity} from 'react-native';
+import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity, Image} from 'react-native';
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);
@@ -88,7 +88,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
             <Animated.View style={[styles.selectedIndicator, animatedStyle]}/>
             {
                 channelList
-                    .filter(channel => channel.enable && !channel.isRss)
+                    .filter(channel => channel.enable)
                     .map((channel, index) => {
                         return (
                             <TouchableOpacity
@@ -106,7 +106,13 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                     tabWidths.current[index] = width;
                                 }}
                             >
-                                {channel.renderIcon()}
+                                {
+                                    channel.isRss
+                                        ?
+                                        <Image source={{uri: channel.iconUrl}} style={styles.tabBarIcon}/>
+                                        :
+                                        channel.renderIcon()
+                                }
                                 <Animated.Text
                                     style={{
                                         ...styles.tabBarText,
@@ -131,7 +137,6 @@ const styles = StyleSheet.create({
         paddingVertical: 0,
         borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
-        // backgroundColor: 'pink'
     },
     tabBarContent: {
         alignItems: 'center',
@@ -164,5 +169,10 @@ const styles = StyleSheet.create({
         left: 10,
         bottom: 0,
         zIndex: 0,
+    },
+    tabBarIcon: {
+        width: 16,
+        height: 16,
+        marginRight: 4
     }
 });

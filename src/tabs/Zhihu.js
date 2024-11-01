@@ -5,13 +5,13 @@ import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
 
 export const Zhihu = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
-        setNews(allNews['zhihu'])
-    }, [allNews]);
+        setNews(normalNews['zhihu'])
+    }, [normalNews]);
 
     const formatTwoDigits = (number) => {
         return Number(number).toLocaleString("en-US", {minimumIntegerDigits: 2, useGrouping: false});
@@ -23,7 +23,7 @@ export const Zhihu = () => {
         data={news}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
         renderItem={({item, index}) => (
             <TouchableOpacity

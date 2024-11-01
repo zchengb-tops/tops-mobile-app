@@ -1,40 +1,93 @@
 import React, {createContext, useState} from 'react';
 import {API_URL} from '@env';
+import {storage} from '../storage';
 
 export const NewsContext = createContext();
 
 export const NewsProvider = ({children}) => {
-    const [allNews, setAllNews] = useState({"sina": [], "zhihu": [], 'sspai': []});
-    const [loading, setLoading] = useState(false);
-    const [loadError, setLoadError] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
+    const [normalNews, setNormalNews] = useState({"sina": [], "zhihu": [], 'sspai': []});
+    const [rssNews, setRssNews] = useState([]);
+    const [normalLoading, setNormalLoading] = useState(false);
+    const [rssLoading, setRssLoading] = useState(false);
+    const [normalLoadError, setNormalLoadError] = useState(false);
+    const [rssLoadError, setRssLoadError] = useState(false);
+    const [normalRefreshing, setNormalRefreshing] = useState(false);
+    const [rssRefreshing, setRssRefreshing] = useState(false);
 
-    const fetchNews = async () => {
-        setLoadError(false);
-        setLoading(true);
+    const fetchRssNews = async () => {
+        setRssLoading(true);
+        try {
+            const channelList = JSON.parse(storage.getString('channelList') || '[]');
+            const rssChannels = channelList.filter(channel => channel.isRss && channel.enable);
+
+            if (rssChannels.length > 0) {
+                const rssUrls = rssChannels.map(channel => channel.rssUrl);
+                const rssResponse = await fetch(API_URL + '/rss-news', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({rssUrls})
+                });
+                const originRssData = await rssResponse.json();
+                const rssNews = originRssData.reduce((news, item) => {
+                    news[item.rssUrl] = item
+                    return news
+                  }, {});
+                setRssNews(rssNews);
+            }
+        } catch (error) {
+            console.error('Error fetching RSS news:', error);
+            setRssLoadError(true);
+        } finally {
+            setRssLoading(false);
+        }
+    };
+
+    const fetchNormalNews = async () => {
+        setNormalLoadError(false);
+        setRssLoadError(false);
+        setNormalLoading(true);
         try {
             console.log('API URL:', API_URL);
             const response = await fetch(API_URL + '/normal-news');
             const data = await response.json();
-            setAllNews(data);
+            setNormalNews(data);
+
+            await fetchRssNews();
         } catch (error) {
-            console.error('Error fetching news:', error);
-            setLoadError(true);
+            console.error('Error fetching normal news:', error);
+            setNormalLoadError(true);
         } finally {
-            setLoading(false);
+            setNormalLoading(false);
+
         }
     };
 
     const refreshNews = async () => {
-        setRefreshing(true);
-        await fetchNews();
-        setRefreshing(false);
+        setNormalRefreshing(true);
+        setRssRefreshing(true);
+        await fetchNormalNews();
+        setNormalRefreshing(false);
+        setRssRefreshing(false);
         console.log('refresh completed.');
     }
 
     return (
         <NewsContext.Provider
-            value={{allNews, fetchNews, refreshNews, loading, loadError, refreshing}}>
+            value={{
+                normalNews,
+                rssNews,
+                fetchNormalNews,
+                fetchRssNews,
+                refreshNews,
+                normalLoading,
+                rssLoading,
+                normalLoadError,
+                rssLoadError,
+                normalRefreshing,
+                rssRefreshing
+            }}>
             {children}
         </NewsContext.Provider>
     );

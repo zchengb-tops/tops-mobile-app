@@ -9,7 +9,7 @@ import {NewsContext} from "../providers/NewsProvider";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
-    const {fetchNews} = useContext(NewsContext);
+    const {fetchNormalNews, fetchRssNews} = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
 
@@ -18,7 +18,8 @@ export const DiscoveryScreen = () => {
     }, [isFocused]);
 
     useEffect(() => {
-        fetchNews().then(() => console.log('Successfully fetch news :)'));
+        fetchNormalNews().then(() => console.log('Successfully fetch normal news :)'));
+        fetchRssNews().then(() => console.log('Successfully fetch rss news :)'));
     }, []);
 
     const initialChannelList = () => {

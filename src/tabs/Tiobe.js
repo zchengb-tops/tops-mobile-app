@@ -1,21 +1,18 @@
-import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
-import {useNavigation} from "@react-navigation/native";
-import AuthorIcon from "../../assets/icons/author.svg"
-import ViewIcon from "../../assets/icons/view.svg"
-import LikeIcon from "../../assets/icons/like.svg"
-import {globalStyles} from "../globalStyle";
+import { useNavigation } from "@react-navigation/native";
+import React, { useContext, useEffect, useState } from "react";
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { globalStyles } from "../globalStyle";
+import { NewsContext } from "../providers/NewsProvider";
 
 export const Tiobe = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     useEffect(() => {
-        setNews(allNews['tiobe'])
-    }, [allNews]);
+        setNews(normalNews['tiobe'])
+    }, [normalNews]);
 
     useEffect(() => console.log('start to render tiobe'), []);
 
@@ -68,7 +65,7 @@ export const Tiobe = () => {
         initialNumToRender={20}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
         ListHeaderComponent={renderHeader}

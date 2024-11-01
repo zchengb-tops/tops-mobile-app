@@ -1,20 +1,18 @@
-import {FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {ListItem} from "@rneui/themed";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
-import {useNavigation} from "@react-navigation/native";
-import {useTrackShowing} from "../hooks/TrackHooks";
-import {globalStyles} from "../globalStyle";
-import {API_URL} from '@env';
+import { API_URL } from '@env';
+import { useNavigation } from "@react-navigation/native";
+import React, { useContext, useEffect, useState } from "react";
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { globalStyles } from "../globalStyle";
+import { NewsContext } from "../providers/NewsProvider";
 
 export const Sina = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
-        setNews(allNews['sina'])
-    }, [allNews]);
+        setNews(normalNews['sina'])
+    }, [normalNews]);
 
     const prettifyNumber = (viewers) => {
         viewers = Number(viewers);
@@ -31,7 +29,7 @@ export const Sina = () => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
         style={styles.container}
         contentContainerStyle={styles.contentContainer}

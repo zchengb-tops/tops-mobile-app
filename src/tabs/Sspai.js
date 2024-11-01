@@ -7,13 +7,13 @@ import CommentIcon from "../../assets/icons/comment.svg";
 import {globalStyles} from "../globalStyle";
 
 export const Sspai = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
-        setNews(allNews['sspai'])
-    }, [allNews]);
+        setNews(normalNews['sspai'])
+    }, [normalNews]);
 
     const getArticleTitle = article => {
         const morningPaperPrefix = "派早报";
@@ -34,7 +34,7 @@ export const Sspai = () => {
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (

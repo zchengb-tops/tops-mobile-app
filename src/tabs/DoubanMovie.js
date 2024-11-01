@@ -7,21 +7,21 @@ import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
 
 export const DoubanMovie = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [movies, setMovies] = useState([]);
     const navigation = useNavigation();
     const playBarShowing = useTrackShowing();
 
     useEffect(() => {
-        setMovies(allNews['doubanMovie'])
-    }, [allNews]);
+        setMovies(normalNews['doubanMovie'])
+    }, [normalNews]);
 
     useEffect(() => console.log('start to render douban'), []);
 
     return <FlatList
         style={styles.container}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews} />
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} />
         }
         data={movies}
         contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     movieName: {
+        color: '#464646',
         fontSize: 16,
     },
     rankWrapper: {

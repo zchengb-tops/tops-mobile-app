@@ -2,9 +2,10 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Dimensions, ScrollView, StyleSheet, View} from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
 import {NewsContext} from "../providers/NewsProvider";
+import {Rss} from "../tabs/Rss";
 
 export const TabView = ({channelList, tabIndex, setTabIndex}) => {
-    const {refreshing, loading, loadError, fetchNews} = useContext(NewsContext);
+    const {normalRefreshing, rssRefreshing, normalLoading, rssLoading, normalLoadError, rssLoadError, fetchNormalNews, fetchRssNews} = useContext(NewsContext);
     const [loadedTabs, setLoadedTabs] = useState(new Set());
     const tabViewRef = useRef(null);
     const screenWidth = Dimensions.get('window').width;
@@ -57,13 +58,13 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
             onScrollBeginDrag={() => setDragging(true)}
             onScrollEndDrag={() => setTimeout(() => setDragging(false), 100)}
             scrollEventThrottle={16}
-            contentContainerStyle={{width: screenWidth * channelList.filter(channel => channel.enable && !channel.isRss).length}}
+            contentContainerStyle={{width: screenWidth * channelList.filter(channel => channel.enable).length}}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
         >
             {
                 channelList
-                    .filter(channel => channel.enable && !channel.isRss)
+                    .filter(channel => channel.enable)
                     .map(
                         (channel, index) => {
                             if (loadedTabs.has(index) || Math.abs(tabIndex - index) <= 1) {
@@ -73,14 +74,25 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
                                         style={[styles.tabView]}
                                     >
                                         {
-                                            loadError
-                                                ? <ErrorScreen fetchNews={fetchNews}/>
-                                                : (loading && !refreshing
+                                            channel.isRss ? (
+                                                rssLoadError
+                                                    ? <ErrorScreen fetchNews={fetchRssNews}/>
+                                                    : (rssLoading && !rssRefreshing
+                                                        ? <View style={styles.loadingView}>
+                                                            <ActivityIndicator/>
+                                                        </View>
+                                                        : <Rss rssUrl={channel.rssUrl}/>
+                                                    )
+                                            ) : (
+                                                normalLoadError
+                                                    ? <ErrorScreen fetchNews={fetchNormalNews}/>
+                                                    : (normalLoading && !normalRefreshing
                                                         ? <View style={styles.loadingView}>
                                                             <ActivityIndicator/>
                                                         </View>
                                                         : channel.component
-                                                )
+                                                    )
+                                            )
                                         }
                                     </View>
                                 );

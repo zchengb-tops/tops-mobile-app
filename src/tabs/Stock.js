@@ -13,7 +13,7 @@ echarts.use([SVGRenderer, GridComponent, BarChart, TreemapChart, VisualMapCompon
 
 export const Stock = () => {
     const navigation = useNavigation();
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [acquisitionTime, setAcquisitionTime] = useState(null);
     const [chartOption, setChartOption] = useState({
         series: {
@@ -141,18 +141,18 @@ export const Stock = () => {
 
     useEffect(() => {
         const newChartOption = {...chartOption};
-        const stocks = allNews['stock'];
+        const stocks = normalNews['stock'];
         newChartOption.series.data = stocks;
         setChartOption(newChartOption);
         setAcquisitionTime(stocks[0]?.acquisitionTime);
 
         renderChart();
-    }, [allNews]);
+    }, [normalNews]);
 
     return <ScrollView
         contentContainerStyle={styles.stockContentWrapper}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
     >
         <View style={styles.timeTipsWrapper}>

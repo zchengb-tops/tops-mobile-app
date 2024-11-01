@@ -8,13 +8,13 @@ import LikeIcon from "../../assets/icons/like.svg"
 import {globalStyles} from "../globalStyle";
 
 export const Bilibili = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
-        setNews(allNews['bilibili'])
-    }, [allNews]);
+        setNews(normalNews['bilibili'])
+    }, [normalNews]);
 
     useEffect(() => console.log('start to render bilibili'), []);
 
@@ -32,7 +32,7 @@ export const Bilibili = () => {
         style={styles.container}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
         borderRadius: 8
     },
     title: {
-        color: 'rgba(0,0,0,0.85)',
+        color: '#464646',
         fontSize: 14,
         lineHeight: 18,
     },

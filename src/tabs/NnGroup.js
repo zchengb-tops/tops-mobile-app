@@ -6,20 +6,20 @@ import {globalStyles} from "../globalStyle";
 import CoverPlayIcon from "../../assets/icons/cover-play.svg"
 
 export const NnGroup = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
-        setNews(allNews['nnGroup'])
-    }, [allNews]);
+        setNews(normalNews['nnGroup'])
+    }, [normalNews]);
 
     useEffect(() => console.log('start to render nngroup'), []);
 
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (

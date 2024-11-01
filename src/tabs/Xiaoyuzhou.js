@@ -20,7 +20,7 @@ import {globalStyles} from "../globalStyle";
 import {useNavigation} from "@react-navigation/native";
 
 export const Xiaoyuzhou = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const progress = useProgress();
     const playStatus = useTrackStatus();
@@ -58,14 +58,14 @@ export const Xiaoyuzhou = () => {
     }, [progress]);
 
     useEffect(() => {
-        const newsItem = allNews['xiaoyuzhou'];
+        const newsItem = normalNews['xiaoyuzhou'];
         newsItem?.forEach((newsItem, index) => {
             newsItem.id = index;
             newsItem.position = 0;
             newsItem.hasBeenActive = false;
         });
         setNews(newsItem)
-    }, [allNews]);
+    }, [normalNews]);
 
     useTrackPlayerEvents([
             Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
@@ -189,7 +189,7 @@ export const Xiaoyuzhou = () => {
         <FlatList
             data={news}
             refreshControl={
-                <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+                <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
             }
             keyExtractor={(item, index) => index.toString()}
             renderItem={({item, index}) => (

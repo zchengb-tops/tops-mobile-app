@@ -5,13 +5,13 @@ import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
 
 export const History = () => {
-    const {allNews, refreshing, refreshNews} = useContext(NewsContext);
+    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
 
     useEffect(() => {
-        setNews(allNews['history'])
-    }, [allNews]);
+        setNews(normalNews['history'])
+    }, [normalNews]);
 
     useEffect(() => console.log('start to render tiobe'), []);
 
@@ -44,7 +44,7 @@ export const History = () => {
         initialNumToRender={20}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={refreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => renderItem(item, index)}

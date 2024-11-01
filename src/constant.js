@@ -98,7 +98,7 @@ export const DEFAULT_CHANNEL_LIST = [
         id: 'history',
         title: '历史上的今天',
         tabTitle: '历史薄',
-        desc: '所以历史上的今天都发生了什么？🧐',
+        desc: '所以历史上的今天都发生了什么？',
         enable: true,
         isRss: false
     }
