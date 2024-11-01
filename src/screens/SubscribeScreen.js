@@ -121,7 +121,6 @@ export const SubscribeScreen = () => {
                             tabTitle: rssName,
                             iconUrl: data.iconUrl,
                             rssUrl: rssLink,
-                            enable: rssChannelEnabled
                         };
                     }
                     return channel;
@@ -247,10 +246,6 @@ export const SubscribeScreen = () => {
         return loading || !rssName || !rssLink;
     }
 
-    const toggleSwitchRssChannelEnabled = () => {
-        setRssChannelEnabled(!rssChannelEnabled);
-    }
-
     const renderItem = useCallback(({item, index, drag, isActive}) => {
         return (
             <ScaleDecorator>
@@ -282,7 +277,8 @@ export const SubscribeScreen = () => {
                             <View style={styles.channelTextInfoWrapper}>
                                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                     <Text style={styles.channelTitle}>{item.title}</Text>
-                                    {item.isRss ? <Icon type={'ionicon'} name={'logo-rss'} color={'#f7a35e'} size={14} style={styles.rssTag}/> : <></>}
+                                    {item.isRss ? <Icon type={'ionicon'} name={'logo-rss'} color={'#f7a35e'} size={14}
+                                                        style={styles.rssTag}/> : <></>}
                                 </View>
                                 {item.isRss ? <></> :
                                     <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
@@ -402,16 +398,6 @@ export const SubscribeScreen = () => {
                             />
                         </View>
 
-                        <View style={styles.checkItemWrapper}>
-                            <Text style={styles.checkLabel}>订阅频道：</Text>
-                            <Switch
-                                trackColor={{false: '#D9D9D9', true: '#686767'}}
-                                onValueChange={toggleSwitchRssChannelEnabled}
-                                style={styles.switchBox}
-                                value={rssChannelEnabled}
-                            />
-                        </View>
-
                         <Text style={styles.tips}>
                             💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
                         </Text>
@@ -483,7 +469,7 @@ const styles = StyleSheet.create({
         fontWeight: '500'
     },
     rssTag: {
-      marginLeft: 8
+        marginLeft: 8
     },
     channelDesc: {
         marginTop: 8,
@@ -566,17 +552,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 28,
-    },
-    checkLabel: {
-        color: '#606266',
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    switchBox: {
-        transform: [
-            {scaleX: 0.75},
-            {scaleY: 0.75}
-        ]
     },
     inputLabel: {
         color: '#606266',
