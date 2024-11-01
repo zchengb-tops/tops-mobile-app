@@ -21,7 +21,7 @@ import {API_URL} from '@env';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
-    const [modalVisible, setModalVisible] = useState(false);
+    const [rssModalVisible, setRssModalVisible] = useState(false);
     const [rssName, setRssName] = useState('');
     const [rssLink, setRssLink] = useState('');
     const [rssChannelEnabled, setRssChannelEnabled] = useState(true);
@@ -174,8 +174,7 @@ export const SubscribeScreen = () => {
         setEditingChannel(item);
         setRssName(item.title);
         setRssLink(item.rssUrl);
-        setRssChannelEnabled(item.enable);
-        setModalVisible(true);
+        setRssModalVisible(true);
     }
 
     const generateUUID = () => {
@@ -257,12 +256,11 @@ export const SubscribeScreen = () => {
 
     const closeRssInfoModal = () => {
         TextInput.State.currentlyFocusedInput() && TextInput.State.blurTextInput(TextInput.State.currentlyFocusedInput());
-        setModalVisible(false);
+        setRssModalVisible(false);
         setIsEditMode(false);
         setEditingChannel(null);
         setRssName('');
         setRssLink('');
-        setRssChannelEnabled(true);
     }
 
     const saveButtonDisabled = () => {
@@ -296,9 +294,9 @@ export const SubscribeScreen = () => {
                             item.renderIcon(styles.channelIcon, 24, 24)
                     }
                     <View style={styles.channelInfoWrapper}>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <View style={styles.channelInfoRow}>
                             <View style={styles.channelTextInfoWrapper}>
-                                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                <View style={styles.channelTitleRow}>
                                     <Text style={styles.channelTitle}>{item.title}</Text>
                                     {item.isRss ? <Icon type={'ionicon'} name={'logo-rss'} color={'#f7a35e'} size={14}
                                                         style={styles.rssTag}/> : <></>}
@@ -337,7 +335,7 @@ export const SubscribeScreen = () => {
     return <SafeAreaView style={styles.container}>
         <View style={styles.topBar}>
             <Text style={styles.pageTitle}>资讯订阅</Text>
-            <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+            <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
                 <Icon
                     size={16}
                     name='add-outline'
@@ -351,7 +349,7 @@ export const SubscribeScreen = () => {
         </View>
         <View style={styles.channelContainer}>
             <Text style={styles.dragTips}>Tips: 长按即可进行拖拽排序</Text>
-            <GestureHandlerRootView style={{flex: 1}}>
+            <GestureHandlerRootView style={styles.gestureContainer}>
                 <DraggableFlatList
                     containerStyle={styles.dragContainer}
                     data={channelList}
@@ -363,29 +361,29 @@ export const SubscribeScreen = () => {
         </View>
 
         <ModalComponent
-            isVisible={modalVisible}
+            isVisible={rssModalVisible}
             swipeDirection="down"
             onBackdropPress={closeRssInfoModal}
             onSwipeComplete={closeRssInfoModal}
-            style={styles.bottomModal}
+            style={styles.rssModal}
         >
-            <TouchableOpacity style={styles.modalContainer} onPress={closeRssInfoModal} activeOpacity={1}>
+            <TouchableOpacity style={styles.rssModalContainer} onPress={closeRssInfoModal} activeOpacity={1}>
                 <TouchableWithoutFeedback>
-                    <View style={styles.modalContent}>
-                        <View style={styles.operationBar}>
-                            <TouchableOpacity style={[styles.button]} onPress={closeRssInfoModal}>
+                    <View style={styles.rssModalContent}>
+                        <View style={styles.rssModalOperationBar}>
+                            <TouchableOpacity style={styles.rssModalButton} onPress={closeRssInfoModal}>
                                 <Text
-                                    style={[styles.cancelButtonLabel, {color: loading ? 'rgba(0,0,0,0.25)' : '#F76F00'}]}>
+                                    style={[styles.rssModalCancelLabel, {color: loading ? 'rgba(0,0,0,0.25)' : '#F76F00'}]}>
                                     取消
                                 </Text>
                             </TouchableOpacity>
-                            <Text style={styles.modalTitle}>{isEditMode ? '编辑RSS订阅' : '添加RSS订阅'}</Text>
-                            <TouchableOpacity style={styles.button} disabled={saveButtonDisabled()}
+                            <Text style={styles.rssModalTitle}>{isEditMode ? '编辑RSS订阅' : '添加RSS订阅'}</Text>
+                            <TouchableOpacity style={styles.rssModalButton} disabled={saveButtonDisabled()}
                                               onPress={isEditMode ? handleEditRss : handleAddRss}
                             >
                                 <Text style={
                                     [
-                                        styles.saveButtonLabel,
+                                        styles.rssModalSaveLabel,
                                         {
                                             color: saveButtonDisabled() ? 'rgba(0,0,0,0.25)' : '#F76F00',
                                         }
@@ -396,41 +394,41 @@ export const SubscribeScreen = () => {
                             </TouchableOpacity>
                         </View>
 
-                        <View style={styles.inputItemWrapper}>
-                            <Text style={styles.inputLabel}>资讯名称：</Text>
-                            <View style={styles.inputWrapper}>
+                        <View style={styles.rssModalInputItem}>
+                            <Text style={styles.rssModalInputLabel}>资讯名称：</Text>
+                            <View style={styles.rssModalInputWrapper}>
                                 <TextInput
-                                    style={[styles.input, styles.rssNameInput]}
+                                    style={[styles.rssModalInput, styles.rssModalNameInput]}
                                     placeholder="资讯名称"
                                     value={rssName}
                                     onChangeText={setRssName}
                                     maxLength={24}
                                     autoFocus={true}
                                 />
-                                <Text style={styles.inputLimitTips}>{rssName.length}/24</Text>
+                                <Text style={styles.rssModalInputLimit}>{rssName.length}/24</Text>
                             </View>
                         </View>
 
-                        <View style={styles.inputItemWrapper}>
-                            <Text style={styles.inputLabel}>RSS链接：</Text>
+                        <View style={styles.rssModalInputItem}>
+                            <Text style={styles.rssModalInputLabel}>RSS链接：</Text>
                             <TextInput
-                                style={styles.input}
+                                style={styles.rssModalInput}
                                 placeholder="RSS链接"
                                 value={rssLink}
                                 onChangeText={setRssLink}
                             />
                         </View>
 
-                        <Text style={styles.tips}>
+                        <Text style={styles.rssModalTips}>
                             💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
                         </Text>
 
                         {isEditMode && (
                             <TouchableOpacity 
-                                style={styles.deleteButton}
+                                style={styles.rssModalDeleteButton}
                                 onPress={handleDeleteRss}
                             >
-                                <Text style={styles.deleteButtonText}>删除此订阅</Text>
+                                <Text style={styles.rssModalDeleteLabel}>删除此订阅</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -452,7 +450,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center'
     },
-    dragTips: {marginLeft: 20, marginBottom: 8, color: '#939393', fontSize: 12, textAlign: 'left'},
+    dragTips: {
+        marginLeft: 20, 
+        marginBottom: 8, 
+        color: '#939393', 
+        fontSize: 12, 
+        textAlign: 'left'
+    },
     pageTitle: {
         fontSize: 20,
         fontWeight: "bold"
@@ -470,6 +474,9 @@ const styles = StyleSheet.create({
         marginBottom: 48,
         marginTop: 12,
         flex: 1,
+    },
+    gestureContainer: {
+        flex: 1
     },
     dragContainer: {
         flex: 1,
@@ -492,9 +499,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         position: 'relative',
     },
+    channelInfoRow: {
+        flexDirection: 'row', 
+        alignItems: 'center'
+    },
     channelTextInfoWrapper: {
         justifyContent: 'center',
         flex: 1,
+    },
+    channelTitleRow: {
+        flexDirection: 'row', 
+        alignItems: 'center'
     },
     channelTitle: {
         fontSize: 16,
@@ -538,14 +553,14 @@ const styles = StyleSheet.create({
     subscribeButtonLabel: {
         fontSize: 12,
     },
-    bottomModal: {
+    rssModal: {
         margin: 0,
         borderRadius: 10,
     },
-    modalContainer: {
+    rssModalContainer: {
         flex: 1,
     },
-    modalContent: {
+    rssModalContent: {
         backgroundColor: '#FFFFFF',
         flex: 1,
         marginTop: 56,
@@ -554,44 +569,38 @@ const styles = StyleSheet.create({
         padding: 20,
         paddingBottom: 40,
     },
-    operationBar: {
+    rssModalOperationBar: {
         flexDirection: 'row',
         marginTop: 4,
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 48,
     },
-    button: {},
-    saveButtonLabel: {
+    rssModalButton: {},
+    rssModalSaveLabel: {
         fontSize: 18,
         color: '#F76F00',
         fontWeight: "500"
     },
-    cancelButtonLabel: {
+    rssModalCancelLabel: {
         fontSize: 18,
         color: '#F76F00',
     },
-    modalTitle: {
+    rssModalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#464646',
     },
-    inputItemWrapper: {
+    rssModalInputItem: {
         marginBottom: 28,
     },
-    checkItemWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 28,
-    },
-    inputLabel: {
+    rssModalInputLabel: {
         color: '#606266',
         fontSize: 16,
         fontWeight: '500',
         marginBottom: 12,
     },
-    input: {
+    rssModalInput: {
         height: 44,
         borderRadius: 10,
         paddingHorizontal: 16,
@@ -599,26 +608,26 @@ const styles = StyleSheet.create({
         color: '#464646',
         fontSize: 16,
     },
-    inputWrapper: {
+    rssModalInputWrapper: {
         flexDirection: 'row',
         position: 'relative',
         alignItems: 'center'
     },
-    rssNameInput: {
+    rssModalNameInput: {
         flex: 1,
         paddingRight: 56
     },
-    inputLimitTips: {
+    rssModalInputLimit: {
         color: '#939393',
         position: 'absolute',
         right: 12
     },
-    tips: {
+    rssModalTips: {
         fontSize: 14,
         color: '#939393',
         lineHeight: 20
     },
-    deleteButton: {
+    rssModalDeleteButton: {
         marginTop: 40,
         height: 44,
         borderRadius: 10,
@@ -626,7 +635,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center'
     },
-    deleteButtonText: {
+    rssModalDeleteLabel: {
         fontSize: 16,
         color: '#FF3B30',
     }
