@@ -284,9 +284,7 @@ export const SubscribeScreen = () => {
                         drag();
                     }}
                     disabled={isActive}
-                    style={[
-                        styles.channelItem
-                    ]}
+                    style={styles.channelItem}
                 >
                     {
                         item.isRss
@@ -306,26 +304,13 @@ export const SubscribeScreen = () => {
                                 {item.isRss && !item.desc ? <></> :
                                     <Text style={styles.channelDesc} numberOfLines={1}>{item.desc}</Text>}
                             </View>
-                            {
-                                false && item.isRss
-                                    ?
-                                    <View
-                                        style={styles.gotoDetailButton}
-                                    >
-                                        <Text
-                                            style={styles.subscribeStatusText}>{item.enable ? '已订阅' : '未订阅'}</Text>
-                                        <Icon type={'ionicon'} name={'chevron-forward-outline'} color={'#464646'}
-                                              size={16}></Icon>
-                                    </View>
-                                    :
-                                    <TouchableOpacity
-                                        style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
-                                        onPress={() => handleSubscribe(item)}
-                                    >
-                                        <Text
-                                            style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
-                                    </TouchableOpacity>
-                            }
+                            <TouchableOpacity
+                                style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : '#F76F00'}]}
+                                onPress={() => handleSubscribe(item)}
+                            >
+                                <Text
+                                    style={[styles.subscribeButtonLabel, {color: item.enable ? '#939393' : '#F76F00'}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
                     <View style={styles.channelItemDivider}/>
@@ -426,7 +411,7 @@ export const SubscribeScreen = () => {
                         </Text>
 
                         {isEditMode && (
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.rssModalDeleteButton}
                                 onPress={handleDeleteRss}
                             >
@@ -453,10 +438,10 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     dragTips: {
-        marginLeft: 20, 
-        marginBottom: 8, 
-        color: '#939393', 
-        fontSize: 12, 
+        marginLeft: 20,
+        marginBottom: 8,
+        color: '#939393',
+        fontSize: 12,
         textAlign: 'left'
     },
     pageTitle: {
@@ -489,7 +474,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 20,
         paddingVertical: 6,
-        minHeight: 64,
+        minHeight: 72,
     },
     channelIcon: {
         marginLeft: 2,
@@ -502,7 +487,7 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     channelInfoRow: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         alignItems: 'center'
     },
     channelTextInfoWrapper: {
@@ -510,7 +495,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     channelTitleRow: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         alignItems: 'center',
     },
     channelTitle: {
