@@ -9,7 +9,8 @@
     "setenv:production": "node setenv.js production",
     "ios:local": "npm run setenv:local && expo run:ios --device",
     "ios:prod": "npm run setenv:production && expo run:ios --device",
-    "build-test:ios": "eas build --profile preview --platform ios"
+    "build-test:ios": "eas build --profile preview --platform ios",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
