@@ -15,6 +15,7 @@ export const NewsProvider = ({children}) => {
     const [rssRefreshing, setRssRefreshing] = useState(false);
 
     const fetchRssNews = async () => {
+        setRssLoadError(false);
         setRssLoading(true);
         try {
             const channelList = JSON.parse(storage.getString('channelList') || '[]');
@@ -46,14 +47,12 @@ export const NewsProvider = ({children}) => {
 
     const fetchNormalNews = async () => {
         setNormalLoadError(false);
-        setRssLoadError(false);
         setNormalLoading(true);
         try {
             console.log('API URL:', API_URL);
             const response = await fetch(API_URL + '/normal-news');
             const data = await response.json();
             setNormalNews(data);
-
             await fetchRssNews();
         } catch (error) {
             console.error('Error fetching normal news:', error);
