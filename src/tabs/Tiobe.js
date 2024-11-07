@@ -45,7 +45,7 @@ export const Tiobe = () => {
             <TouchableOpacity style={styles.itemWrapper}
                               activeOpacity={0.8}
                               onPress={() => navigation.navigate('NewsDetailScreen', {
-                                  url: "https://infohub.net.cn/api/t/" + item.shortLink,
+                                  url: process.env.EXPO_PUBLIC_API_URL + item.shortLink,
                                   title: item.title
                               })}
             >

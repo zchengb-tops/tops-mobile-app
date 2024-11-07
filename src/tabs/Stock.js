@@ -132,7 +132,7 @@ export const Stock = () => {
 
             chart.on("click", (e) => {
                 navigation.navigate('NewsDetailScreen', {
-                    url: "https://infohub.net.cn/api/t/" + e.data.link,
+                    url: process.env.EXPO_PUBLIC_API_URL + e.data.link,
                     title: item.title
                 })
             });
