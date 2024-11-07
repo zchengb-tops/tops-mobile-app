@@ -1,4 +1,3 @@
-import { API_URL } from '@env';
 import { useNavigation } from "@react-navigation/native";
 import React, { useContext, useEffect, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -9,6 +8,7 @@ export const Sina = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
     useEffect(() => {
         setNews(normalNews['sina'])
@@ -42,7 +42,7 @@ export const Sina = () => {
                     style={styles.newsItem}
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
-                            url: API_URL + "/t/" + item.shortLink,
+                            url: apiUrl + "/t/" + item.shortLink,
                             title: item.title
                         })
                     }

@@ -17,17 +17,16 @@ import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
-import {API_URL} from '@env';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
     const [rssModalVisible, setRssModalVisible] = useState(false);
     const [rssName, setRssName] = useState('');
     const [rssLink, setRssLink] = useState('');
-    const [rssChannelEnabled, setRssChannelEnabled] = useState(true);
     const [loading, setLoading] = useState(false);
     const [editingChannel, setEditingChannel] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
     useEffect(() => {
         const stringifyChannelList = storage.getString('channelList')
@@ -90,7 +89,7 @@ export const SubscribeScreen = () => {
     }
 
     const saveRssResource = async (rssUrl) => {
-        const response = await fetch(API_URL + '/rss-resource', {
+        const response = await fetch(apiUrl + '/rss-resource', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

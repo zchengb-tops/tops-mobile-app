@@ -19,7 +19,6 @@ import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import Toast, {BaseToast, ErrorToast} from "react-native-toast-message";
 
-
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 

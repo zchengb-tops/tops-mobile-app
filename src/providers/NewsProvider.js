@@ -1,5 +1,4 @@
 import React, {createContext, useState} from 'react';
-import {API_URL} from '@env';
 import {storage} from '../storage';
 
 export const NewsContext = createContext();
@@ -13,6 +12,7 @@ export const NewsProvider = ({children}) => {
     const [rssLoadError, setRssLoadError] = useState(false);
     const [normalRefreshing, setNormalRefreshing] = useState(false);
     const [rssRefreshing, setRssRefreshing] = useState(false);
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
     const fetchRssNews = async () => {
         setRssLoadError(false);
@@ -23,7 +23,7 @@ export const NewsProvider = ({children}) => {
 
             if (rssChannels.length > 0) {
                 const rssUrls = rssChannels.map(channel => channel.rssUrl);
-                const rssResponse = await fetch(API_URL + '/rss-news', {
+                const rssResponse = await fetch(apiUrl + '/rss-news', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -49,8 +49,8 @@ export const NewsProvider = ({children}) => {
         setNormalLoadError(false);
         setNormalLoading(true);
         try {
-            console.log('API URL:', API_URL);
-            const response = await fetch(API_URL + '/normal-news');
+            console.log('expo API URL:', apiUrl);
+            const response = await fetch(apiUrl + '/normal-news');
             const data = await response.json();
             setNormalNews(data);
             await fetchRssNews();
