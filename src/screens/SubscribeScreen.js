@@ -3,7 +3,7 @@ import {
     Alert,
     Image,
     SafeAreaView,
-    StyleSheet, Switch,
+    StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,

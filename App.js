@@ -90,6 +90,11 @@ const loadCacheTrackPlay = async () => {
         const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
         const setTrack = useTrackStateStore.getState().setTrack;
         const track = JSON.parse(currentTrack);
+
+        if (track.position >= track.duration) {
+            return
+        }
+
         await TrackPlayer.add([track]);
         await TrackPlayer.seekTo(track.position);
         await TrackPlayer.pause();
