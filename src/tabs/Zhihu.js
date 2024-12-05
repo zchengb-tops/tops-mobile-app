@@ -29,7 +29,7 @@ export const Zhihu = () => {
             <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('NewsDetailScreen', {
-                    url: process.env.EXPO_PUBLIC_API_URL + item.shortLink,
+                    url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
                     title: item.title
                 })}
             >

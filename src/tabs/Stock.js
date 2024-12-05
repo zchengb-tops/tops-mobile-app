@@ -39,7 +39,9 @@ export const Stock = () => {
             breadcrumb: {
                 show: false
             },
-            labelLayout: (params) => { return { y: params.labelRect.y, align: 'center', } },
+            labelLayout: (params) => {
+                return {y: params.labelRect.y, align: 'center',}
+            },
             label: {
                 show: true,
                 color: '#464646',
@@ -131,9 +133,10 @@ export const Stock = () => {
             chart.setOption(chartOption);
 
             chart.on("click", (e) => {
+                console.log('e', e.data)
                 navigation.navigate('NewsDetailScreen', {
-                    url: process.env.EXPO_PUBLIC_API_URL + e.data.link,
-                    title: item.title
+                    url: process.env.EXPO_PUBLIC_API_URL + "/t/" + e.data.link,
+                    title: e.data.name
                 })
             });
         }
