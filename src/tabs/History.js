@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
+        lineHeight: 20,
         color: '#464646',
         marginLeft: 16,
         marginTop: 8
