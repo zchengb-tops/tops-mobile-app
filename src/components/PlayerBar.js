@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect} from 'react';
 import {ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
-import {useTrack, useTrackShowing, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackShowing, useTrackShrink, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
 import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
@@ -22,17 +22,22 @@ export const PlayerBar = () => {
     const insets = useSafeAreaInsets();
     const {isPlayBarVisible} = useVisibility();
     const screenWidth = Dimensions.get('window').width;
+    const isShrink = useTrackShrink();
     const position = useSharedValue(0);
-    const [isShrunk, setIsShrunk] = useState(false);
     const animatedPlayBarStyle = useAnimatedStyle(() => ({
         transform: [{translateX: position.value}],
     }));
     const animatedBlurStyle = useAnimatedStyle(() => ({
-        opacity: withTiming(isShrunk ? 1 : 0, {duration: 200}),
+        opacity: withTiming(isShrink ? 1 : 0, {duration: 200}),
     }));
+
+    useEffect(() => {
+        position.value = withTiming(isShrink ? screenWidth - 24 : 0, {duration: 300});
+    }, [isShrink]);
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
+    const setShrink = useTrackStateStore.getState().setShrink;
 
     const formatTime = (time) => {
         const hours = Math.floor(time / 3600);
@@ -50,9 +55,9 @@ export const PlayerBar = () => {
         return progress.position >= progress.duration
     }
 
-    const delayedSetIsShrunk = (value, delay) => {
+    const delayedSetIsShrink = (value, delay) => {
         setTimeout(() => {
-            setIsShrunk(value);
+            setShrink(value);
         }, delay);
     };
 
@@ -60,19 +65,19 @@ export const PlayerBar = () => {
         .direction(Directions.RIGHT)
         .onStart((e) => {
             position.value = withTiming(screenWidth - 24, {duration: 300});
-            runOnJS(delayedSetIsShrunk)(true, 100);
+            runOnJS(delayedSetIsShrink)(true, 100);
         });
 
     const handleFlingLeft = () => {
         runOnUI(() => position.value = withTiming(0, {duration: 300}))();
-        runOnJS(setIsShrunk)(false);
+        runOnJS(setShrink)(false);
     }
 
     const flingLeftGesture = Gesture.Fling()
         .direction(Directions.LEFT)
         .onStart(() => {
             position.value = withTiming(0, {duration: 300});
-            runOnJS(setIsShrunk)(false);
+            runOnJS(setShrink)(false);
         });
 
     const cleanTrackPlay = async () => {
@@ -91,7 +96,7 @@ export const PlayerBar = () => {
                 <Animated.View
                     style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}, animatedPlayBarStyle]}>
                     {
-                        isShrunk
+                        isShrink
                             ?
                             <Animated.View style={[styles.blurViewWrapper, animatedBlurStyle]}>
                                 <TouchableOpacity onPress={handleFlingLeft} activeOpacity={0.9}>
@@ -113,7 +118,7 @@ export const PlayerBar = () => {
                     }
                     <View
                         activeOpacity={1}
-                        style={[styles.playerBarInternalWrapper, {backgroundColor: isShrunk ? 'transparent' : '#ffffff',}]}>
+                        style={[styles.playerBarInternalWrapper, {backgroundColor: isShrink ? 'transparent' : '#ffffff',}]}>
                         <View style={styles.trackInfo}>
                             {
                                 currentTrack?.artwork

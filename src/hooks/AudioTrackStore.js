@@ -21,6 +21,12 @@ export const useTrackStateStore = create(
                 showing: showing,
             },
         })),
+        setShrink: (shrink = false) => set((state) => ({
+            data: {
+                ...state.data,
+                shrink: shrink,
+            },
+        })),
         setStatus: (status) => set((state) => ({
             data: {
                 ...state.data,

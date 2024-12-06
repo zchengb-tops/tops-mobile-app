@@ -24,3 +24,9 @@ export const useTrackStatus = () => {
         return state.data?.status;
     }, []));
 };
+
+export const useTrackShrink = () => {
+    return useTrackStateStore(useCallback(state => {
+        return state.data?.shrink;
+    }, []));
+};
