@@ -82,47 +82,12 @@ export const initializeTrackPlayer = async () => {
         ],
     });
 
-    useTrackPlayerEvents([
-            Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
-            Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
-        ],
-        async (event) => {
-            switch (event.type) {
-                case Event.RemoteSeek:
-                    await TrackPlayer.seekTo(event.position);
-                    break;
-                case Event.RemotePlay:
-                    await TrackPlayer.play();
-                    break;
-                case Event.RemotePause:
-                    await TrackPlayer.pause();
-                    break;
-                case Event.RemoteStop:
-                    await TrackPlayer.reset();
-                    break;
-                case Event.RemoteJumpForward:
-                    TrackPlayer.getProgress().then(progress => {
-                        let nextPosition = progress.position + event.interval;
-                        nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
-                        TrackPlayer.seekTo(nextPosition);
-                    })
-                    break;
-                case Event.RemoteJumpBackward:
-                    TrackPlayer.getProgress().then(progress => {
-                        let nextPosition = progress.position - event.interval;
-                        nextPosition = nextPosition < 0 ? 0 : nextPosition;
-                        TrackPlayer.seekTo(nextPosition);
-                    })
-                    break;
-                default:
-                    break;
-            }
-        });
-    console.log('initialize track player');
+    console.log('initialize track player done');
 }
 
 const loadCacheTrackPlay = async () => {
     const currentTrack = storage.getString('currentTrack');
+
     if (currentTrack) {
         const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
         const setTrack = useTrackStateStore.getState().setTrack;
@@ -192,8 +157,8 @@ const toastConfig = {
             }}
         />
     ),
-    tomatoToast: ({ text1, props }) => (
-        <View style={{ height: 60, width: '100%', backgroundColor: 'tomato', bottom: 0, zIndex: 1000 }}>
+    tomatoToast: ({text1, props}) => (
+        <View style={{height: 60, width: '100%', backgroundColor: 'tomato', bottom: 0, zIndex: 1000}}>
             <Text>{text1}</Text>
             <Text>{props.uuid}</Text>
         </View>
@@ -201,6 +166,47 @@ const toastConfig = {
 }
 
 export default function App() {
+    useTrackPlayerEvents([
+            Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
+            Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
+        ],
+        async (event) => {
+            switch (event.type) {
+                case Event.RemoteSeek:
+                    await TrackPlayer.seekTo(event.position);
+                    break;
+                case Event.RemotePlay:
+                    await TrackPlayer.play();
+                    break;
+                case Event.RemotePause:
+                    await TrackPlayer.pause();
+                    break;
+                case Event.RemoteStop:
+                    await TrackPlayer.reset();
+                    console.log('Remote stop event received, track player reset');
+                    break;
+                case Event.RemoteJumpForward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position + event.interval;
+                        nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                        console.log('Remote jump forward event received, seeking to position:', nextPosition);
+                    })
+                    break;
+                case Event.RemoteJumpBackward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position - event.interval;
+                        nextPosition = nextPosition < 0 ? 0 : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                        console.log('Remote jump backward event received, seeking to position:', nextPosition);
+                    })
+                    break;
+                default:
+                    console.log('Unhandled remote event received:', event.type);
+                    break;
+            }
+        });
+
     return (
         <SafeAreaProvider>
             <VisibilityProvider>
