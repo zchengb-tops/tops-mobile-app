@@ -13,7 +13,7 @@ import {VisibilityProvider} from "./src/providers/VisibilityProvider";
 import {NavBar} from "./src/components/NavBar";
 import {SubscribeScreen} from "./src/screens/SubscribeScreen";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
-import {Capability} from "react-native-track-player";
+import {Capability, Event, useTrackPlayerEvents} from "react-native-track-player";
 import {storage} from "./src/storage";
 import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
@@ -81,6 +81,43 @@ export const initializeTrackPlayer = async () => {
             Capability.JumpBackward
         ],
     });
+
+    useTrackPlayerEvents([
+            Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
+            Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
+        ],
+        async (event) => {
+            switch (event.type) {
+                case Event.RemoteSeek:
+                    await TrackPlayer.seekTo(event.position);
+                    break;
+                case Event.RemotePlay:
+                    await TrackPlayer.play();
+                    break;
+                case Event.RemotePause:
+                    await TrackPlayer.pause();
+                    break;
+                case Event.RemoteStop:
+                    await TrackPlayer.reset();
+                    break;
+                case Event.RemoteJumpForward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position + event.interval;
+                        nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                    })
+                    break;
+                case Event.RemoteJumpBackward:
+                    TrackPlayer.getProgress().then(progress => {
+                        let nextPosition = progress.position - event.interval;
+                        nextPosition = nextPosition < 0 ? 0 : nextPosition;
+                        TrackPlayer.seekTo(nextPosition);
+                    })
+                    break;
+                default:
+                    break;
+            }
+        });
     console.log('initialize track player');
 }
 

@@ -8,16 +8,16 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
-import { NewsContext } from "../providers/NewsProvider";
+import React, {useContext, useEffect, useState} from "react";
+import {NewsContext} from "../providers/NewsProvider";
 import AuthorIcon from "../../assets/icons/author.svg";
-import TrackPlayer, { Event, State, useProgress, useTrackPlayerEvents } from 'react-native-track-player';
-import { useTrackStateStore } from "../hooks/AudioTrackStore";
-import { useTrack, useTrackStatus } from "../hooks/TrackHooks";
-import { Icon } from "@rneui/themed";
-import { AnimatedCircularProgress } from "react-native-circular-progress";
-import { globalStyles } from "../globalStyle";
-import { useNavigation } from "@react-navigation/native";
+import TrackPlayer, {State, useProgress} from 'react-native-track-player';
+import {useTrackStateStore} from "../hooks/AudioTrackStore";
+import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
+import {Icon} from "@rneui/themed";
+import {AnimatedCircularProgress} from "react-native-circular-progress";
+import {globalStyles} from "../globalStyle";
+import {useNavigation} from "@react-navigation/native";
 
 export const Xiaoyuzhou = () => {
     const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);
@@ -66,43 +66,6 @@ export const Xiaoyuzhou = () => {
         });
         setNews(newsItem)
     }, [normalNews]);
-
-    useTrackPlayerEvents([
-        Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
-        Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
-    ],
-        async (event) => {
-            switch (event.type) {
-                case Event.RemoteSeek:
-                    await TrackPlayer.seekTo(event.position);
-                    break;
-                case Event.RemotePlay:
-                    await TrackPlayer.play();
-                    break;
-                case Event.RemotePause:
-                    await TrackPlayer.pause();
-                    break;
-                case Event.RemoteStop:
-                    await TrackPlayer.reset();
-                    break;
-                case Event.RemoteJumpForward:
-                    TrackPlayer.getProgress().then(progress => {
-                        let nextPosition = progress.position + event.interval;
-                        nextPosition = nextPosition > progress.duration ? progress.duration : nextPosition;
-                        TrackPlayer.seekTo(nextPosition);
-                    })
-                    break;
-                case Event.RemoteJumpBackward:
-                    TrackPlayer.getProgress().then(progress => {
-                        let nextPosition = progress.position - event.interval;
-                        nextPosition = nextPosition < 0 ? 0 : nextPosition;
-                        TrackPlayer.seekTo(nextPosition);
-                    })
-                    break;
-                default:
-                    break;
-            }
-        });
 
     const markHasBeenActive = (newsItem) => {
         const cloneNews = [...news];
