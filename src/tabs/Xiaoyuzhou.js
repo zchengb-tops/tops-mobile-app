@@ -8,19 +8,19 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
+import React, { useContext, useEffect, useState } from "react";
+import { NewsContext } from "../providers/NewsProvider";
 import AuthorIcon from "../../assets/icons/author.svg";
-import TrackPlayer, {Event, State, useProgress, useTrackPlayerEvents} from 'react-native-track-player';
-import {useTrackStateStore} from "../hooks/AudioTrackStore";
-import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
-import {Icon} from "@rneui/themed";
-import {AnimatedCircularProgress} from "react-native-circular-progress";
-import {globalStyles} from "../globalStyle";
-import {useNavigation} from "@react-navigation/native";
+import TrackPlayer, { Event, State, useProgress, useTrackPlayerEvents } from 'react-native-track-player';
+import { useTrackStateStore } from "../hooks/AudioTrackStore";
+import { useTrack, useTrackStatus } from "../hooks/TrackHooks";
+import { Icon } from "@rneui/themed";
+import { AnimatedCircularProgress } from "react-native-circular-progress";
+import { globalStyles } from "../globalStyle";
+import { useNavigation } from "@react-navigation/native";
 
 export const Xiaoyuzhou = () => {
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
+    const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const progress = useProgress();
     const playStatus = useTrackStatus();
@@ -68,9 +68,9 @@ export const Xiaoyuzhou = () => {
     }, [normalNews]);
 
     useTrackPlayerEvents([
-            Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
-            Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
-        ],
+        Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
+        Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
+    ],
         async (event) => {
             switch (event.type) {
                 case Event.RemoteSeek:
@@ -150,7 +150,7 @@ export const Xiaoyuzhou = () => {
     }
 
     const isCurrentItemInTrack = (newsItem) => {
-        return playingTrack && newsItem.id === playingTrack.id && playingTrack.source === 'xiaoyuzhou';
+        return playingTrack && newsItem.id === playingTrack.id && newsItem.title === playingTrack.title && newsItem.author === playingTrack.artist && playingTrack.source === 'xiaoyuzhou';
     }
 
     const isCurrentItemPlaying = (newsItem) => {
@@ -189,10 +189,11 @@ export const Xiaoyuzhou = () => {
         <FlatList
             data={news}
             refreshControl={
-                <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+                <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing}
+                    onRefresh={refreshNews} />
             }
             keyExtractor={(item, index) => index.toString()}
-            renderItem={({item, index}) => (
+            renderItem={({ item, index }) => (
                 <TouchableOpacity style={styles.newsItemWrapper} activeOpacity={0.8} onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
                         url: item.url,
@@ -203,13 +204,13 @@ export const Xiaoyuzhou = () => {
                         <Image
                             style={styles.image}
                             resizeMode="cover"
-                            source={{uri: item.coverUrl}}
+                            source={{ uri: item.coverUrl }}
                         />
 
                         <View style={styles.infoContainer}>
                             <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
                             <View style={styles.extraInfoWrapper}>
-                                <AuthorIcon/>
+                                <AuthorIcon />
                                 <Text style={styles.author} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
                             </View>
                             <View style={styles.extraInfoWrapper}>
@@ -238,7 +239,7 @@ export const Xiaoyuzhou = () => {
                                         onPress={() => handlePlayButtonClick(index)}
                                         style={[
                                             styles.playButton,
-                                            {backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1'},
+                                            { backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1' },
                                         ]}
                                     >
                                         {isCurrentItemLoading(item) ? (
@@ -248,14 +249,14 @@ export const Xiaoyuzhou = () => {
                                                 style={styles.playLoadingIndicator}
                                             />
                                         ) : isCurrentItemPlaying(item) ? (
-                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00"/>
+                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00" />
                                         ) : (
                                             <Icon
                                                 size={18}
                                                 name="play-sharp"
                                                 type="ionicon"
                                                 color="#464646"
-                                                style={{marginLeft: 2}}
+                                                style={{ marginLeft: 2 }}
                                             />
                                         )}
                                     </TouchableOpacity>
@@ -330,6 +331,6 @@ const styles = StyleSheet.create({
         borderRadius: 4
     },
     playLoadingIndicator: {
-        transform: [{scale: 0.75}]
+        transform: [{ scale: 0.75 }]
     }
 });
