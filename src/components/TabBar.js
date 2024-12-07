@@ -46,7 +46,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
             }
             Animated.spring(animatedPosition, {
                 toValue: tabItemStartPosition,
-                useNativeDriver: false,
+                useNativeDriver: true,
             }).start();
 
             setTimeout(() => setIsAnimating(false), 300);
@@ -64,8 +64,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const animatedStyle = {
         transform: [{
             translateX: animatedPosition
-        }],
-        width: animatedWidth,
+        }]
     };
 
     const onScroll = (event) => {
@@ -85,7 +84,10 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
             onScroll={onScroll}
             alwaysBounceVertical={false}
         >
-            <Animated.View style={[styles.selectedIndicator, animatedStyle]}/>
+            <Animated.View style={[styles.selectedIndicator, animatedStyle]}>
+                <Animated.View style={{width: animatedWidth}}/>
+            </Animated.View>
+
             {
                 channelList
                     .filter(channel => channel.enable)
