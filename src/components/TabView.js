@@ -5,7 +5,16 @@ import {NewsContext} from "../providers/NewsProvider";
 import {Rss} from "../tabs/Rss";
 
 export const TabView = ({channelList, tabIndex, setTabIndex}) => {
-    const {normalRefreshing, rssRefreshing, normalLoading, rssLoading, normalLoadError, rssLoadError, fetchNormalNews, fetchRssNews} = useContext(NewsContext);
+    const {
+        normalRefreshing,
+        rssRefreshing,
+        normalLoading,
+        rssLoading,
+        normalLoadError,
+        rssLoadError,
+        fetchNormalNews,
+        fetchRssNews
+    } = useContext(NewsContext);
     const [loadedTabs, setLoadedTabs] = useState(new Set());
     const tabViewRef = useRef(null);
     const screenWidth = Dimensions.get('window').width;
@@ -22,7 +31,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
         console.log('render tabview');
     }, []);
 
-    function saveLoadedTab() {
+    const saveLoadedTab = () => {
         const visibleChannelSize = channelList.filter(channel => channel.enable)?.length || 0;
         const newLoadedTabs = new Set(loadedTabs);
         newLoadedTabs.add(tabIndex);
@@ -78,19 +87,19 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
                                                 rssLoadError
                                                     ? <ErrorScreen fetchNews={fetchRssNews}/>
                                                     : (rssLoading && !rssRefreshing
-                                                        ? <View style={styles.loadingView}>
-                                                            <ActivityIndicator/>
-                                                        </View>
-                                                        : <Rss rssUrl={channel.rssUrl}/>
+                                                            ? <View style={styles.loadingView}>
+                                                                <ActivityIndicator/>
+                                                            </View>
+                                                            : <Rss rssUrl={channel.rssUrl}/>
                                                     )
                                             ) : (
                                                 normalLoadError
                                                     ? <ErrorScreen fetchNews={fetchNormalNews}/>
                                                     : (normalLoading && !normalRefreshing
-                                                        ? <View style={styles.loadingView}>
-                                                            <ActivityIndicator/>
-                                                        </View>
-                                                        : channel.component
+                                                            ? <View style={styles.loadingView}>
+                                                                <ActivityIndicator/>
+                                                            </View>
+                                                            : channel.component
                                                     )
                                             )
                                         }
