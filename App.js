@@ -18,6 +18,7 @@ import {storage} from "./src/storage";
 import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import Toast, {BaseToast, ErrorToast} from "react-native-toast-message";
+import {ProfileScreen} from "./src/screens/ProfileScreen";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -35,11 +36,6 @@ console.error = (...args) => {
     if (/defaultProps/.test(args[0])) return;
     error(...args);
 };
-
-const ProfileScreen = () => {
-    return <Text>账号</Text>;
-}
-
 
 const Tab = createBottomTabNavigator();
 

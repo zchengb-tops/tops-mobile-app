@@ -163,3 +163,9 @@ export const CHANNEL_COMPONENT_MAP = {
         component: <History/>
     },
 };
+
+export const FONT_SIZE = {
+    SMALL: '小',
+    MEDIUM: '中',
+    LARGE: '大'
+};

@@ -145,7 +145,7 @@ export const NavBar = () => {
                         onLayout={(event) => handleLayout(routeMapping.PROFILE, event.nativeEvent.layout)}
                     >
                         {renderIcon(routeMapping.PROFILE)}
-                        {renderLabel(routeMapping.PROFILE, '账号')}
+                        {renderLabel(routeMapping.PROFILE, '我的')}
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
