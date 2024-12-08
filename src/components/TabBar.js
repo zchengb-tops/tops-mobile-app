@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {Text} from "./Text";
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);
@@ -115,14 +116,14 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                         :
                                         channel.renderIcon()
                                 }
-                                <Animated.Text
+                                <Text
                                     style={{
                                         ...styles.tabBarText,
                                         fontWeight: tabIndex === index ? '500' : 'normal'
                                     }}
                                 >
                                     {channel.tabTitle}
-                                </Animated.Text>
+                                </Text>
                             </TouchableOpacity>
                         )
                     })

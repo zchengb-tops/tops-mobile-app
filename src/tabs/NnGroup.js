@@ -1,9 +1,10 @@
-import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
 import CoverPlayIcon from "../../assets/icons/cover-play.svg"
+import {Text} from "../components/Text";
 
 export const NnGroup = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
@@ -36,7 +37,7 @@ export const NnGroup = () => {
             >
                 <View style={styles.newItemContainer}>
                     <View style={styles.infoContainer}>
-                        <Text style={styles.title}>{item.title}</Text>
+                        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
                         <View style={styles.additionalInfoContainer}>
                             <Text style={styles.additionalText}>{item.publishDate}</Text>
                             {

@@ -4,7 +4,6 @@ import {
     Image,
     SafeAreaView,
     StyleSheet,
-    Text,
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
@@ -17,6 +16,7 @@ import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {Text} from "../components/Text";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);

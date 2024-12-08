@@ -1,8 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
 import React, { useContext, useEffect, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
 import { globalStyles } from "../globalStyle";
 import { NewsContext } from "../providers/NewsProvider";
+import {Text} from "../components/Text";
 
 export const Tiobe = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);

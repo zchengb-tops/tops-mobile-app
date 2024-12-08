@@ -5,7 +5,7 @@ import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
 import {NewsProvider} from "./src/providers/NewsProvider";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {AppRegistry, LogBox, Text, TextInput, View} from "react-native";
+import {AppRegistry, LogBox, TextInput, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
@@ -19,15 +19,18 @@ import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import Toast, {BaseToast, ErrorToast} from "react-native-toast-message";
 import {ProfileScreen} from "./src/screens/ProfileScreen";
+import {Text} from "./src/components/Text";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
 Text.defaultProps = Text.defaultProps || {};
 Text.defaultProps.allowFontScaling = false;
+Text.defaultProps.style = Text.defaultProps.style || {};
 
 TextInput.defaultProps = TextInput.defaultProps || {};
 TextInput.defaultProps.allowFontScaling = false;
+TextInput.defaultProps.style = TextInput.defaultProps.style || {};
 
 LogBox.ignoreAllLogs();
 
@@ -123,10 +126,6 @@ const DiscoveryStackNavigator = () => {
 }
 
 const toastConfig = {
-    /*
-      Overwrite 'success' type,
-      by modifying the existing `BaseToast` component
-    */
     success: (props) => (
         <BaseToast
             {...props}
@@ -138,10 +137,6 @@ const toastConfig = {
             }}
         />
     ),
-    /*
-      Overwrite 'error' type,
-      by modifying the existing `ErrorToast` component
-    */
     error: (props) => (
         <ErrorToast
             {...props}

@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Dimensions, Image, StyleSheet, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackShowing, useTrackShrink, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
@@ -12,7 +12,7 @@ import {BlurView} from "@react-native-community/blur";
 import {storage} from "../storage";
 import {useTrackStateStore} from "../hooks/AudioTrackStore";
 import {initializeTrackPlayer} from "../../App";
-
+import {Text} from "./Text";
 
 export const PlayerBar = () => {
     const progress = useProgress(800);

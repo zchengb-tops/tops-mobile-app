@@ -1,10 +1,11 @@
-import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "react-native-ratings";
 import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
+import {Text} from "../components/Text";
 
 export const DoubanMovie = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);

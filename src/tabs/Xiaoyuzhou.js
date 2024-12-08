@@ -4,7 +4,6 @@ import {
     Image,
     RefreshControl,
     StyleSheet,
-    Text,
     TouchableOpacity,
     View
 } from "react-native";
@@ -18,6 +17,7 @@ import {Icon} from "@rneui/themed";
 import {AnimatedCircularProgress} from "react-native-circular-progress";
 import {globalStyles} from "../globalStyle";
 import {useNavigation} from "@react-navigation/native";
+import {Text} from "../components/Text";
 
 export const Xiaoyuzhou = () => {
     const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);

@@ -1,10 +1,11 @@
 import React, {useEffect, useLayoutEffect, useState} from "react";
 import {WebView} from "react-native-webview";
-import {ActivityIndicator, Button, Platform, StyleSheet, View, Text, TouchableOpacity} from "react-native";
+import {ActivityIndicator, Platform, StyleSheet, View, TouchableOpacity} from "react-native";
 import {useIsFocused, useNavigation} from "@react-navigation/native";
 import {useVisibility} from "../providers/VisibilityProvider";
 import Share from "react-native-share";
 import {Icon} from "@rneui/themed";
+import {Text} from "../components/Text";
 
 export const NewsDetailScreen = ({route}) => {
     const {url, title} = route.params;

@@ -1,9 +1,9 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Animated, Easing, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Animated, Easing, Platform, SafeAreaView, StyleSheet, TouchableOpacity, View} from "react-native";
 import {useVisibility} from "../providers/VisibilityProvider";
 import {Icon} from "@rneui/themed";
 import {useNavigation} from "@react-navigation/native";
-
+import {Text} from "./Text";
 export const NavBar = () => {
     const routeMapping = {
         DISCOVERY: 'DiscoveryScreen',

@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import {Dimensions, RefreshControl, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {Dimensions, RefreshControl, ScrollView, StyleSheet, View} from 'react-native';
 import * as echarts from 'echarts/core';
 import {GridComponent, TooltipComponent, VisualMapComponent} from 'echarts/components';
 import {SvgChart, SVGRenderer} from '@wuba/react-native-echarts';
@@ -8,6 +8,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {NewsContext} from "../providers/NewsProvider";
 import {globalStyles} from "../globalStyle";
 import {useNavigation} from "@react-navigation/native";
+import {Text} from "../components/Text";
 
 echarts.use([SVGRenderer, GridComponent, BarChart, TreemapChart, VisualMapComponent, TooltipComponent]);
 

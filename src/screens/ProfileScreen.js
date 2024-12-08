@@ -3,7 +3,6 @@ import {
     Image,
     SafeAreaView,
     StyleSheet,
-    Text,
     TouchableOpacity,
     View,
     ScrollView,
@@ -12,6 +11,7 @@ import {
 import {Icon} from "@rneui/themed";
 import {storage} from "../storage";
 import {FONT_SIZE} from "../constant";
+import {Text} from "../components/Text";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);

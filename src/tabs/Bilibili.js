@@ -1,4 +1,4 @@
-import {FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
@@ -6,6 +6,7 @@ import AuthorIcon from "../../assets/icons/author.svg"
 import ViewIcon from "../../assets/icons/view.svg"
 import LikeIcon from "../../assets/icons/like.svg"
 import {globalStyles} from "../globalStyle";
+import {Text} from "../components/Text";
 
 export const Bilibili = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
