@@ -117,7 +117,6 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
 
 const styles = StyleSheet.create({
     tabView: {
-        marginBottom: 48,
         flex: 1,
         backgroundColor: '#fffff',
     },

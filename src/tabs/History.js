@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginRight: 16,
         marginLeft: 28,
+        paddingBottom: 48
     },
     itemWrapper: {
         position: 'relative',

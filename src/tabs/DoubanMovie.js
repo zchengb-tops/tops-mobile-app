@@ -24,7 +24,7 @@ export const DoubanMovie = () => {
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} />
         }
         data={movies}
-        contentContainerStyle={{paddingBottom: playBarShowing ? 100: 0}}
+        contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
             const numericRate = parseFloat(item.rate);
@@ -84,6 +84,9 @@ export const DoubanMovie = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    contentContainer: {
+        paddingBottom: 48
     },
     cover: {
         borderRadius: 8,

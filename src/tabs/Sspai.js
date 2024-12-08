@@ -36,6 +36,7 @@ export const Sspai = () => {
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
+        contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (
             <TouchableOpacity
@@ -80,6 +81,9 @@ export const Sspai = () => {
 }
 
 const styles = StyleSheet.create({
+    contentContainer: {
+        paddingBottom: 48
+    },
     newsItemWrapper: {
         justifyContent: 'center',
         alignItems: 'center',

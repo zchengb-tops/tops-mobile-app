@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         marginTop: 4,
+        paddingBottom: 48
     },
     newsItem: {
         flex: 1,

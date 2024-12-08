@@ -21,6 +21,7 @@ export const NnGroup = () => {
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
+        contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (
             <TouchableOpacity
@@ -73,6 +74,9 @@ export const NnGroup = () => {
 }
 
 const styles = StyleSheet.create({
+    contentContainer: {
+        paddingBottom: 48
+    },
     newsItemWrapper: {
         justifyContent: 'center',
         alignItems: 'center',

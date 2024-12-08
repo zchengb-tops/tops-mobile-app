@@ -30,6 +30,7 @@ export const Bilibili = () => {
 
     return <FlatList
         style={styles.container}
+        contentContainerStyle={styles.contentContainer}
         data={news}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
@@ -75,6 +76,9 @@ export const Bilibili = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    contentContainer: {
+      paddingBottom: 48
     },
     itemWrapper: {
         flexDirection: 'row',

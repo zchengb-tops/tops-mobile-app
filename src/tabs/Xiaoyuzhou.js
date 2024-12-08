@@ -155,6 +155,7 @@ export const Xiaoyuzhou = () => {
                 <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing}
                     onRefresh={refreshNews} />
             }
+            contentContainerStyle={styles.contentContainer}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => (
                 <TouchableOpacity style={styles.newsItemWrapper} activeOpacity={0.8} onPress={() =>
@@ -236,6 +237,9 @@ export const Xiaoyuzhou = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    contentContainer: {
+        paddingBottom: 48
     },
     newsItemWrapper: {
         justifyContent: 'center',

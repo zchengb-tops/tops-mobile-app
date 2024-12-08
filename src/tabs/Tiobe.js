@@ -62,6 +62,7 @@ export const Tiobe = () => {
 
     return <FlatList
         style={styles.container}
+        contentContainerStyle={styles.contentContainer}
         initialNumToRender={20}
         data={news}
         refreshControl={
@@ -76,6 +77,9 @@ export const Tiobe = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    contentContainer: {
+        paddingBottom: 48
     },
     header: {
         flexDirection: 'row',

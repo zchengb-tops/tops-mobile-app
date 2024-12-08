@@ -21,6 +21,7 @@ export const Zhihu = () => {
 
     return <FlatList
         data={news}
+        contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
@@ -66,6 +67,9 @@ export const Zhihu = () => {
 }
 
 const styles = StyleSheet.create({
+    contentContainer: {
+        paddingBottom: 48
+    },
     newsItemWrapper: {
         justifyContent: 'center',
         alignItems: 'center',

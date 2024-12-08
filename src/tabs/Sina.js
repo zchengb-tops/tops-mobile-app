@@ -1,8 +1,8 @@
-import { useNavigation } from "@react-navigation/native";
-import React, { useContext, useEffect, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { globalStyles } from "../globalStyle";
-import { NewsContext } from "../providers/NewsProvider";
+import {useNavigation} from "@react-navigation/native";
+import React, {useContext, useEffect, useState} from "react";
+import {FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {globalStyles} from "../globalStyle";
+import {NewsContext} from "../providers/NewsProvider";
 
 export const Sina = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         marginTop: 4,
+        paddingBottom: 48
     },
     newsItem: {
         flex: 1,
