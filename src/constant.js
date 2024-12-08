@@ -169,3 +169,11 @@ export const FONT_SIZE = {
     MEDIUM: '中',
     LARGE: '大'
 };
+
+export const getTheme = (isDarkMode) => ({
+    backgroundColor: isDarkMode ? '#1A1A1A' : '#FFF',
+    textColor: isDarkMode ? '#FFFFFF' : '#464646', 
+    secondaryTextColor: isDarkMode ? '#AAAAAA' : '#939393',
+    cardBackgroundColor: isDarkMode ? '#2A2A2A' : '#F7F7F7',
+    borderColor: isDarkMode ? '#3A3A3A' : '#E8E8E8',
+});
