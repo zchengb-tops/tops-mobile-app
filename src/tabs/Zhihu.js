@@ -4,11 +4,13 @@ import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const Zhihu = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const { theme } = useTheme();
 
     useEffect(() => {
         setNews(normalNews['zhihu'])
@@ -39,18 +41,18 @@ export const Zhihu = () => {
                     <View style={styles.newItemContainer}>
                         <View style={styles.rankContainer}>
                             <Text
-                                style={index < 3 ? styles[`rankNumTop${index + 1}`] : styles.rankNumText}>
+                                style={index < 3 ? styles[`rankNumTop${index + 1}`] : [styles.rankNumText, { color: theme.colors.text }]}>
                                 {formatTwoDigits(item.rankNum)}
                             </Text>
                         </View>
                         <View style={styles.textContainer}>
                             <Text
-                                style={styles.title}
+                                style={[styles.title, { color: theme.colors.text }]}
                                 numberOfLines={4}
                                 ellipsizeMode='tail'>
                                 {item.title}
                             </Text>
-                            <Text style={styles.viewerText}>{item.properties.metrics}</Text>
+                            <Text style={[styles.viewerText, { color: theme.colors.secondaryText }]}>{item.properties.metrics}</Text>
                         </View>
                         {item.properties.banner !== 'https://zchengb-images.oss-cn-shenzhen.aliyuncs.com/1.jpeg' && (
                             <Image
@@ -60,7 +62,7 @@ export const Zhihu = () => {
                             />
                         )}
                     </View>
-                    <View style={styles.borderBottom}/>
+                    <View style={[styles.borderBottom, { borderBottomColor: theme.colors.border }]}/>
                 </View>
             </TouchableOpacity>
         )}
@@ -81,7 +83,6 @@ const styles = StyleSheet.create({
         padding: 12,
     },
     borderBottom: {
-        borderBottomColor: 'rgba(0,0,0,0.08)',
         borderBottomWidth: 1,
         width: '94%',
     },
@@ -95,11 +96,9 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        color: '#464646',
         lineHeight: 16 * 1.5,
     },
     viewerText: {
-        color: '#939393',
         fontSize: 14,
         marginTop: 5,
     },

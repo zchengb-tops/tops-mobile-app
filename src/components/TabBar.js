@@ -1,6 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {Text} from "./Text";
+import {darkModeHooks} from "../hooks/DarkModeHooks";
+import {useTheme} from "@rneui/themed";
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);
@@ -11,6 +13,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const [scrollX, setScrollX] = useState(0);
     const statusBarHeight = StatusBar.currentHeight || 0;
     const [isAnimating, setIsAnimating] = useState(false);
+    const {theme} = useTheme();
 
     useEffect(() => {
         if (tabWidths.current.length > 0) {
@@ -75,7 +78,11 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
 
     return (
         <ScrollView
-            style={[styles.tabBar, {marginTop: statusBarHeight}]}
+            style={[styles.tabBar, {
+                marginTop: statusBarHeight,
+                borderBottomColor: theme.colors.border,
+                backgroundColor: theme.colors.background,
+            }]}
             ref={scrollViewRef}
             contentContainerStyle={[styles.tabBarContent, {flexDirection: 'row'}]}
             horizontal={true}
@@ -85,7 +92,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
             onScroll={onScroll}
             alwaysBounceVertical={false}
         >
-            <Animated.View style={[styles.selectedIndicator, animatedStyle]}>
+            <Animated.View style={[styles.selectedIndicator, animatedStyle, {backgroundColor: theme.colors.indicator}]}>
                 <Animated.View style={{width: animatedWidth}}/>
             </Animated.View>
 
@@ -119,6 +126,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                 <Text
                                     style={{
                                         ...styles.tabBarText,
+                                        color: theme.colors.text,
                                         fontWeight: tabIndex === index ? '500' : 'normal'
                                     }}
                                 >
@@ -139,7 +147,6 @@ const styles = StyleSheet.create({
         minHeight: 48,
         paddingVertical: 0,
         borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
     },
     tabBarContent: {
         alignItems: 'center',
@@ -152,7 +159,6 @@ const styles = StyleSheet.create({
         lineHeight: Platform.select({
             android: 20
         }),
-        color: '#464646',
         paddingHorizontal: 4,
         paddingVertical: 2,
     },
@@ -168,7 +174,6 @@ const styles = StyleSheet.create({
     selectedIndicator: {
         position: 'absolute',
         height: 2,
-        backgroundColor: '#404040',
         left: 10,
         bottom: 0,
         zIndex: 0,

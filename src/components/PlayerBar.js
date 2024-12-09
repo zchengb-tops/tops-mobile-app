@@ -13,6 +13,7 @@ import {storage} from "../storage";
 import {useTrackStateStore} from "../hooks/AudioTrackStore";
 import {initializeTrackPlayer} from "../../App";
 import {Text} from "./Text";
+import {darkModeHooks, useDarkMode} from "../hooks/DarkModeHooks";
 
 export const PlayerBar = () => {
     const progress = useProgress(800);
@@ -24,6 +25,8 @@ export const PlayerBar = () => {
     const screenWidth = Dimensions.get('window').width;
     const isShrink = useTrackShrink();
     const position = useSharedValue(0);
+    const isDarkMode = useDarkMode();
+    
     const animatedPlayBarStyle = useAnimatedStyle(() => ({
         transform: [{translateX: position.value}],
     }));
@@ -101,15 +104,15 @@ export const PlayerBar = () => {
                             <Animated.View style={[styles.blurViewWrapper, animatedBlurStyle]}>
                                 <TouchableOpacity onPress={handleFlingLeft} activeOpacity={0.9}>
                                     <BlurView
-                                        style={styles.blurView}
-                                        blurType="dark"
+                                        style={[styles.blurView, {backgroundColor: isDarkMode ? '#F7F7F7' : 'transparent'}]}
+                                        blurType={isDarkMode ? "dark" : "light"}
                                         blurAmount={3}
                                     >
                                         <Icon size={16}
                                               name='chevron-back-outline'
                                               type='ionicon'
                                               style={styles.shrinkIcon}
-                                              color='#fff'/>
+                                              color={isDarkMode ? '#fff' : '#000'}/>
                                     </BlurView>
                                 </TouchableOpacity>
                             </Animated.View>
@@ -118,7 +121,7 @@ export const PlayerBar = () => {
                     }
                     <View
                         activeOpacity={1}
-                        style={[styles.playerBarInternalWrapper, {backgroundColor: isShrink ? 'transparent' : '#ffffff',}]}>
+                        style={[styles.playerBarInternalWrapper, {backgroundColor: isShrink ? 'transparent' : isDarkMode ? '#2A2A2A' : '#F7F7F7'}]}>
                         <View style={styles.trackInfo}>
                             {
                                 currentTrack?.artwork
@@ -129,22 +132,22 @@ export const PlayerBar = () => {
                             }
 
                             <View style={styles.trackTextInfo}>
-                                <Text style={styles.title} numberOfLines={1}
+                                <Text style={[styles.title, {color: isDarkMode ? '#FFFFFF' : '#464646'}]} numberOfLines={1}
                                       ellipsizeMode='tail'>{currentTrack?.title}</Text>
-                                <Text style={styles.author} numberOfLines={1}
+                                <Text style={[styles.author, {color: isDarkMode ? '#999999' : '#888888'}]} numberOfLines={1}
                                       ellipsizeMode='tail'>{currentTrack?.artist}</Text>
                             </View>
                         </View>
                         <View style={styles.controls}>
-                            <Text style={{color: '#888888', width: 64, textAlign: 'center', fontSize: 12}}>
+                            <Text style={{color: isDarkMode ? '#999999' : '#888888', width: 64, textAlign: 'center', fontSize: 12}}>
                                 {
                                     formatTime(progress.position)
                                 }
                             </Text>
                             <Slider
-                                maximumTrackTintColor={"#D9D9D9"}
+                                maximumTrackTintColor={isDarkMode ? "#666666" : "#D9D9D9"}
                                 maximumValue={progress.duration}
-                                minimumTrackTintColor={"#464646"}
+                                minimumTrackTintColor={isDarkMode ? "#FFFFFF" : "#464646"}
                                 step={1}
                                 style={{
                                     height: 18,
@@ -154,11 +157,11 @@ export const PlayerBar = () => {
                                 }}
                                 trackStyle={{height: 6}}
                                 thumbStyle={{height: 6, width: 6}}
-                                thumbTintColor="#464646"
+                                thumbTintColor={isDarkMode ? "#FFFFFF" : "#464646"}
                                 value={progress.position}
                                 onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
                             />
-                            <Text style={{color: '#888888', width: 70, textAlign: 'center', fontSize: 12}}>
+                            <Text style={{color: isDarkMode ? '#999999' : '#888888', width: 70, textAlign: 'center', fontSize: 12}}>
                                 -{formatTime(progress.duration - progress.position)}
                             </Text>
                             {
@@ -172,13 +175,13 @@ export const PlayerBar = () => {
                                                     size={20}
                                                     name='pause'
                                                     type='ionicon'
-                                                    color='#464646'
+                                                    color={isDarkMode ? '#FFFFFF' : '#464646'}
                                                 />
                                             </TouchableOpacity>
                                         ) : (
                                             status === State.Loading
                                                 ?
-                                                <ActivityIndicator size="small" color={'#464646'}/>
+                                                <ActivityIndicator size="small" color={isDarkMode ? '#FFFFFF' : '#464646'}/>
                                                 :
                                                 <TouchableOpacity
                                                     onPress={() => {
@@ -191,7 +194,7 @@ export const PlayerBar = () => {
                                                         size={20}
                                                         name='play'
                                                         type='ionicon'
-                                                        color='#464646'
+                                                        color={isDarkMode ? '#FFFFFF' : '#464646'}
                                                     />
                                                 </TouchableOpacity>
                                         )}
@@ -201,7 +204,7 @@ export const PlayerBar = () => {
                                                 size={20}
                                                 name='close-circle'
                                                 type='ionicon'
-                                                color='#464646'
+                                                color={isDarkMode ? '#FFFFFF' : '#464646'}
                                             />
                                         </TouchableOpacity>
                                     </View>
@@ -256,10 +259,8 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#464646'
     },
     author: {
-        color: '#888888',
         fontSize: 12,
         marginTop: 6
     },
@@ -288,7 +289,6 @@ const styles = StyleSheet.create({
     blurView: {
         height: '100%',
         borderRadius: 6,
-        backgroundColor: 'transparent',
         justifyContent: 'center',
     },
     shrinkIcon: {

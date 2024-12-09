@@ -4,8 +4,10 @@ import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const History = () => {
+    const { theme } = useTheme();
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
@@ -27,11 +29,11 @@ export const History = () => {
             >
                 <View style={styles.symbol}/>
                 <View style={styles.textInfoWrapper}>
-                    <Text style={styles.year}>{item.year}年</Text>
-                    <Text style={styles.title}>{item.title}</Text>
-                    <Text style={styles.desc}>
+                    <Text style={[styles.year, { color: theme.colors.secondaryText }]}>{item.year}年</Text>
+                    <Text style={[styles.title, { color: theme.colors.text }]}>{item.title}</Text>
+                    <Text style={[styles.desc, { color: theme.colors.secondaryText }]}>
                         {item.desc}
-                        {item.desc?.endsWith("...") && <Text style={styles.moreText}>&nbsp;更多&gt;&gt;</Text>}
+                        {item.desc?.endsWith("...") && <Text style={[styles.moreText, { color: theme.colors.primary }]}>&nbsp;更多&gt;&gt;</Text>}
                     </Text>
                 </View>
             </TouchableOpacity>
@@ -41,7 +43,7 @@ export const History = () => {
 
     return <FlatList
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { borderLeftColor: theme.colors.border }]}
         initialNumToRender={20}
         data={news}
         refreshControl={
@@ -95,18 +97,15 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 16,
         lineHeight: 20,
-        color: '#464646',
         marginLeft: 16,
         marginTop: 8
     },
     desc: {
         fontSize: 14,
-        color: '#939393',
         marginLeft: 16,
         marginTop: 8,
         lineHeight: 20
     },
     moreText: {
-        color: '#E67701',
     }
 })

@@ -4,11 +4,13 @@ import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "reac
 import {globalStyles} from "../globalStyle";
 import {NewsContext} from "../providers/NewsProvider";
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const Sina = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const { theme } = useTheme();
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
     useEffect(() => {
@@ -59,13 +61,13 @@ export const Sina = () => {
                                 {item.rankNum}
                             </Text>
                         </View>
-                        <Text style={styles.title}
+                        <Text style={[styles.title, { color: theme.colors.text }]}
                               numberOfLines={1}
                               ellipsizeMode="tail">
                             {item.title}
                         </Text>
                     </View>
-                    <Text style={styles.viewerText}>
+                    <Text style={[styles.viewerText, { color: theme.colors.secondaryText }]}>
                         {prettifyNumber(item.properties.viewers)}
                     </Text>
                 </TouchableOpacity>
@@ -98,10 +100,8 @@ const styles = StyleSheet.create({
     title: {
         marginLeft: 16,
         fontSize: 16,
-        color: '#464646'
     },
     viewerText: {
-        color: '#939393',
         fontSize: 14,
     },
     rankNumCircle: {

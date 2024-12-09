@@ -1,25 +1,27 @@
-import React, {useState, useEffect} from "react";
+import { Icon } from "@rneui/themed";
+import React, { useState } from "react";
 import {
     Image,
+    Modal,
     SafeAreaView,
+    ScrollView,
     StyleSheet,
     TouchableOpacity,
-    View,
-    ScrollView,
-    Modal,
-    useColorScheme
+    View
 } from "react-native";
-import {Icon} from "@rneui/themed";
-import {storage} from "../storage";
-import {FONT_SIZE, getTheme} from "../constant";
-import {Text} from "../components/Text";
-import { useDarkMode } from '../hooks/useDarkMode';
+import { Text } from "../components/Text";
+import { FONT_SIZE, getTheme } from "../constant";
+import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
+import { storage } from "../storage";
+import {useDarkModeStore} from "../hooks/DarkModeStore";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
     const [darkModeModalVisible, setDarkModeModalVisible] = useState(false);
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
-    const { darkMode, isDarkMode, setDarkMode } = useDarkMode();
+    const setDarkMode = useDarkModeStore.getState().setDarkMode;
+    const isDarkMode = useDarkMode();
+    const darkMode = useDarkModeValue();
 
     const fontSizes = [FONT_SIZE.SMALL, FONT_SIZE.MEDIUM, FONT_SIZE.LARGE];
     const darkModes = [

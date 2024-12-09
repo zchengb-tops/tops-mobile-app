@@ -1,10 +1,10 @@
-import React, {useEffect, useState} from 'react';
-import {Text as RNText, StyleSheet} from 'react-native';
-import {storage} from '../storage';
-import {FONT_SIZE} from '../constant';
+import React, { useEffect, useState } from 'react';
+import { Text as RNText, StyleSheet } from 'react-native';
+import { FONT_SIZE } from '../constant';
+import { storage } from '../storage';
 
 const getFontScale = (savedFontSize) => {
-    switch(savedFontSize) {
+    switch (savedFontSize) {
         case FONT_SIZE.SMALL:
             return 0.8;
         case FONT_SIZE.LARGE:
@@ -15,7 +15,42 @@ const getFontScale = (savedFontSize) => {
     }
 };
 
-export const Text = ({style, children, ...props}) => {
+const getStyleValue = (style, property) => {
+    if (Array.isArray(style)) {
+        return style.find(s => s?.[property])?.[property];
+    }
+    return style?.[property];
+};
+
+const scaleStyle = (style, fontScale) => {
+    const fontSize = getStyleValue(style, 'fontSize') || 16;
+    const lineHeight = getStyleValue(style, 'lineHeight');
+
+    if (Array.isArray(style)) {
+        return style.map(s => {
+            if (!s?.fontSize) return s;
+            
+            const scaled = { 
+                ...s, 
+                fontSize: s.fontSize * fontScale 
+            };
+            
+            if (s.lineHeight && fontScale === 1.2) {
+                scaled.lineHeight = s.lineHeight * 1.2;
+            }
+            
+            return scaled;
+        });
+    }
+
+    return {
+        ...style,
+        fontSize: fontSize * fontScale,
+        ...(lineHeight && fontScale === 1.2 ? { lineHeight: lineHeight * 1.2 } : {})
+    };
+};
+
+export const Text = ({ style, children, variant = 'primary', ...props }) => {
     const [fontScale, setFontScale] = useState(getFontScale(storage.getString('fontSize')));
 
     useEffect(() => {
@@ -30,16 +65,12 @@ export const Text = ({style, children, ...props}) => {
         };
     }, []);
 
-    const fontSize = style?.fontSize;
-    const scaledStyle = fontSize ? {
-        ...style,
-        fontSize: fontSize * fontScale
-    } : style;
+    const scaledStyle = scaleStyle(style, fontScale);
 
     return (
-        <RNText 
+        <RNText
             allowFontScaling={false}
-            style={scaledStyle} 
+            style={[styles.text, scaledStyle]}
             {...props}
         >
             {children}
@@ -49,6 +80,7 @@ export const Text = ({style, children, ...props}) => {
 
 const styles = StyleSheet.create({
     text: {
-        color: '#464646'
+        fontSize: 14,
+        lineHeight: 20
     }
 });

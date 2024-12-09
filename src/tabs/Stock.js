@@ -9,13 +9,14 @@ import {NewsContext} from "../providers/NewsProvider";
 import {globalStyles} from "../globalStyle";
 import {useNavigation} from "@react-navigation/native";
 import {Text} from "../components/Text";
-
+import { useTheme } from '@rneui/themed';
 echarts.use([SVGRenderer, GridComponent, BarChart, TreemapChart, VisualMapComponent, TooltipComponent]);
 
 export const Stock = () => {
     const navigation = useNavigation();
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [acquisitionTime, setAcquisitionTime] = useState(null);
+    const { theme } = useTheme();
     const [chartOption, setChartOption] = useState({
         series: {
             itemStyle: {
@@ -160,7 +161,7 @@ export const Stock = () => {
         }
     >
         <View style={styles.timeTipsWrapper}>
-            <Text style={styles.timeTipsText}>*更新于 {formatDate(acquisitionTime)} 北京</Text>
+            <Text style={[styles.timeTipsText, { color: theme.colors.secondaryText }]}>*更新于 {formatDate(acquisitionTime)} 北京</Text>
         </View>
         <SvgChart ref={chartRef}/>
     </ScrollView>;
@@ -184,6 +185,5 @@ const styles = StyleSheet.create({
     },
     timeTipsText: {
         fontSize: 12,
-        color: '#939393'
     }
 });

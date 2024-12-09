@@ -4,12 +4,13 @@ import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "re
 import { globalStyles } from "../globalStyle";
 import { NewsContext } from "../providers/NewsProvider";
 import { Text } from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const Rss = ({rssUrl}) => {
     const {rssNews, rssRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-
+    const { theme } = useTheme();
     useEffect(() => {
         setNews(rssNews[rssUrl]?.items || [])
     }, [rssNews]);
@@ -67,7 +68,6 @@ export const Rss = ({rssUrl}) => {
         contentContainerStyle={styles.contentContainer}
         data={news}
         keyExtractor={(item, index) => index.toString()}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({item, index}) => {
             return (
                 <TouchableOpacity
@@ -83,10 +83,10 @@ export const Rss = ({rssUrl}) => {
                     <View style={styles.newsInfoWrapper}>
                         <View style={styles.newsItemIndicator}/>
                         <View style={styles.titleWrapper}>
-                            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+                            <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={1} ellipsizeMode="tail">
                                 {item.title}
                             </Text>
-                            <Text style={styles.publishDate}>{formatDate(item.publishDate)}</Text>
+                            <Text style={[styles.publishDate, { color: theme.colors.secondaryText }]}>{formatDate(item.publishDate)}</Text>
                         </View>
                     </View>
                 </TouchableOpacity>
@@ -126,7 +126,6 @@ const styles = StyleSheet.create({
     title: {
         flex: 1,
         fontSize: 16,
-        color: '#464646',
     },
     newsItemIndicator: {
         width: 8,
@@ -137,12 +136,6 @@ const styles = StyleSheet.create({
     },
     publishDate: {
         fontSize: 14,
-        color: '#939393',
         marginLeft: 8,
     },
-    separator: {
-        height: 0,
-        backgroundColor: '#F1F1F1',
-        marginHorizontal: 16
-    }
 })

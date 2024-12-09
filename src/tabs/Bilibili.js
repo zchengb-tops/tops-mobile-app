@@ -7,12 +7,13 @@ import ViewIcon from "../../assets/icons/view.svg"
 import LikeIcon from "../../assets/icons/like.svg"
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const Bilibili = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-
+    const { theme } = useTheme();
     useEffect(() => {
         setNews(normalNews['bilibili'])
     }, [normalNews]);
@@ -47,24 +48,24 @@ export const Bilibili = () => {
             >
                 <Image style={styles.cover} source={{uri: item.properties.firstFrame.replace('http://', 'https://')}}/>
                 <View style={styles.itemInfoWrapper}>
-                    <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
+                    <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
                     <View>
                         <View style={styles.authorInfoWrapper}>
                             <View style={styles.iconItemWrapper}>
                                 <AuthorIcon width={12} height={12}/>
-                                <Text style={styles.infoText} numberOfLines={1}
+                                <Text style={[styles.infoText, { color: theme.colors.secondaryText }]} numberOfLines={1}
                                       ellipsizeMode='tail'>{item.properties.owner}</Text>
                             </View>
                         </View>
                         <View style={styles.statisticInfoWrapper}>
                             <View style={styles.iconItemWrapper}>
                                 <ViewIcon width={12} height={12}/>
-                                <Text style={styles.infoText}>{prettifyNumber(item.properties.view)}</Text>
+                                <Text style={[styles.infoText, { color: theme.colors.secondaryText }]}>{prettifyNumber(item.properties.view)}</Text>
                             </View>
 
                             <View style={styles.iconItemWrapper}>
                                 <LikeIcon width={12} height={12}/>
-                                <Text style={styles.infoText}>{prettifyNumber(item.properties.like)}</Text>
+                                <Text style={[styles.infoText, { color: theme.colors.secondaryText }]}>{prettifyNumber(item.properties.like)}</Text>
                             </View>
                         </View>
                     </View>
@@ -95,12 +96,10 @@ const styles = StyleSheet.create({
         borderRadius: 8
     },
     title: {
-        color: '#464646',
         fontSize: 14,
         lineHeight: 18,
     },
     infoText: {
-        color: '#939393',
         fontSize: 12,
         marginLeft: 2,
     },

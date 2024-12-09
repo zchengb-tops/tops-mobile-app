@@ -3,15 +3,15 @@ import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "react-native-ratings";
-import {useTrackShowing} from "../hooks/TrackHooks";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const DoubanMovie = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [movies, setMovies] = useState([]);
     const navigation = useNavigation();
-    const playBarShowing = useTrackShowing();
+    const { theme } = useTheme();
 
     useEffect(() => {
         setMovies(normalNews['doubanMovie'])
@@ -54,12 +54,12 @@ export const DoubanMovie = () => {
                     </View>
                     <Image style={styles.cover} source={{uri: item.coverUrl}}/>
                     <View style={styles.movieInfoWrapper}>
-                        <Text style={styles.movieName}>{item.name}</Text>
+                        <Text style={[styles.movieName, { color: theme.colors.text }]}>{item.name}</Text>
                         <View style={styles.additionalInfoWrapper}>
-                            <Text style={styles.additionalText}>{item.publishDate} / </Text>
-                            <Text style={styles.additionalText}>{item.region} / </Text>
+                            <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}>{item.publishDate} / </Text>
+                            <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}>{item.region} / </Text>
                             <Text
-                                style={[styles.additionalText, styles.movieTypeText]}
+                                style={[styles.additionalText, styles.movieTypeText, { color: theme.colors.secondaryText }]}
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
@@ -149,7 +149,6 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     movieName: {
-        color: '#464646',
         fontSize: 16,
     },
     rankWrapper: {

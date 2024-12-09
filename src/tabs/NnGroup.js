@@ -5,11 +5,13 @@ import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
 import CoverPlayIcon from "../../assets/icons/cover-play.svg"
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const NnGroup = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const { theme } = useTheme();
 
     useEffect(() => {
         setNews(normalNews['nnGroup'])
@@ -37,18 +39,18 @@ export const NnGroup = () => {
             >
                 <View style={styles.newItemContainer}>
                     <View style={styles.infoContainer}>
-                        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+                        <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={2}>{item.title}</Text>
                         <View style={styles.additionalInfoContainer}>
-                            <Text style={styles.additionalText}>{item.publishDate}</Text>
+                            <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}>{item.publishDate}</Text>
                             {
                                 item.consumingTime
                                     ?
-                                    <Text style={styles.additionalText}> | {item.consumingTime}</Text>
+                                    <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}> | {item.consumingTime}</Text>
                                     :
                                     <></>
                             }
                         </View>
-                        <Text style={styles.brief} numberOfLines={3}>
+                        <Text style={[styles.brief, { color: theme.colors.secondaryText }]} numberOfLines={3}>
                             {item.brief}
                         </Text>
                     </View>
@@ -68,7 +70,7 @@ export const NnGroup = () => {
                             <></>
                     }
                 </View>
-                <View style={styles.borderBottom}/>
+                <View style={[styles.borderBottom, { borderBottomColor: theme.colors.border }]}/>
             </TouchableOpacity>
         )}
     />
@@ -90,7 +92,6 @@ const styles = StyleSheet.create({
         paddingBottom: 12,
         paddingTop: 12,
         width: '100%',
-        maxHeight: 152,
     },
     infoContainer: {
         flex: 1,
@@ -102,17 +103,14 @@ const styles = StyleSheet.create({
     },
     additionalText: {
         fontSize: 14,
-        color: 'rgba(0,0,0,0.35)'
     },
     borderBottom: {
-        borderBottomColor: 'rgba(0,0,0,0.08)',
         borderBottomWidth: 1,
         width: '94%',
     },
     title: {
         fontSize: 14,
         fontWeight: '500',
-        color: 'rgba(0,0,0,0.85)',
         lineHeight: 20
     },
     brief: {

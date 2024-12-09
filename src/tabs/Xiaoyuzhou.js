@@ -18,6 +18,7 @@ import {AnimatedCircularProgress} from "react-native-circular-progress";
 import {globalStyles} from "../globalStyle";
 import {useNavigation} from "@react-navigation/native";
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const Xiaoyuzhou = () => {
     const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);
@@ -26,6 +27,7 @@ export const Xiaoyuzhou = () => {
     const playStatus = useTrackStatus();
     const playingTrack = useTrack();
     const navigation = useNavigation();
+    const { theme } = useTheme();
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
@@ -172,19 +174,19 @@ export const Xiaoyuzhou = () => {
                         />
 
                         <View style={styles.infoContainer}>
-                            <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
+                            <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
                             <View style={styles.extraInfoWrapper}>
                                 <AuthorIcon />
-                                <Text style={styles.author} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
+                                <Text style={[styles.author, { color: theme.colors.secondaryText }]} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
                             </View>
                             <View style={styles.extraInfoWrapper}>
                                 <Icon
                                     size={16}
                                     name='time-outline'
                                     type='ionicon'
-                                    color='#939393'
+                                    color={theme.colors.secondaryText}
                                 />
-                                <Text style={styles.duration} numberOfLines={1} ellipsizeMode='tail'>
+                                <Text style={[styles.duration, { color: theme.colors.secondaryText }]} numberOfLines={1} ellipsizeMode='tail'>
                                     {formatDuration(item.duration)}
                                 </Text>
                             </View>
@@ -276,18 +278,11 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
     },
-    trendType: {
-        color: '#939393',
-        fontSize: 14,
-        marginRight: 8
-    },
     author: {
-        color: '#939393',
         fontSize: 14,
         marginLeft: 4
     },
     duration: {
-        color: '#939393',
         marginLeft: 4,
         fontSize: 14,
     },

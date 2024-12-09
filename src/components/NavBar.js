@@ -1,9 +1,12 @@
-import React, {useEffect, useRef, useState} from "react";
-import {Animated, Easing, Platform, SafeAreaView, StyleSheet, TouchableOpacity, View} from "react-native";
-import {useVisibility} from "../providers/VisibilityProvider";
-import {Icon} from "@rneui/themed";
-import {useNavigation} from "@react-navigation/native";
-import {Text} from "./Text";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Platform, SafeAreaView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useVisibility } from "../providers/VisibilityProvider";
+import {Icon, useTheme} from "@rneui/themed";
+import { useNavigation } from "@react-navigation/native";
+import { Text } from "./Text";
+import {useDarkMode} from "../hooks/DarkModeHooks";
+
+
 export const NavBar = () => {
     const routeMapping = {
         DISCOVERY: 'DiscoveryScreen',
@@ -15,7 +18,10 @@ export const NavBar = () => {
     const translateAnim = useRef(new Animated.Value(0)).current;
     const positionAnim = useRef(new Animated.Value(100)).current;
     const tabRefs = useRef({});
-    const {isNavBarVisible} = useVisibility();
+    const { isNavBarVisible } = useVisibility();
+    const { theme } = useTheme();
+    const isDarkMode = useDarkMode();
+
 
     useEffect(() => {
         if (isNavBarVisible) {
@@ -40,10 +46,13 @@ export const NavBar = () => {
     };
 
     const renderLabel = (screenName, label) => {
-        return <Text style={[styles.navText, currentRoute === screenName && styles.selectedNavText]}>{label}</Text>;
+        return <Text style={[styles.navText, { color: theme.colors.text }, currentRoute === screenName && styles.selectedNavText]}>{label}</Text>;
     };
 
     const renderIcon = (screenName) => {
+        const iconColor = isDarkMode ? '#FFFFFF' : '#949494';
+        const selectedColor = isDarkMode ? '#FFFFFF' : '#f5f5f5';
+
         switch (screenName) {
             case routeMapping.DISCOVERY:
                 return currentRoute === screenName
@@ -52,14 +61,14 @@ export const NavBar = () => {
                         size={24}
                         name='navigate-circle-outline'
                         type='ionicon'
-                        color='#f5f5f5'
+                        color={selectedColor}
                     />
                     :
                     <Icon
                         size={24}
                         name='navigate-circle-outline'
                         type='ionicon'
-                        color='#949494'
+                        color={iconColor}
                     />;
             case routeMapping.PROFILE:
                 return currentRoute === screenName
@@ -68,14 +77,14 @@ export const NavBar = () => {
                         size={24}
                         name='person-circle-outline'
                         type='ionicon'
-                        color='#F5F5F5'
+                        color={selectedColor}
                     />
                     :
                     <Icon
                         size={24}
                         name='person-circle-outline'
                         type='ionicon'
-                        color='#949494'
+                        color={iconColor}
                     />;
             case routeMapping.SUBSCRIBE:
                 return currentRoute === screenName
@@ -84,20 +93,20 @@ export const NavBar = () => {
                         size={20}
                         name='logo-rss'
                         type='ionicon'
-                        color='#f5f5f5'
+                        color={selectedColor}
                     />
                     :
                     <Icon
                         size={20}
                         name='logo-rss'
                         type='ionicon'
-                        color='#949494'
+                        color={iconColor}
                     />;
         }
     }
 
     const goto = (routeName, index) => {
-        const {x} = tabRefs.current[routeName];
+        const { x } = tabRefs.current[routeName];
 
         Animated.spring(translateAnim, {
             toValue: x - 16,
@@ -113,13 +122,17 @@ export const NavBar = () => {
             style={[
                 styles.navBarWrapper,
                 {
-                    transform: [{translateY: positionAnim}],
+                    backgroundColor: isDarkMode ? '#000000' : '#F5F5F5',
+                    transform: [{ translateY: positionAnim }],
                 }
             ]}
         >
             <SafeAreaView>
-                <View style={styles.navBar}>
-                    <Animated.View style={[styles.navButtonSelected, {transform: [{translateX: translateAnim}]}]}/>
+                <View style={[styles.navBar, { backgroundColor: isDarkMode ? '#000000' : '#F5F5F5' }]}>
+                    <Animated.View style={[styles.navButtonSelected, {
+                        backgroundColor: theme.colors.indicator,
+                        transform: [{ translateX: translateAnim }]
+                    }]} />
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={styles.navButton}
@@ -155,7 +168,6 @@ export const NavBar = () => {
 
 const styles = StyleSheet.create({
     navBarWrapper: {
-        backgroundColor: '#F5F5F5',
         position: 'absolute',
         bottom: 0,
         width: '100%',
@@ -164,7 +176,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         alignItems: "center",
-        backgroundColor: '#F5F5F5',
         position: 'relative',
     },
     navButton: {
@@ -177,7 +188,6 @@ const styles = StyleSheet.create({
     navButtonSelected: {
         position: 'absolute',
         height: 36,
-        backgroundColor: '#404040',
         justifyContent: 'center',
         borderRadius: 20,
         width: 104,
@@ -188,7 +198,6 @@ const styles = StyleSheet.create({
         lineHeight: Platform.select({
             android: 20
         }),
-        color: '#464646',
         fontWeight: "normal",
         marginLeft: 8
     },

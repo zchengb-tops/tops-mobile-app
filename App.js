@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useContext, useEffect} from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
@@ -20,6 +20,8 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import Toast, {BaseToast, ErrorToast} from "react-native-toast-message";
 import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
+import {darkModeHooks, useDarkMode} from "./src/hooks/DarkModeHooks";
+import {ThemeContext, ThemeProvider} from "@rneui/themed";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -198,33 +200,58 @@ export default function App() {
             }
         });
 
+    const isDarkMode = useDarkMode();
+    const {updateTheme} = useContext(ThemeContext);
+
+    const theme = {
+        isDarkMode: isDarkMode,
+        colors: {
+            background: isDarkMode ? '#1A1A1A' : '#FFF',
+            text: isDarkMode ? '#FFFFFF' : '#464646',
+            secondaryText: isDarkMode ? '#AAAAAA' : '#939393',
+            card: isDarkMode ? '#2A2A2A' : '#F7F7F7',
+            primary: '#F76F00',
+            border: isDarkMode ? '#3A3A3A' : '#E8E8E8',
+            indicator: isDarkMode ? '#F76F00' : '#404040',
+            inputBackground: isDarkMode ? '#1C1C1E' : '#F7F7F7',
+            modalBackground: isDarkMode ? '#1C1C1E' : '#FFFFFF',
+        },
+    };
+
+    useEffect(() => {
+        console.log('need update theme...', isDarkMode);
+        updateTheme && updateTheme(theme);
+    }, [isDarkMode]);
+
     return (
         <SafeAreaProvider>
-            <VisibilityProvider>
-                <NewsProvider>
-                    <NavigationContainer>
-                        <GestureHandlerRootView style={{flex: 1}}>
-                            <View style={{flex: 1}}>
-                                <Tab.Navigator
-                                    initialRouteName="DiscoveryScreen"
-                                    screenOptions={{
-                                        headerShown: false,
-                                        animationEnabled: false,
-                                        tabBarStyle: {display: 'none'},
-                                    }}
-                                >
-                                    <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
-                                    <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
-                                    <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
-                                </Tab.Navigator>
-                                <PlayerBar/>
-                                <NavBar/>
-                                <Toast config={toastConfig}/>
-                            </View>
-                        </GestureHandlerRootView>
-                    </NavigationContainer>
-                </NewsProvider>
-            </VisibilityProvider>
+            <ThemeProvider theme={theme}>
+                <VisibilityProvider>
+                    <NewsProvider>
+                        <NavigationContainer>
+                            <GestureHandlerRootView style={{flex: 1}}>
+                                <View style={{flex: 1}}>
+                                    <Tab.Navigator
+                                        initialRouteName="DiscoveryScreen"
+                                        screenOptions={{
+                                            headerShown: false,
+                                            animationEnabled: false,
+                                            tabBarStyle: {display: 'none'},
+                                        }}
+                                    >
+                                        <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
+                                        <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
+                                        <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
+                                    </Tab.Navigator>
+                                    <PlayerBar/>
+                                    <NavBar/>
+                                    <Toast config={toastConfig}/>
+                                </View>
+                            </GestureHandlerRootView>
+                        </NavigationContainer>
+                    </NewsProvider>
+                </VisibilityProvider>
+            </ThemeProvider>
         </SafeAreaProvider>
     );
 }

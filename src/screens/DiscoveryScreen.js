@@ -1,17 +1,19 @@
-import React, {useContext, useEffect, useState} from "react";
-import {SafeAreaView, StyleSheet} from 'react-native';
-import {TabBar} from "../components/TabBar";
-import {storage} from "../storage";
-import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
-import {useIsFocused} from "@react-navigation/native";
-import {TabView} from "../components/TabView";
-import {NewsContext} from "../providers/NewsProvider";
+import { useIsFocused } from "@react-navigation/native";
+import React, { useContext, useEffect, useState } from "react";
+import { SafeAreaView, StyleSheet } from 'react-native';
+import { TabBar } from "../components/TabBar";
+import { TabView } from "../components/TabView";
+import { CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST } from "../constant";
+import { NewsContext } from "../providers/NewsProvider";
+import { storage } from "../storage";
+import {useTheme} from "@rneui/themed";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
     const {fetchNormalNews, fetchRssNews} = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
+    const {theme} = useTheme();
 
     useEffect(() => {
         initialChannelList();
@@ -73,8 +75,7 @@ export const DiscoveryScreen = () => {
         ));
     }
 
-
-    return <SafeAreaView style={styles.container}>
+    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
         <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
         <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
     </SafeAreaView>
@@ -83,6 +84,5 @@ export const DiscoveryScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
 })

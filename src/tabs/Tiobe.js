@@ -4,12 +4,14 @@ import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "re
 import { globalStyles } from "../globalStyle";
 import { NewsContext } from "../providers/NewsProvider";
 import {Text} from "../components/Text";
+import { useTheme } from '@rneui/themed';
 
 export const Tiobe = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const { theme } = useTheme();
 
     useEffect(() => {
         setNews(normalNews['tiobe'])
@@ -43,17 +45,17 @@ export const Tiobe = () => {
 
     const renderItem = (item, index) => {
         return (
-            <TouchableOpacity style={styles.itemWrapper}
+            <TouchableOpacity style={[styles.itemWrapper, { borderBottomColor: theme.colors.border }]}
                               activeOpacity={0.8}
                               onPress={() => navigation.navigate('NewsDetailScreen', {
                                   url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
                                   title: item.title
                               })}
             >
-                <Text style={[styles.itemText, styles.rankCol]}>{item.rankNum}</Text>
-                <Text style={[styles.itemText, styles.rankLastYearCol]}>{item.properties.rankOfMonthLastYear}</Text>
-                <Text style={[styles.itemText, styles.languageCol, styles.languageText]}>{item.title}</Text>
-                <Text style={[styles.itemText, styles.percentageCol]}>{item.properties.ratings}</Text>
+                <Text style={[styles.itemText, styles.rankCol, { color: theme.colors.text }]}>{item.rankNum}</Text>
+                <Text style={[styles.itemText, styles.rankLastYearCol, { color: theme.colors.text }]}>{item.properties.rankOfMonthLastYear}</Text>
+                <Text style={[styles.itemText, styles.languageCol, styles.languageText, { color: theme.colors.text }]}>{item.title}</Text>
+                <Text style={[styles.itemText, styles.percentageCol, { color: theme.colors.text }]}>{item.properties.ratings}</Text>
                 <Text
                     style={[styles.itemText, styles.changeCol, {color: item.properties.isUp ? 'green' : 'red'}]}>{item.properties.change}</Text>
             </TouchableOpacity>
@@ -104,11 +106,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         borderBottomWidth: 0.5,
-        borderBottomColor: 'rgba(0,0,0,0.08)',
     },
     itemText: {
         fontSize: 14,
-        color: '#464646',
     },
     rankCol: {
         flexBasis: 40,
