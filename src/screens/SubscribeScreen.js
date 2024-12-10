@@ -319,7 +319,7 @@ export const SubscribeScreen = () => {
                 </TouchableOpacity>
             </ScaleDecorator>
         );
-    }, [channelList])
+    }, [channelList, theme])
 
     return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.topBar}>
