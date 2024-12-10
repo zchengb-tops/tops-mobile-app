@@ -23,20 +23,20 @@ const getStyleValue = (style, property) => {
 };
 
 const scaleStyle = (style, fontScale) => {
-    const fontSize = getStyleValue(style, 'fontSize') || 16;
+    const fontSize = getStyleValue(style, 'fontSize') || 14;
     const lineHeight = getStyleValue(style, 'lineHeight');
 
     if (Array.isArray(style)) {
         return style.map(s => {
-            if (!s?.fontSize) return s;
-            
             const scaled = { 
                 ...s, 
-                fontSize: s.fontSize * fontScale 
+                fontSize: fontSize * fontScale 
             };
             
             if (s.lineHeight && fontScale === 1.2) {
                 scaled.lineHeight = s.lineHeight * 1.2;
+            } else if (!s.lineHeight && fontScale === 1.2) {
+                scaled.lineHeight = 18 * 1.2;
             }
             
             return scaled;
