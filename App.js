@@ -5,7 +5,7 @@ import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
 import {NewsProvider} from "./src/providers/NewsProvider";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {AppRegistry, LogBox, TextInput, View} from "react-native";
+import {Appearance, AppRegistry, LogBox, TextInput, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
@@ -20,7 +20,7 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import Toast, {BaseToast, ErrorToast} from "react-native-toast-message";
 import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
-import {darkModeHooks, useDarkMode} from "./src/hooks/DarkModeHooks";
+import {useDarkMode} from "./src/hooks/DarkModeHooks";
 import {ThemeContext, ThemeProvider} from "@rneui/themed";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);

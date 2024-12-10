@@ -1,7 +1,6 @@
 import {create} from 'zustand';
-import {MMKV} from 'react-native-mmkv';
+import {storage} from "../storage";
 
-const storage = new MMKV();
 
 export const useDarkModeStore = create(
     (set) => ({
