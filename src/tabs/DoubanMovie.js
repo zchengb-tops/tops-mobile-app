@@ -2,16 +2,18 @@ import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} fro
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
-import {Rating} from "react-native-ratings";
+import {AirbnbRating, Rating} from "react-native-ratings";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
 import { useTheme } from '@rneui/themed';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const DoubanMovie = () => {
     const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [movies, setMovies] = useState([]);
     const navigation = useNavigation();
     const { theme } = useTheme();
+    const darkMode = useDarkMode();
 
     useEffect(() => {
         setMovies(normalNews['doubanMovie'])
@@ -70,6 +72,7 @@ export const DoubanMovie = () => {
                             <Rating
                                 readonly
                                 startingValue={rate}
+                                tintColor={darkMode ? theme.colors.background : null}
                                 imageSize={16}
                                 fractions={1}
                             />
