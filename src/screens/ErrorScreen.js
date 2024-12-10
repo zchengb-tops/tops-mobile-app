@@ -1,18 +1,21 @@
 import React from "react";
 import {Image, StyleSheet, TouchableOpacity} from "react-native";
 import {Text} from "../components/Text";
+import {useTheme} from "@rneui/themed";
 
 export const ErrorScreen = ({fetchNews}) => {
+    const {theme} = useTheme();
+
     return <TouchableOpacity
         activeOpacity={0.8}
-        style={styles.container}
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
         onPress={() => fetchNews().then(e => console.log('fetch'))}
     >
         <Image source={require("../../assets/images/icon-64.png")}
                style={styles.errorLogo}/>
-        <Text style={styles.errorText}>Oops,
+        <Text style={[styles.errorText, { color: theme.colors.text }]}>Oops,
             加载失败</Text>
-        <Text style={styles.tipText}>请检查网络或 <Text
+        <Text style={[styles.tipText, { color: theme.colors.text }]}>请检查网络或 <Text
             style={styles.retryText}>点击重试</Text>
         </Text>
     </TouchableOpacity>
