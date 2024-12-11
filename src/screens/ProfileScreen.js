@@ -1,18 +1,18 @@
-import { Icon } from "@rneui/themed";
-import React, { useState } from "react";
+import {Icon} from "@rneui/themed";
+import React, {useState} from "react";
 import {
     Image,
-    Modal,
     SafeAreaView,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
     View
 } from "react-native";
-import { Text } from "../components/Text";
-import { FONT_SIZE, getTheme } from "../constant";
+import Modal from "react-native-modal";
+import {Text} from "../components/Text";
+import {FONT_SIZE, getTheme} from "../constant";
 import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
-import { storage } from "../storage";
+import {storage} from "../storage";
 import {useDarkModeStore} from "../hooks/DarkModeStore";
 
 export const ProfileScreen = () => {
@@ -33,12 +33,12 @@ export const ProfileScreen = () => {
     const handleFontSizeChange = (size) => {
         setSelectedFontSize(size);
         storage.set('fontSize', size);
-        setFontSizeModalVisible(false);
+        closeFontSizeModal();
     };
 
     const handleDarkModeChange = (mode) => {
         setDarkMode(mode);
-        setDarkModeModalVisible(false);
+        closeDarkModeModal();
     };
 
     const getDarkModeText = () => {
@@ -46,95 +46,96 @@ export const ProfileScreen = () => {
         return mode ? mode.label : '';
     };
 
+    const closeFontSizeModal = () => {
+        console.log('closeFontSizeModal')
+        setFontSizeModalVisible(false);
+    }
+
     const renderFontSizeModal = () => (
         <Modal
-            animationType="fade"
-            transparent={true}
-            visible={fontSizeModalVisible}
-            onRequestClose={() => setFontSizeModalVisible(false)}
-            statusBarTranslucent={true}
+            isVisible={fontSizeModalVisible}
+            style={{margin: 0}}
+            backdropOpacity={0.5}
+            onBackdropPress={() => closeFontSizeModal()}
+            onSwipeComplete={() => closeFontSizeModal()}
+            backdropTransitionOutTiming={0}
+            swipeDirection="down"
         >
-            <TouchableOpacity
-                style={{flex: 1}}
-                activeOpacity={1}
-                onPress={() => setFontSizeModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, {backgroundColor: getTheme(isDarkMode).backgroundColor}]}>
-                        <View style={styles.modalHeader}>
-                            <Text
-                                style={[styles.modalTitle, {color: getTheme(isDarkMode).textColor}]}>选择字体大小</Text>
-                            <TouchableOpacity
-                                style={styles.closeButton}
-                                onPress={() => setFontSizeModalVisible(false)}
-                            >
-                                <Icon name="close-outline" type="ionicon" size={24}
-                                      color={getTheme(isDarkMode).textColor}/>
-                            </TouchableOpacity>
-                        </View>
-                        {fontSizes.map((size) => (
-                            <TouchableOpacity
-                                key={size}
-                                style={[styles.fontSizeOption, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
-                                onPress={() => handleFontSizeChange(size)}
-                            >
-                                <Text
-                                    style={[styles.fontSizeText, {color: getTheme(isDarkMode).textColor}]}>{size}</Text>
-                                {selectedFontSize === size && (
-                                    <Icon name="checkmark-outline" type="ionicon" size={20}
-                                          color={getTheme(isDarkMode).textColor}/>
-                                )}
-                            </TouchableOpacity>
-                        ))}
+            <View style={styles.modalOverlay}>
+                <View style={[styles.modalContent, {backgroundColor: getTheme(isDarkMode).backgroundColor}]}>
+                    <View style={styles.modalHeader}>
+                        <Text
+                            style={[styles.modalTitle, {color: getTheme(isDarkMode).textColor}]}>选择字体大小</Text>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => closeFontSizeModal()}
+                        >
+                            <Icon name="close-outline" type="ionicon" size={24}
+                                  color={getTheme(isDarkMode).textColor}/>
+                        </TouchableOpacity>
                     </View>
+                    {fontSizes.map((size) => (
+                        <TouchableOpacity
+                            key={size}
+                            style={[styles.fontSizeOption, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
+                            onPress={() => handleFontSizeChange(size)}
+                        >
+                            <Text
+                                style={[styles.fontSizeText, {color: getTheme(isDarkMode).textColor}]}>{size}</Text>
+                            {selectedFontSize === size && (
+                                <Icon name="checkmark-outline" type="ionicon" size={20}
+                                      color={getTheme(isDarkMode).textColor}/>
+                            )}
+                        </TouchableOpacity>
+                    ))}
                 </View>
-            </TouchableOpacity>
+            </View>
         </Modal>
     );
 
+    const closeDarkModeModal = () => {
+        setDarkModeModalVisible(false);
+    }
+
     const renderDarkModeModal = () => (
         <Modal
-            animationType="fade"
-            transparent={true}
-            visible={darkModeModalVisible}
-            onRequestClose={() => setDarkModeModalVisible(false)}
-            statusBarTranslucent={true}
+            isVisible={darkModeModalVisible}
+            style={{margin: 0}}
+            backdropOpacity={0.5}
+            onBackdropPress={() => closeDarkModeModal()}
+            onSwipeComplete={() => closeDarkModeModal()}
+            backdropTransitionOutTiming={0}
+            swipeDirection="down"
         >
-            <TouchableOpacity
-                style={{flex: 1}}
-                activeOpacity={1}
-                onPress={() => setDarkModeModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, {backgroundColor: getTheme(isDarkMode).backgroundColor}]}>
-                        <View style={styles.modalHeader}>
-                            <Text
-                                style={[styles.modalTitle, {color: getTheme(isDarkMode).textColor}]}>选择显示模式</Text>
-                            <TouchableOpacity
-                                style={styles.closeButton}
-                                onPress={() => setDarkModeModalVisible(false)}
-                            >
-                                <Icon name="close-outline" type="ionicon" size={24}
-                                      color={getTheme(isDarkMode).textColor}/>
-                            </TouchableOpacity>
-                        </View>
-                        {darkModes.map((mode) => (
-                            <TouchableOpacity
-                                key={mode.value}
-                                style={[styles.fontSizeOption, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
-                                onPress={() => handleDarkModeChange(mode.value)}
-                            >
-                                <Text
-                                    style={[styles.fontSizeText, {color: getTheme(isDarkMode).textColor}]}>{mode.label}</Text>
-                                {darkMode === mode.value && (
-                                    <Icon name="checkmark-outline" type="ionicon" size={20}
-                                          color={getTheme(isDarkMode).textColor}/>
-                                )}
-                            </TouchableOpacity>
-                        ))}
+            <View style={styles.modalOverlay}>
+                <View style={[styles.modalContent, {backgroundColor: getTheme(isDarkMode).backgroundColor}]}>
+                    <View style={styles.modalHeader}>
+                        <Text
+                            style={[styles.modalTitle, {color: getTheme(isDarkMode).textColor}]}>选择显示模式</Text>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => closeDarkModeModal()}
+                        >
+                            <Icon name="close-outline" type="ionicon" size={24}
+                                  color={getTheme(isDarkMode).textColor}/>
+                        </TouchableOpacity>
                     </View>
+                    {darkModes.map((mode) => (
+                        <TouchableOpacity
+                            key={mode.value}
+                            style={[styles.fontSizeOption, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
+                            onPress={() => handleDarkModeChange(mode.value)}
+                        >
+                            <Text
+                                style={[styles.fontSizeText, {color: getTheme(isDarkMode).textColor}]}>{mode.label}</Text>
+                            {darkMode === mode.value && (
+                                <Icon name="checkmark-outline" type="ionicon" size={20}
+                                      color={getTheme(isDarkMode).textColor}/>
+                            )}
+                        </TouchableOpacity>
+                    ))}
                 </View>
-            </TouchableOpacity>
+            </View>
         </Modal>
     );
 
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'transparent',
         justifyContent: 'flex-end'
     },
     modalContent: {

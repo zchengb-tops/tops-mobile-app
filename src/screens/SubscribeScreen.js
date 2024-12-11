@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
     Alert,
     Image,
@@ -9,16 +9,17 @@ import {
     TouchableWithoutFeedback,
     View
 } from "react-native";
-import ModalComponent from "react-native-modal";
-import { Icon } from "@rneui/themed";
-import { storage } from "../storage";
-import { CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST } from "../constant";
-import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist'
-import { trigger } from "react-native-haptic-feedback";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Text } from "../components/Text";
-import { useTheme } from "@rneui/themed";
-import { useDarkMode } from "../hooks/DarkModeHooks";
+import Modal from "react-native-modal";
+import {Icon} from "@rneui/themed";
+import {storage} from "../storage";
+import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
+import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
+import {trigger} from "react-native-haptic-feedback";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {Text} from "../components/Text";
+import {useTheme} from "@rneui/themed";
+import {useDarkMode} from "../hooks/DarkModeHooks";
+
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
     const [rssModalVisible, setRssModalVisible] = useState(false);
@@ -28,7 +29,7 @@ export const SubscribeScreen = () => {
     const [editingChannel, setEditingChannel] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-    const { theme } = useTheme();
+    const {theme} = useTheme();
     const isDarkMode = useDarkMode();
 
     useEffect(() => {
@@ -55,7 +56,7 @@ export const SubscribeScreen = () => {
     const reorderChannelList = (newChannelList) => {
         setChannelList(newChannelList);
         const pureChannelList = newChannelList.map((channel) => {
-            const pureChannel = { ...channel };
+            const pureChannel = {...channel};
             delete pureChannel.renderIcon;
             return pureChannel;
         });
@@ -74,7 +75,7 @@ export const SubscribeScreen = () => {
             Alert.alert(
                 "提示",
                 "请至少保留一个资讯订阅 😃",
-                [{ text: "确定" }]
+                [{text: "确定"}]
             );
             return;
         }
@@ -102,7 +103,7 @@ export const SubscribeScreen = () => {
             })
         });
         const data = await response.json();
-        return { response, data };
+        return {response, data};
     }
 
     const handleEditRss = async () => {
@@ -112,7 +113,7 @@ export const SubscribeScreen = () => {
 
         try {
             setLoading(true);
-            const { response, data } = await saveRssResource(rssLink);
+            const {response, data} = await saveRssResource(rssLink);
 
             if (response.status === 200) {
                 const newChannelList = channelList.map(channel => {
@@ -141,7 +142,7 @@ export const SubscribeScreen = () => {
                 Alert.alert(
                     "修改失败",
                     data.message,
-                    [{ text: "确定" }]
+                    [{text: "确定"}]
                 );
             }
         } finally {
@@ -194,7 +195,7 @@ export const SubscribeScreen = () => {
             Alert.alert(
                 "添加失败",
                 "请输入有效的RSS链接",
-                [{ text: "确定" }]
+                [{text: "确定"}]
             );
             return false;
         }
@@ -206,7 +207,7 @@ export const SubscribeScreen = () => {
             Alert.alert(
                 "添加失败",
                 "RSS名称不能超过24个字符",
-                [{ text: "确定" }]
+                [{text: "确定"}]
             );
             return false;
         }
@@ -220,7 +221,7 @@ export const SubscribeScreen = () => {
 
         try {
             setLoading(true);
-            const { response, data } = await saveRssResource(rssLink);
+            const {response, data} = await saveRssResource(rssLink);
 
             console.log('handle add rss link:', data);
 
@@ -250,7 +251,7 @@ export const SubscribeScreen = () => {
                 Alert.alert(
                     "添加失败",
                     data.message,
-                    [{ text: "确定" }]
+                    [{text: "确定"}]
                 );
             }
         } finally {
@@ -271,7 +272,7 @@ export const SubscribeScreen = () => {
         return loading || !rssName || !rssLink;
     }
 
-    const renderItem = useCallback(({ item, index, drag, isActive }) => {
+    const renderItem = useCallback(({item, index, drag, isActive}) => {
         return (
             <ScaleDecorator>
                 <TouchableOpacity
@@ -286,12 +287,12 @@ export const SubscribeScreen = () => {
                         drag();
                     }}
                     disabled={isActive}
-                    style={[styles.channelItem, { backgroundColor: theme.colors.background }]}
+                    style={[styles.channelItem, {backgroundColor: theme.colors.background}]}
                 >
                     {
                         item.isRss
                             ?
-                            <Image source={{ uri: item.iconUrl }} width={24} height={24} style={styles.channelIcon} />
+                            <Image source={{uri: item.iconUrl}} width={24} height={24} style={styles.channelIcon}/>
                             :
                             item.renderIcon(styles.channelIcon, 24, 24)
                     }
@@ -299,31 +300,127 @@ export const SubscribeScreen = () => {
                         <View style={styles.channelInfoRow}>
                             <View style={styles.channelTextInfoWrapper}>
                                 <View style={styles.channelTitleRow}>
-                                    <Text style={[styles.channelTitle, { color: theme.colors.text }]}>{item.title}</Text>
+                                    <Text style={[styles.channelTitle, {color: theme.colors.text}]}>{item.title}</Text>
                                     {item.isRss ? <Icon type={'ionicon'} name={'logo-rss'} color={'#f7a35e'} size={14}
-                                        style={styles.rssTag} /> : <></>}
+                                                        style={styles.rssTag}/> : <></>}
                                 </View>
                                 {item.isRss && !item.desc ? <></> :
-                                    <Text style={[styles.channelDesc, { color: theme.colors.secondaryText }]} numberOfLines={1}>{item.desc}</Text>}
+                                    <Text style={[styles.channelDesc, {color: theme.colors.secondaryText}]}
+                                          numberOfLines={1}>{item.desc}</Text>}
                             </View>
                             <TouchableOpacity
-                                style={[styles.subscribeButton, { borderColor: item.enable ? '#B6B6B6' : theme.colors.primary }]}
+                                style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : theme.colors.primary}]}
                                 onPress={() => handleSubscribe(item)}
                             >
                                 <Text
-                                    style={[styles.subscribeButtonLabel, { color: item.enable ? theme.colors.secondaryText : theme.colors.primary }]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
+                                    style={[styles.subscribeButtonLabel, {color: item.enable ? theme.colors.secondaryText : theme.colors.primary}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
                             </TouchableOpacity>
                         </View>
-                        <View style={[styles.channelItemDivider, { backgroundColor: theme.colors.border }]} />
+                        <View style={[styles.channelItemDivider, {backgroundColor: theme.colors.border}]}/>
                     </View>
                 </TouchableOpacity>
             </ScaleDecorator>
         );
     }, [channelList, theme])
 
-    return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    const renderRssModal = () => {
+        return (
+            <Modal
+                isVisible={rssModalVisible}
+                swipeDirection="down"
+                onBackdropPress={closeRssInfoModal}
+                onSwipeComplete={closeRssInfoModal}
+                style={styles.rssModal}
+                backdropTransitionOutTiming={0}
+            >
+                <TouchableOpacity style={styles.rssModalContainer} onPress={closeRssInfoModal} activeOpacity={1}>
+                    <TouchableWithoutFeedback>
+                        <View style={[styles.rssModalContent, {backgroundColor: theme.colors.modalBackground}]}>
+                            <View style={styles.rssModalOperationBar}>
+                                <TouchableOpacity style={styles.rssModalButton} onPress={closeRssInfoModal}>
+                                    <Text
+                                        style={[styles.rssModalCancelLabel, {color: loading ? 'rgba(0,0,0,0.25)' : theme.colors.primary}]}>
+                                        取消
+                                    </Text>
+                                </TouchableOpacity>
+                                <Text
+                                    style={[styles.rssModalTitle, {color: theme.colors.text}]}>{isEditMode ? '编辑RSS订阅' : '添加RSS订阅'}</Text>
+                                <TouchableOpacity style={styles.rssModalButton} disabled={saveButtonDisabled()}
+                                                  onPress={isEditMode ? handleEditRss : handleAddRss}
+                                >
+                                    <Text style={
+                                        [
+                                            styles.rssModalSaveLabel,
+                                            {
+                                                color: saveButtonDisabled() ? (theme.isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : theme.colors.primary,
+                                            }
+                                        ]
+                                    }>
+                                        保存
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.rssModalInputItem}>
+                                <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>资讯名称：</Text>
+                                <View style={styles.rssModalInputWrapper}>
+                                    <TextInput
+                                        style={[styles.rssModalInput, styles.rssModalNameInput, {
+                                            backgroundColor: theme.colors.inputBackground,
+                                            color: theme.colors.text,
+                                            borderColor: theme.colors.border,
+                                            borderWidth: isDarkMode ? 1 : 0
+                                        }]}
+                                        placeholder="资讯名称"
+                                        placeholderTextColor={theme.colors.secondaryText}
+                                        value={rssName}
+                                        onChangeText={setRssName}
+                                        maxLength={24}
+                                        autoFocus={true}
+                                    />
+                                    <Text
+                                        style={[styles.rssModalInputLimit, {color: theme.colors.secondaryText}]}>{rssName.length}/24</Text>
+                                </View>
+                            </View>
+
+                            <View style={styles.rssModalInputItem}>
+                                <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>RSS链接：</Text>
+                                <TextInput
+                                    style={[styles.rssModalInput, {
+                                        backgroundColor: theme.colors.inputBackground,
+                                        color: theme.colors.text,
+                                        borderColor: theme.colors.border,
+                                        borderWidth: isDarkMode ? 1 : 0
+                                    }]}
+                                    placeholder="RSS链接"
+                                    placeholderTextColor={theme.colors.secondaryText}
+                                    value={rssLink}
+                                    onChangeText={setRssLink}
+                                />
+                            </View>
+
+                            <Text style={[styles.rssModalTips, {color: theme.colors.secondaryText}]}>
+                                💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
+                            </Text>
+
+                            {isEditMode && (
+                                <TouchableOpacity
+                                    style={[styles.rssModalDeleteButton, {backgroundColor: theme.colors.inputBackground}]}
+                                    onPress={handleDeleteRss}
+                                >
+                                    <Text style={styles.rssModalDeleteLabel}>删除此订阅</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </TouchableWithoutFeedback>
+                </TouchableOpacity>
+            </Modal>
+        );
+    }
+
+    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
         <View style={styles.topBar}>
-            <Text style={[styles.pageTitle, { color: theme.colors.text }]}>资讯订阅</Text>
+            <Text style={[styles.pageTitle, {color: theme.colors.text}]}>资讯订阅</Text>
             <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
                 <Icon
                     size={16}
@@ -331,106 +428,25 @@ export const SubscribeScreen = () => {
                     type='ionicon'
                     color={theme.colors.primary}
                 />
-                <Text style={[styles.addButtonLabel, { color: theme.colors.primary }]}>
+                <Text style={[styles.addButtonLabel, {color: theme.colors.primary}]}>
                     添加RSS频道
                 </Text>
             </TouchableOpacity>
         </View>
         <View style={styles.channelContainer}>
-            <Text style={[styles.dragTips, { color: theme.colors.secondaryText }]}>Tips: 长按即可进行拖拽排序</Text>
+            <Text style={[styles.dragTips, {color: theme.colors.secondaryText}]}>Tips: 长按即可进行拖拽排序</Text>
             <GestureHandlerRootView style={styles.gestureContainer}>
                 <DraggableFlatList
                     containerStyle={styles.dragContainer}
                     data={channelList}
-                    onDragEnd={({ data }) => reorderChannelList(data)}
+                    onDragEnd={({data}) => reorderChannelList(data)}
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
                 />
             </GestureHandlerRootView>
         </View>
 
-        <ModalComponent
-            isVisible={rssModalVisible}
-            swipeDirection="down"
-            onBackdropPress={closeRssInfoModal}
-            onSwipeComplete={closeRssInfoModal}
-            style={styles.rssModal}
-        >
-            <TouchableOpacity style={styles.rssModalContainer} onPress={closeRssInfoModal} activeOpacity={1}>
-                <TouchableWithoutFeedback>
-                    <View style={[styles.rssModalContent, { backgroundColor: theme.colors.modalBackground }]}>
-                        <View style={styles.rssModalOperationBar}>
-                            <TouchableOpacity style={styles.rssModalButton} onPress={closeRssInfoModal}>
-                                <Text
-                                    style={[styles.rssModalCancelLabel, { color: loading ? 'rgba(0,0,0,0.25)' : theme.colors.primary }]}>
-                                    取消
-                                </Text>
-                            </TouchableOpacity>
-                            <Text style={[styles.rssModalTitle, { color: theme.colors.text }]}>{isEditMode ? '编辑RSS订阅' : '添加RSS订阅'}</Text>
-                            <TouchableOpacity style={styles.rssModalButton} disabled={saveButtonDisabled()}
-                                onPress={isEditMode ? handleEditRss : handleAddRss}
-                            >
-                                <Text style={
-                                    [
-                                        styles.rssModalSaveLabel,
-                                        {
-                                            color: saveButtonDisabled() ? (theme.isDarkMode ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)') : theme.colors.primary,
-                                        }
-                                    ]
-                                }>
-                                    保存
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.rssModalInputItem}>
-                            <Text style={[styles.rssModalInputLabel, { color: theme.colors.text }]}>资讯名称：</Text>
-                            <View style={styles.rssModalInputWrapper}>
-                                <TextInput
-                                    style={[styles.rssModalInput, styles.rssModalNameInput, {
-                                        backgroundColor: theme.colors.inputBackground,
-                                        color: theme.colors.text,
-                                        borderColor: theme.colors.border,
-                                        borderWidth: isDarkMode ? 1 : 0
-                                    }]}
-                                    placeholder="资讯名称"
-                                    placeholderTextColor={theme.colors.secondaryText}
-                                    value={rssName}
-                                    onChangeText={setRssName}
-                                    maxLength={24}
-                                    autoFocus={true}
-                                />
-                                <Text style={[styles.rssModalInputLimit, { color: theme.colors.secondaryText }]}>{rssName.length}/24</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.rssModalInputItem}>
-                            <Text style={[styles.rssModalInputLabel, { color: theme.colors.text }]}>RSS链接：</Text>
-                            <TextInput
-                                style={[styles.rssModalInput, { backgroundColor: theme.colors.inputBackground, color: theme.colors.text, borderColor: theme.colors.border, borderWidth: isDarkMode ? 1 : 0 }]}
-                                placeholder="RSS链接"
-                                placeholderTextColor={theme.colors.secondaryText}
-                                value={rssLink}
-                                onChangeText={setRssLink}
-                            />
-                        </View>
-
-                        <Text style={[styles.rssModalTips, { color: theme.colors.secondaryText }]}>
-                            💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
-                        </Text>
-
-                        {isEditMode && (
-                            <TouchableOpacity
-                                style={[styles.rssModalDeleteButton, { backgroundColor: theme.colors.inputBackground }]}
-                                onPress={handleDeleteRss}
-                            >
-                                <Text style={styles.rssModalDeleteLabel}>删除此订阅</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </TouchableWithoutFeedback>
-            </TouchableOpacity>
-        </ModalComponent>
+        {renderRssModal()}
     </SafeAreaView>;
 };
 
