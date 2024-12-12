@@ -1,16 +1,9 @@
-import {Icon} from "@rneui/themed";
+import {Icon, useTheme} from "@rneui/themed";
 import React, {useState} from "react";
-import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View
-} from "react-native";
+import {Image, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
 import Modal from "react-native-modal";
 import {Text} from "../components/Text";
-import {FONT_SIZE, getTheme} from "../constant";
+import {FONT_SIZE} from "../constant";
 import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
 import {storage} from "../storage";
 import {useDarkModeStore} from "../hooks/DarkModeStore";
@@ -21,6 +14,7 @@ export const ProfileScreen = () => {
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
+    const {theme} = useTheme();
     const darkMode = useDarkModeValue();
 
     const fontSizes = [FONT_SIZE.SMALL, FONT_SIZE.MEDIUM, FONT_SIZE.LARGE];
@@ -47,7 +41,6 @@ export const ProfileScreen = () => {
     };
 
     const closeFontSizeModal = () => {
-        console.log('closeFontSizeModal')
         setFontSizeModalVisible(false);
     }
 
@@ -62,29 +55,29 @@ export const ProfileScreen = () => {
             swipeDirection="down"
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, {backgroundColor: getTheme(isDarkMode).backgroundColor}]}>
+                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
                     <View style={styles.modalHeader}>
                         <Text
-                            style={[styles.modalTitle, {color: getTheme(isDarkMode).textColor}]}>选择字体大小</Text>
+                            style={[styles.modalTitle, {color: theme.colors.text}]}>选择字体大小</Text>
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={() => closeFontSizeModal()}
                         >
                             <Icon name="close-outline" type="ionicon" size={24}
-                                  color={getTheme(isDarkMode).textColor}/>
+                                  color={theme.colors.text}/>
                         </TouchableOpacity>
                     </View>
                     {fontSizes.map((size) => (
                         <TouchableOpacity
                             key={size}
-                            style={[styles.fontSizeOption, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
+                            style={[styles.fontSizeOption, {borderBottomColor: theme.colors.border}]}
                             onPress={() => handleFontSizeChange(size)}
                         >
                             <Text
-                                style={[styles.fontSizeText, {color: getTheme(isDarkMode).textColor}]}>{size}</Text>
+                                style={[styles.fontSizeText, {color: theme.colors.text}]}>{size}</Text>
                             {selectedFontSize === size && (
                                 <Icon name="checkmark-outline" type="ionicon" size={20}
-                                      color={getTheme(isDarkMode).textColor}/>
+                                      color={theme.colors.text}/>
                             )}
                         </TouchableOpacity>
                     ))}
@@ -108,29 +101,29 @@ export const ProfileScreen = () => {
             swipeDirection="down"
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, {backgroundColor: getTheme(isDarkMode).backgroundColor}]}>
+                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
                     <View style={styles.modalHeader}>
                         <Text
-                            style={[styles.modalTitle, {color: getTheme(isDarkMode).textColor}]}>选择显示模式</Text>
+                            style={[styles.modalTitle, {color: theme.colors.text}]}>选择显示模式</Text>
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={() => closeDarkModeModal()}
                         >
                             <Icon name="close-outline" type="ionicon" size={24}
-                                  color={getTheme(isDarkMode).textColor}/>
+                                  color={theme.colors.text}/>
                         </TouchableOpacity>
                     </View>
                     {darkModes.map((mode) => (
                         <TouchableOpacity
                             key={mode.value}
-                            style={[styles.fontSizeOption, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
+                            style={[styles.fontSizeOption, {borderBottomColor: theme.colors.border}]}
                             onPress={() => handleDarkModeChange(mode.value)}
                         >
                             <Text
-                                style={[styles.fontSizeText, {color: getTheme(isDarkMode).textColor}]}>{mode.label}</Text>
+                                style={[styles.fontSizeText, {color: theme.colors.text}]}>{mode.label}</Text>
                             {darkMode === mode.value && (
                                 <Icon name="checkmark-outline" type="ionicon" size={20}
-                                      color={getTheme(isDarkMode).textColor}/>
+                                      color={theme.colors.text}/>
                             )}
                         </TouchableOpacity>
                     ))}
@@ -139,89 +132,89 @@ export const ProfileScreen = () => {
         </Modal>
     );
 
-    return <SafeAreaView style={[styles.container, {backgroundColor: getTheme(isDarkMode).backgroundColor}]}>
+    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
         <ScrollView>
             <View style={styles.profileWrapper}>
                 <Image style={styles.avatar}
                        source={{uri: 'https://kuoyio.cn/_next/image?url=https%3A%2F%2Fkuoyio-image.oss-cn-shenzhen.aliyuncs.com%2Favatar%2F20240222155915.webp&w=128&q=75'}}/>
                 <View style={styles.profileInfo}>
-                    <Text style={[styles.profileName, {color: getTheme(isDarkMode).textColor}]}>zchengb</Text>
+                    <Text style={[styles.profileName, {color: theme.colors.text}]}>zchengb</Text>
                     <Text
-                        style={[styles.profileDesc, {color: getTheme(isDarkMode).secondaryTextColor}]}>zxchengb@163.com</Text>
+                        style={[styles.profileDesc, {color: theme.colors.secondaryText}]}>zxchengb@163.com</Text>
                 </View>
                 <TouchableOpacity
-                    style={[styles.logoutButton, {backgroundColor: getTheme(isDarkMode).cardBackgroundColor}]}>
+                    style={[styles.logoutButton, {backgroundColor: theme.colors.card}]}>
                     <Icon
                         name="log-out-outline"
                         type="ionicon"
                         size={24}
-                        color={getTheme(isDarkMode).textColor}
+                        color={theme.colors.text}
                     />
                 </TouchableOpacity>
             </View>
 
             <View
-                style={[styles.settingList, styles.firstGroup, {backgroundColor: getTheme(isDarkMode).cardBackgroundColor}]}>
-                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: getTheme(isDarkMode).borderColor}]}>
+                style={[styles.settingList, styles.firstGroup, {backgroundColor: theme.colors.card}]}>
+                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}>
                     <View style={styles.settingLeft}>
-                        <Icon name="sync-outline" type="ionicon" size={20} color={getTheme(isDarkMode).textColor}/>
-                        <Text style={[styles.settingText, {color: getTheme(isDarkMode).textColor}]}>同步管理</Text>
+                        <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>同步管理</Text>
                     </View>
                     <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                          color={getTheme(isDarkMode).secondaryTextColor}/>
+                          color={theme.colors.secondaryText}/>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.settingItem, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={() => setFontSizeModalVisible(true)}
                 >
                     <View style={styles.settingLeft}>
-                        <Icon name="text-outline" type="ionicon" size={20} color={getTheme(isDarkMode).textColor}/>
-                        <Text style={[styles.settingText, {color: getTheme(isDarkMode).textColor}]}>字体大小</Text>
+                        <Icon name="text-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>字体大小</Text>
                     </View>
                     <View style={styles.settingRight}>
                         <Text
-                            style={[styles.settingValue, {color: getTheme(isDarkMode).secondaryTextColor}]}>{selectedFontSize}</Text>
+                            style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{selectedFontSize}</Text>
                         <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                              color={getTheme(isDarkMode).secondaryTextColor}/>
+                              color={theme.colors.secondaryText}/>
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: getTheme(isDarkMode).borderColor}]}
+                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                                   onPress={() => setDarkModeModalVisible(true)}>
                     <View style={styles.settingLeft}>
                         <Icon name={isDarkMode ? "moon" : "moon-outline"} type="ionicon" size={20}
-                              color={getTheme(isDarkMode).textColor}/>
-                        <Text style={[styles.settingText, {color: getTheme(isDarkMode).textColor}]}>深色模式</Text>
+                              color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>深色模式</Text>
                     </View>
                     <View style={styles.settingRight}>
                         <Text
-                            style={[styles.settingValue, {color: getTheme(isDarkMode).secondaryTextColor}]}>{getDarkModeText()}</Text>
+                            style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{getDarkModeText()}</Text>
                         <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                              color={getTheme(isDarkMode).secondaryTextColor}/>
+                              color={theme.colors.secondaryText}/>
                     </View>
                 </TouchableOpacity>
             </View>
 
             <View
-                style={[styles.settingList, styles.secondGroup, {backgroundColor: getTheme(isDarkMode).cardBackgroundColor}]}>
-                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: getTheme(isDarkMode).borderColor}]}>
+                style={[styles.settingList, styles.secondGroup, {backgroundColor: theme.colors.card}]}>
+                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}>
                     <View style={styles.settingLeft}>
-                        <Icon name="chatbox-outline" type="ionicon" size={20} color={getTheme(isDarkMode).textColor}/>
-                        <Text style={[styles.settingText, {color: getTheme(isDarkMode).textColor}]}>意见反馈</Text>
+                        <Icon name="chatbox-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>意见反馈</Text>
                     </View>
                     <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                          color={getTheme(isDarkMode).secondaryTextColor}/>
+                          color={theme.colors.secondaryText}/>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: getTheme(isDarkMode).borderColor}]}>
+                <TouchableOpacity style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}>
                     <View style={styles.settingLeft}>
                         <Icon name="information-circle-outline" type="ionicon" size={20}
-                              color={getTheme(isDarkMode).textColor}/>
-                        <Text style={[styles.settingText, {color: getTheme(isDarkMode).textColor}]}>关于</Text>
+                              color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>关于</Text>
                     </View>
                     <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                          color={getTheme(isDarkMode).secondaryTextColor}/>
+                          color={theme.colors.secondaryText}/>
                 </TouchableOpacity>
             </View>
         </ScrollView>
