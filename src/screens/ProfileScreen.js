@@ -1,5 +1,5 @@
 import {Icon, useTheme} from "@rneui/themed";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Image, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
 import Modal from "react-native-modal";
 import {Text} from "../components/Text";
@@ -7,11 +7,15 @@ import {FONT_SIZE} from "../constant";
 import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
 import {storage} from "../storage";
 import {useDarkModeStore} from "../hooks/DarkModeStore";
+import LoginModal from "../components/LoginModal";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
     const [darkModeModalVisible, setDarkModeModalVisible] = useState(false);
+    const [loginModalVisible, setLoginModalVisible] = useState(false);
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
+    const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
+    const [userInfo, setUserInfo] = useState(null);
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
     const {theme} = useTheme();
@@ -23,6 +27,37 @@ export const ProfileScreen = () => {
         {value: 'light', label: '浅色模式'},
         {value: 'dark', label: '深色模式'}
     ];
+
+    useEffect(() => {
+        if (accessToken) {
+            fetchUserInfo();
+        }
+    }, [accessToken]);
+
+    const fetchUserInfo = async () => {
+        try {
+            const response = await fetch('http://localhost:8080/user/me', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUserInfo({
+                    ...data,
+                    avatar: data.avatar || 'https://kuoyio.cn/_next/image?url=https%3A%2F%2Fkuoyio-image.oss-cn-shenzhen.aliyuncs.com%2Favatar%2F20240222155915.webp&w=128&q=75'
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleLogout = () => {
+        storage.delete('accessToken');
+        setAccessToken(null);
+        setUserInfo(null);
+    };
 
     const handleFontSizeChange = (size) => {
         setSelectedFontSize(size);
@@ -42,6 +77,16 @@ export const ProfileScreen = () => {
 
     const closeFontSizeModal = () => {
         setFontSizeModalVisible(false);
+    }
+
+    const closeLoginModal = () => {
+        setLoginModalVisible(false);
+    }
+
+    const onLoginSuccess = (token) => {
+        storage.set('accessToken', token);
+        setAccessToken(token);
+        closeLoginModal();
     }
 
     const renderFontSizeModal = () => (
@@ -135,17 +180,28 @@ export const ProfileScreen = () => {
     return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
         <ScrollView>
             <View style={styles.profileWrapper}>
-                <Image style={styles.avatar}
-                       source={{uri: 'https://kuoyio.cn/_next/image?url=https%3A%2F%2Fkuoyio-image.oss-cn-shenzhen.aliyuncs.com%2Favatar%2F20240222155915.webp&w=128&q=75'}}/>
+                {
+                    accessToken ? (
+                        <Image style={styles.avatar} source={{uri: userInfo?.avatar}}/>
+                    ) : (
+                        <View style={[styles.avatar, {backgroundColor: theme.colors.indicator}]}>
+                        </View>
+                    )
+                }
                 <View style={styles.profileInfo}>
-                    <Text style={[styles.profileName, {color: theme.colors.text}]}>zchengb</Text>
-                    <Text
-                        style={[styles.profileDesc, {color: theme.colors.secondaryText}]}>zxchengb@163.com</Text>
+                    <Text style={[styles.profileName, {color: theme.colors.text}]}>
+                        {userInfo?.name || '未登录'}
+                    </Text>
+                    <Text style={[styles.profileDesc, {color: theme.colors.secondaryText}]}>
+                        {userInfo?.email || '点击右侧按钮登录'}
+                    </Text>
                 </View>
                 <TouchableOpacity
-                    style={[styles.logoutButton, {backgroundColor: theme.colors.card}]}>
+                    style={[styles.logoutButton, {backgroundColor: theme.colors.card}]}
+                    onPress={userInfo ? handleLogout : () => setLoginModalVisible(true)}
+                >
                     <Icon
-                        name="log-out-outline"
+                        name={userInfo ? "log-out-outline" : "log-in-outline"}
                         type="ionicon"
                         size={24}
                         color={theme.colors.text}
@@ -221,6 +277,11 @@ export const ProfileScreen = () => {
 
         {renderFontSizeModal()}
         {renderDarkModeModal()}
+        <LoginModal 
+            isVisible={loginModalVisible}
+            onClose={closeLoginModal}
+            onSuccess={onLoginSuccess}
+        />
     </SafeAreaView>;
 };
 

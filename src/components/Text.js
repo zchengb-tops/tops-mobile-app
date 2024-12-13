@@ -33,9 +33,9 @@ const scaleStyle = (style, fontScale) => {
                 fontSize: fontSize * fontScale 
             };
             
-            if (s.lineHeight && fontScale === 1.2) {
+            if (lineHeight && fontScale === 1.2) {
                 scaled.lineHeight = s.lineHeight * 1.2;
-            } else if (!s.lineHeight && fontScale === 1.2) {
+            } else if (!lineHeight && fontScale === 1.2) {
                 scaled.lineHeight = 18 * 1.2;
             }
             
