@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View, Image } from "react-native";
+import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View, Image, Alert } from "react-native";
 import Modal from "react-native-modal";
 import { Icon, useTheme } from "@rneui/themed";
 import { Text } from "./Text";
+import { sendVerificationCode, signIn } from "../apis/User";
 
 const STEP = {
     EMAIL: 1,
     VERIFICATION: 2
 };
- 
+
 const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -42,58 +43,42 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
             return;
         }
 
-        try {
-            setLoading(true);
-            const response = await fetch('http://localhost:8080/sign-in-verification-code/email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email }),
-            });
-
+        setLoading(true);
+        sendVerificationCode(email).then(async response => {
             if (response.ok) {
                 setStep(STEP.VERIFICATION);
                 setCountdown(120);
                 setEmailError('');
             } else {
-                throw new Error('发送验证码失败');
+                const errorMessage = await response.json();
+                throw new Error(errorMessage?.message || '发送验证码失败');
             }
-        } catch (error) {
+        }).catch(error => {
             console.error(error);
-        } finally {
+            Alert.alert('发送失败', error.message);
+        }).finally(() => {
             setLoading(false);
-        }
+        });
     };
 
     const handleSignIn = async () => {
         if (!email || !verificationCode || loading) return;
-
-        try {
-            setLoading(true);
-            const response = await fetch('http://localhost:8080/user/sign-in', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email,
-                    verificationCode
-                }),
-            });
-
+        setLoading(true);
+        signIn(email, verificationCode).then(async response => {
             if (response.ok) {
                 const data = await response.json();
                 onSuccess(data.accessToken);
                 handleClose();
             } else {
-                throw new Error('登录失败');
+                const errorMessage = await response.json();
+                throw new Error(errorMessage?.message || '登录失败');
             }
-        } catch (error) {
-            console.error(error);
-        } finally {
+        }).catch(error => {
+            console.error("sign in error:", error);
+            Alert.alert('登录失败', error.message);
+        }).finally(() => {
             setLoading(false);
-        }
+        });
     };
 
     const handleClose = () => {
@@ -124,18 +109,18 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
             swipeDirection="down"
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { backgroundColor: theme.colors.background, height: 400 }]}>
+                <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
                     <View style={styles.modalHeader}>
                         <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-                            {step === STEP.EMAIL ? '登录' : '验证码'}
+                            登录
                         </Text>
                         <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
                             <Icon name="close-outline" type="ionicon" size={24} color={theme.colors.text} />
                         </TouchableOpacity>
                     </View>
-                    
+
                     <View style={styles.iconContainer}>
-                        <Image 
+                        <Image
                             source={require('../../assets/images/icon-468.png')}
                             style={styles.appIcon}
                             resizeMode="contain"
@@ -207,7 +192,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                                     maxLength={6}
                                 />
                                 <TouchableOpacity
-                                    style={[styles.button, { opacity: !verificationCode || loading ? 0.5 : 1 }]}
+                                    style={[styles.button, { opacity: !verificationCode || loading ? 0.5 : 1, backgroundColor: theme.colors.indicator }]}
                                     onPress={handleSignIn}
                                     disabled={!verificationCode || loading}
                                 >

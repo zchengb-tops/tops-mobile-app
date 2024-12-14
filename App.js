@@ -22,6 +22,7 @@ import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
 import {useDarkMode} from "./src/hooks/DarkModeHooks";
 import {ThemeContext, ThemeProvider} from "@rneui/themed";
+import {TOAST_CONFIG} from "./src/constant";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -127,37 +128,6 @@ const DiscoveryStackNavigator = () => {
     );
 }
 
-const toastConfig = {
-    success: (props) => (
-        <BaseToast
-            {...props}
-            style={{borderLeftColor: 'pink', zIndex: 1000000}}
-            contentContainerStyle={{paddingHorizontal: 15}}
-            text1Style={{
-                fontSize: 15,
-                fontWeight: '400'
-            }}
-        />
-    ),
-    error: (props) => (
-        <ErrorToast
-            {...props}
-            text1Style={{
-                fontSize: 17
-            }}
-            text2Style={{
-                fontSize: 15
-            }}
-        />
-    ),
-    tomatoToast: ({text1, props}) => (
-        <View style={{height: 60, width: '100%', backgroundColor: 'tomato', bottom: 0, zIndex: 1000}}>
-            <Text>{text1}</Text>
-            <Text>{props.uuid}</Text>
-        </View>
-    )
-}
-
 export default function App() {
     useTrackPlayerEvents([
             Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
@@ -245,7 +215,7 @@ export default function App() {
                                     </Tab.Navigator>
                                     <PlayerBar/>
                                     <NavBar/>
-                                    <Toast config={toastConfig}/>
+                                    <Toast config={TOAST_CONFIG}/>
                                 </View>
                             </GestureHandlerRootView>
                         </NavigationContainer>
