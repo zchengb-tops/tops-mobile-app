@@ -9,6 +9,11 @@ const STEP = {
     VERIFICATION: 2
 };
 
+const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+};
+
 const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     const [email, setEmail] = useState('');
     const [verificationCode, setVerificationCode] = useState('');
@@ -16,6 +21,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(STEP.EMAIL);
     const [isAgreed, setIsAgreed] = useState(false);
+    const [emailError, setEmailError] = useState('');
     const { theme } = useTheme();
 
     useEffect(() => {
@@ -31,6 +37,11 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     const handleSendVerificationCode = async () => {
         if (!email || loading || !isAgreed) return;
 
+        if (!validateEmail(email)) {
+            setEmailError('请输入正确的邮箱格式');
+            return;
+        }
+
         try {
             setLoading(true);
             const response = await fetch('http://localhost:8080/sign-in-verification-code/email', {
@@ -44,6 +55,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
             if (response.ok) {
                 setStep(STEP.VERIFICATION);
                 setCountdown(120);
+                setEmailError('');
             } else {
                 throw new Error('发送验证码失败');
             }
@@ -90,7 +102,15 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
         setVerificationCode('');
         setCountdown(0);
         setIsAgreed(false);
+        setEmailError('');
         onClose();
+    };
+
+    const handleEmailChange = (text) => {
+        setEmail(text);
+        if (emailError) {
+            setEmailError('');
+        }
     };
 
     return (
@@ -125,18 +145,25 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                     <View style={styles.modalBody}>
                         {step === STEP.EMAIL ? (
                             <>
-                                <TextInput
-                                    style={[styles.input, {
-                                        backgroundColor: theme.colors.inputBackground,
-                                        color: theme.colors.text
-                                    }]}
-                                    placeholder="请输入邮箱，新账号即默认注册"
-                                    placeholderTextColor={theme.colors.secondaryText}
-                                    value={email}
-                                    onChangeText={setEmail}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                />
+                                <View>
+                                    <TextInput
+                                        style={[styles.input, {
+                                            backgroundColor: theme.colors.inputBackground,
+                                            color: theme.colors.text,
+                                            borderColor: emailError ? 'red' : 'transparent',
+                                            borderWidth: 1
+                                        }]}
+                                        placeholder="请输入邮箱，新账号即默认注册"
+                                        placeholderTextColor={theme.colors.secondaryText}
+                                        value={email}
+                                        onChangeText={handleEmailChange}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                    />
+                                    {emailError ? (
+                                        <Text style={styles.errorText}>{emailError}</Text>
+                                    ) : null}
+                                </View>
                                 <TouchableOpacity
                                     style={[styles.button, { opacity: !email || loading || !isAgreed ? 0.5 : 1 }, { backgroundColor: theme.colors.indicator }]}
                                     onPress={handleSendVerificationCode}
@@ -293,6 +320,13 @@ const styles = StyleSheet.create({
     agreementText: {
         fontSize: 14,
         flex: 1
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        marginTop: -12,
+        marginBottom: 8,
+        marginLeft: 4
     }
 });
 
