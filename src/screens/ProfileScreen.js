@@ -179,13 +179,15 @@ export const ProfileScreen = () => {
 
     return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
         <ScrollView>
-            <View style={styles.profileWrapper}>
+            <TouchableOpacity 
+                style={styles.profileWrapper}
+                onPress={userInfo ? undefined : () => setLoginModalVisible(true)}
+            >
                 {
                     accessToken ? (
                         <Image style={styles.avatar} source={{uri: userInfo?.avatar}}/>
                     ) : (
-                        <View style={[styles.avatar, {backgroundColor: theme.colors.indicator}]}>
-                        </View>
+                        <Image source={require('../../assets/images/icon-468.png')} style={styles.avatar}/>
                     )
                 }
                 <View style={styles.profileInfo}>
@@ -193,21 +195,23 @@ export const ProfileScreen = () => {
                         {userInfo?.name || '未登录'}
                     </Text>
                     <Text style={[styles.profileDesc, {color: theme.colors.secondaryText}]}>
-                        {userInfo?.email || '点击右侧按钮登录'}
+                        {userInfo?.email || '登录后即可同步资讯订阅至云端'}
                     </Text>
                 </View>
-                <TouchableOpacity
-                    style={[styles.logoutButton, {backgroundColor: theme.colors.card}]}
-                    onPress={userInfo ? handleLogout : () => setLoginModalVisible(true)}
-                >
-                    <Icon
-                        name={userInfo ? "log-out-outline" : "log-in-outline"}
-                        type="ionicon"
-                        size={24}
-                        color={theme.colors.text}
-                    />
-                </TouchableOpacity>
-            </View>
+                {userInfo && (
+                    <TouchableOpacity
+                        style={[styles.logoutButton, {backgroundColor: theme.colors.card}]}
+                        onPress={handleLogout}
+                    >
+                        <Icon
+                            name="log-out-outline"
+                            type="ionicon"
+                            size={24}
+                            color={theme.colors.text}
+                        />
+                    </TouchableOpacity>
+                )}
+            </TouchableOpacity>
 
             <View
                 style={[styles.settingList, styles.firstGroup, {backgroundColor: theme.colors.card}]}>
