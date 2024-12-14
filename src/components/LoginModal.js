@@ -4,12 +4,17 @@ import Modal from "react-native-modal";
 import { Icon, useTheme } from "@rneui/themed";
 import { Text } from "./Text";
 
+const STEP = {
+    EMAIL: 1,
+    VERIFICATION: 2
+};
+
 const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     const [email, setEmail] = useState('');
     const [verificationCode, setVerificationCode] = useState('');
     const [countdown, setCountdown] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [step, setStep] = useState(1); // 1: email input, 2: verification code input
+    const [step, setStep] = useState(STEP.EMAIL);
     const [isAgreed, setIsAgreed] = useState(false);
     const { theme } = useTheme();
 
@@ -37,7 +42,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
             });
 
             if (response.ok) {
-                setStep(2);
+                setStep(STEP.VERIFICATION);
                 setCountdown(120);
             } else {
                 throw new Error('发送验证码失败');
@@ -80,7 +85,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     };
 
     const handleClose = () => {
-        setStep(1);
+        setStep(STEP.EMAIL);
         setEmail('');
         setVerificationCode('');
         setCountdown(0);
@@ -102,7 +107,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                 <View style={[styles.modalContent, { backgroundColor: theme.colors.background, height: 400 }]}>
                     <View style={styles.modalHeader}>
                         <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-                            {step === 1 ? '登录' : '验证码'}
+                            {step === STEP.EMAIL ? '登录' : '验证码'}
                         </Text>
                         <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
                             <Icon name="close-outline" type="ionicon" size={24} color={theme.colors.text} />
@@ -118,7 +123,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                     </View>
 
                     <View style={styles.modalBody}>
-                        {step === 1 ? (
+                        {step === STEP.EMAIL ? (
                             <>
                                 <TextInput
                                     style={[styles.input, {
@@ -277,7 +282,6 @@ const styles = StyleSheet.create({
         fontSize: 14
     },
     agreementContainer: {
-        // backgroundColor: 'red',
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: 16
