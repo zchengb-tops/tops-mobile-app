@@ -8,7 +8,7 @@ const STEP = {
     EMAIL: 1,
     VERIFICATION: 2
 };
-
+ 
 const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
