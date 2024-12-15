@@ -5,7 +5,7 @@ import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
 import {NewsProvider} from "./src/providers/NewsProvider";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {Appearance, AppRegistry, LogBox, TextInput, View} from "react-native";
+import {AppRegistry, LogBox, TextInput, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
@@ -17,7 +17,7 @@ import {Capability, Event, useTrackPlayerEvents} from "react-native-track-player
 import {storage} from "./src/storage";
 import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
-import Toast, {BaseToast, ErrorToast} from "react-native-toast-message";
+import Toast from "react-native-toast-message";
 import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
 import {useDarkMode} from "./src/hooks/DarkModeHooks";
@@ -129,7 +129,6 @@ const DiscoveryStackNavigator = () => {
 }
 
 export default function App() {
-    // storage.set('channelList', JSON.stringify(DEFAULT_CHANNEL_LIST));
     useTrackPlayerEvents([
             Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
             Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
@@ -182,6 +181,7 @@ export default function App() {
             secondaryText: isDarkMode ? '#AAAAAA' : '#939393',
             card: isDarkMode ? '#2A2A2A' : '#F7F7F7',
             primary: '#F76F00',
+            darkPrimary: '#404040',
             border: isDarkMode ? '#3A3A3A' : '#E8E8E8',
             indicator: isDarkMode ? '#F76F00' : '#404040',
             inputBackground: isDarkMode ? '#1C1C1E' : '#F7F7F7',

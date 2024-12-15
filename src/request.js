@@ -10,6 +10,7 @@ export const request = (endpoint, options = {}) => {
     };
 
     const requestBody = options.body ? JSON.stringify(options.body) : undefined;
+    console.log(requestBody);
 
     return fetch(`${apiUrl}${endpoint}`, {
         ...options,

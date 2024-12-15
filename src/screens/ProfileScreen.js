@@ -1,9 +1,9 @@
 import { Icon, useTheme } from "@rneui/themed";
-import React, { useCallback, useEffect, useState, version } from "react";
-import { Image, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View, Alert } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking } from "react-native";
 import Modal from "react-native-modal";
 import { Text } from "../components/Text";
-import { DEFAULT_CHANNEL_LIST, FONT_SIZE } from "../constant";
+import { DEFAULT_AVATAR, DEFAULT_CHANNEL_LIST, FONT_SIZE } from "../constant";
 import { useDarkMode, useDarkModeValue } from '../hooks/DarkModeHooks';
 import { storage } from "../storage";
 import { useDarkModeStore } from "../hooks/DarkModeStore";
@@ -24,6 +24,7 @@ export const ProfileScreen = () => {
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
     const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
     const [userInfo, setUserInfo] = useState(null);
+    const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? true);
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
     const { theme } = useTheme();
@@ -177,6 +178,14 @@ export const ProfileScreen = () => {
         fetchUserNewsChannelConfig();
     }
 
+    const handleSyncToggle = (value) => {
+        if (!accessToken) {
+            return;
+        }
+        setIsSyncEnabled(value);
+        storage.set('isSyncEnabled', value);
+    };
+
     const renderFontSizeModal = () => (
         <Modal
             isVisible={fontSizeModalVisible}
@@ -221,6 +230,22 @@ export const ProfileScreen = () => {
 
     const closeDarkModeModal = () => {
         setDarkModeModalVisible(false);
+    }
+
+    const promptLoginForSync = () => {
+        if (!accessToken) {
+            Alert.alert('请先登录', '登录后即可开启同步功能', [
+                {
+                    text: '取消',
+                    style: 'cancel'
+                },
+                {
+                    style: 'destructive',
+                    text: '前往登录',
+                    onPress: () => setLoginModalVisible(true)
+                }
+            ]);
+        }
     }
 
     const renderDarkModeModal = () => (
@@ -274,9 +299,9 @@ export const ProfileScreen = () => {
             >
                 {
                     accessToken ? (
-                        <Image style={styles.avatar} source={{ uri: userInfo?.avatar || "https://kuoyio.cn/_next/image?url=https%3A%2F%2Fkuoyio-image.oss-cn-shenzhen.aliyuncs.com%2Favatar%2F20240222155915.webp&w=128&q=75" }} />
+                        <Image style={styles.avatar} source={{ uri: userInfo?.avatar || DEFAULT_AVATAR }} />
                     ) : (
-                        <Image source={require('../../assets/images/icon-468.png')} style={styles.avatar} />
+                        <Image source={require('../../assets/images/default-avatar.png')} style={styles.avatar} />
                     )
                 }
                 <View style={styles.profileInfo}>
@@ -304,13 +329,21 @@ export const ProfileScreen = () => {
 
             <View
                 style={[styles.settingList, styles.firstGroup, { backgroundColor: theme.colors.card }]}>
-                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}>
+                <TouchableOpacity
+                    style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12 }]}
+                    onPress={() => promptLoginForSync()}
+                >
                     <View style={styles.settingLeft}>
                         <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>同步管理</Text>
+                        <Text style={[styles.settingText, { color: theme.colors.text }]}>与其他设备同步</Text>
                     </View>
-                    <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                        color={theme.colors.secondaryText} />
+                    <Switch
+                        value={isSyncEnabled}
+                        onValueChange={handleSyncToggle}
+                        trackColor={{ false: theme.colors.border, true: theme.colors.indicator }}
+                        style={{ transform: [{ scale: 0.8 }], opacity: accessToken ? 1 : 0.3 }}
+                        disabled={!accessToken}
+                    />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -347,7 +380,18 @@ export const ProfileScreen = () => {
 
             <View
                 style={[styles.settingList, styles.secondGroup, { backgroundColor: theme.colors.card }]}>
-                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}>
+                <View style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}>
+                    <View style={styles.settingLeft}>
+                        <Icon name="phone-portrait-outline" type="ionicon" size={20} color={theme.colors.text} />
+                        <Text style={[styles.settingText, { color: theme.colors.text }]}>当前版本</Text>
+                    </View>
+                    <Text style={[styles.settingValue, { color: theme.colors.secondaryText }]}>1.0.0</Text>
+                </View>
+
+                <TouchableOpacity
+                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    onPress={() => Linking.openURL('https://jsj.top/f/pcMbRS')}
+                >
                     <View style={styles.settingLeft}>
                         <Icon name="chatbox-outline" type="ionicon" size={20} color={theme.colors.text} />
                         <Text style={[styles.settingText, { color: theme.colors.text }]}>意见反馈</Text>

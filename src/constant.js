@@ -195,3 +195,5 @@ export const TOAST_CONFIG = {
         />
     ),
 }
+
+export const DEFAULT_AVATAR = "https://tops-resources.oss-cn-hangzhou.aliyuncs.com/avatar/avatar4.png";
