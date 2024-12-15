@@ -21,6 +21,7 @@ export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
     const [darkModeModalVisible, setDarkModeModalVisible] = useState(false);
     const [loginModalVisible, setLoginModalVisible] = useState(false);
+    const [aboutModalVisible, setAboutModalVisible] = useState(false);
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
     const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
     const [userInfo, setUserInfo] = useState(null);
@@ -170,6 +171,10 @@ export const ProfileScreen = () => {
         setLoginModalVisible(false);
     }
 
+    const closeAboutModal = () => {
+        setAboutModalVisible(false);
+    }
+
     const onLoginSuccess = (token) => {
         storage.set('accessToken', token);
         setAccessToken(token);
@@ -290,6 +295,51 @@ export const ProfileScreen = () => {
         </Modal>
     );
 
+    const renderAboutModal = () => (
+        <Modal
+            isVisible={aboutModalVisible}
+            style={{ margin: 0 }}
+            backdropOpacity={0.5}
+            onBackdropPress={() => closeAboutModal()}
+            onSwipeComplete={() => closeAboutModal()}
+            backdropTransitionOutTiming={0}
+            swipeDirection="down"
+        >
+            <View style={styles.modalOverlay}>
+                <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+                    <View style={styles.modalHeader}>
+                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>关于</Text>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => closeAboutModal()}
+                        >
+                            <Icon name="close-outline" type="ionicon" size={24}
+                                color={theme.colors.text} />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.aboutContent}>
+                        <Image 
+                            source={require('../../assets/images/icon-468.png')} 
+                            style={styles.appIcon}
+                        />
+                        <Text style={[styles.appName, { color: theme.colors.text }]}>InfoHub</Text>
+                        <Text style={[styles.appVersion, { color: theme.colors.secondaryText }]}>版本 1.0.0</Text>
+                        <Text style={[styles.appDesc, { color: theme.colors.text }]}>
+                            InfoHub是一款支持自定义订阅RSS源的资讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub 对您有起到帮助，欢迎您给我支持或反馈，让 InfoHub 走得更远 :)
+                        </Text>
+                        <TouchableOpacity 
+                            style={[styles.aboutButton, { backgroundColor: theme.colors.indicator }]}
+                            onPress={() => Linking.openURL('https://infohub.net.cn/')}
+                        >
+                            <Icon name="globe-outline" type="ionicon" size={20} color="#fff" />
+                            <Text style={styles.aboutButtonText}>InfoHub 官网</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+
     return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <ScrollView>
             <TouchableOpacity
@@ -400,7 +450,10 @@ export const ProfileScreen = () => {
                         color={theme.colors.secondaryText} />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}>
+                <TouchableOpacity 
+                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    onPress={() => setAboutModalVisible(true)}
+                >
                     <View style={styles.settingLeft}>
                         <Icon name="information-circle-outline" type="ionicon" size={20}
                             color={theme.colors.text} />
@@ -414,6 +467,7 @@ export const ProfileScreen = () => {
 
         {renderFontSizeModal()}
         {renderDarkModeModal()}
+        {renderAboutModal()}
         <LoginModal
             isVisible={loginModalVisible}
             onClose={closeLoginModal}
@@ -523,6 +577,44 @@ const styles = StyleSheet.create({
     },
     fontSizeText: {
         fontSize: 16,
+    },
+    aboutContent: {
+        alignItems: 'center',
+        paddingVertical: 20,
+    },
+    appIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 16,
+        marginBottom: 16,
+    },
+    appName: {
+        fontSize: 20,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    appVersion: {
+        fontSize: 14,
+        marginBottom: 16,
+    },
+    appDesc: {
+        fontSize: 14,
+        lineHeight: 20,
+        textAlign: 'center',
+        marginBottom: 24,
+        paddingHorizontal: 8,
+    },
+    aboutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+    },
+    aboutButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        marginLeft: 8,
     }
 });
 
