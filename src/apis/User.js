@@ -1,42 +1,46 @@
-import { storage } from "../storage";
-
-const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+import { request } from "../request";
 
 export const sendVerificationCode = (email) => {
-    return fetch(`${apiUrl}/sign-in-verification-code/email`, {
+    return request('/sign-in-verification-code/email', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email })
     });
 };
 
 export const signIn = (email, verificationCode) => {
-    return fetch(`${apiUrl}/user/sign-in`, {
+    return request('/user/sign-in', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
             email,
             verificationCode
-        }),
+        }
+    });
+};
+
+export const getUserInfo = () => {
+    return request('/user/me', {
+        method: 'GET'
     });
 };
 
 
-export const getUserInfo = () => {
-    const accessToken = storage.getString('accessToken');
-    if (!accessToken) {
-        throw new Error('请先登录');
-    }
+export const getUserNewsChannelConfig = () => {
+    return request('/user/news-channel-config', {
+        method: 'GET'
+    });
+};
 
-    return fetch(`${apiUrl}/user/me`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
+export const getUserNewsChannelConfigCurrentVersion = () => {
+    return request('/user/news-channel-config/version', {
+        method: 'GET'
+    });
+};
+
+export const updateUserNewsChannelConfig = (channelSettings) => {
+    return request('/user/news-channel-config', {
+        method: 'POST',
+        body: {
+            "content": JSON.stringify(channelSettings)
         }
     });
 };

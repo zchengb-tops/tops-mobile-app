@@ -129,6 +129,7 @@ const DiscoveryStackNavigator = () => {
 }
 
 export default function App() {
+    // storage.set('channelList', JSON.stringify(DEFAULT_CHANNEL_LIST));
     useTrackPlayerEvents([
             Event.RemotePause, Event.RemotePlay, Event.RemoteStop,
             Event.RemoteJumpForward, Event.RemoteJumpBackward, Event.RemoteSeek
