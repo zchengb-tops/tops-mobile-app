@@ -1,6 +1,6 @@
 import {Icon, useTheme} from "@rneui/themed";
 import React, {useEffect, useState} from "react";
-import {Image, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
+import {Image, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View, Alert} from "react-native";
 import Modal from "react-native-modal";
 import {Text} from "../components/Text";
 import {FONT_SIZE} from "../constant";
@@ -8,6 +8,8 @@ import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
 import {storage} from "../storage";
 import {useDarkModeStore} from "../hooks/DarkModeStore";
 import LoginModal from "../components/LoginModal";
+import Toast from "react-native-toast-message";
+import {getUserInfo} from "../apis/User";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -30,33 +32,41 @@ export const ProfileScreen = () => {
 
     useEffect(() => {
         if (accessToken) {
+            console.log('fetchUserInfo', accessToken)
             fetchUserInfo();
         }
     }, [accessToken]);
 
     const fetchUserInfo = async () => {
-        try {
-            const response = await fetch('http://localhost:8080/user/me', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
+        getUserInfo(accessToken).then(async response => {
             if (response.ok) {
                 const data = await response.json();
-                setUserInfo({
-                    ...data,
-                    avatar: data.avatar || 'https://kuoyio.cn/_next/image?url=https%3A%2F%2Fkuoyio-image.oss-cn-shenzhen.aliyuncs.com%2Favatar%2F20240222155915.webp&w=128&q=75'
-                });
+                setUserInfo(data);
+            } else {
+                Toast.show('获取用户信息失败');
             }
-        } catch (error) {
-            console.error(error);
-        }
+        });
     };
 
     const handleLogout = () => {
-        storage.delete('accessToken');
-        setAccessToken(null);
-        setUserInfo(null);
+        Alert.alert(
+            '确认退出',
+            '确定要退出登录吗？',
+            [
+                {
+                    text: '取消',
+                    style: 'cancel'
+                },
+                {
+                    text: '确定',
+                    onPress: () => {
+                        storage.delete('accessToken');
+                        setAccessToken(null);
+                        setUserInfo(null);
+                    }
+                }
+            ]
+        );
     };
 
     const handleFontSizeChange = (size) => {
@@ -87,6 +97,7 @@ export const ProfileScreen = () => {
         storage.set('accessToken', token);
         setAccessToken(token);
         closeLoginModal();
+        fetchUserInfo();
     }
 
     const renderFontSizeModal = () => (
@@ -179,13 +190,13 @@ export const ProfileScreen = () => {
 
     return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
         <ScrollView>
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={styles.profileWrapper}
                 onPress={userInfo ? undefined : () => setLoginModalVisible(true)}
             >
                 {
                     accessToken ? (
-                        <Image style={styles.avatar} source={{uri: userInfo?.avatar}}/>
+                        <Image style={styles.avatar} source={{uri: userInfo?.avatar || "https://kuoyio.cn/_next/image?url=https%3A%2F%2Fkuoyio-image.oss-cn-shenzhen.aliyuncs.com%2Favatar%2F20240222155915.webp&w=128&q=75"}}/>
                     ) : (
                         <Image source={require('../../assets/images/icon-468.png')} style={styles.avatar}/>
                     )
@@ -281,11 +292,12 @@ export const ProfileScreen = () => {
 
         {renderFontSizeModal()}
         {renderDarkModeModal()}
-        <LoginModal 
+        <LoginModal
             isVisible={loginModalVisible}
             onClose={closeLoginModal}
             onSuccess={onLoginSuccess}
         />
+        <Toast/>
     </SafeAreaView>;
 };
 

@@ -247,7 +247,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                             style={[styles.codeInput, {
                                 backgroundColor: theme.colors.inputBackground,
                                 color: theme.colors.text,
-                                borderColor: verificationError ? 'red' : 'transparent',
+                                borderColor: verificationError ? 'red' : theme.colors.border,
                                 borderWidth: 1
                             }]}
                             value={digit}
