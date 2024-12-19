@@ -20,7 +20,6 @@ import {Stock} from "./tabs/Stock";
 import {NnGroup} from "./tabs/NnGroup";
 import {Tiobe} from "./tabs/Tiobe";
 import {History} from "./tabs/History";
-import {BaseToast, ErrorToast} from "react-native-toast-message";
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -170,30 +169,5 @@ export const FONT_SIZE = {
     MEDIUM: '中',
     LARGE: '大'
 };
-
-export const TOAST_CONFIG = {
-    success: (props) => (
-        <BaseToast
-            {...props}
-            style={{borderLeftColor: 'pink', zIndex: 1000000}}
-            contentContainerStyle={{paddingHorizontal: 15}}
-            text1Style={{
-                fontSize: 16,
-                fontWeight: '400'
-            }}
-        />
-    ),
-    error: (props) => (
-        <ErrorToast
-            {...props}
-            text1Style={{
-                fontSize: 18
-            }}
-            text2Style={{
-                fontSize: 16
-            }}
-        />
-    ),
-}
 
 export const DEFAULT_AVATAR = "https://tops-resources.oss-cn-hangzhou.aliyuncs.com/avatar/avatar4.png";

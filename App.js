@@ -17,7 +17,6 @@ import {Capability, Event, useTrackPlayerEvents} from "react-native-track-player
 import {storage} from "./src/storage";
 import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
-import Toast from "react-native-toast-message";
 import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
 import {useDarkMode} from "./src/hooks/DarkModeHooks";
@@ -216,7 +215,6 @@ export default function App() {
                                     </Tab.Navigator>
                                     <PlayerBar/>
                                     <NavBar/>
-                                    <Toast config={TOAST_CONFIG}/>
                                 </View>
                             </GestureHandlerRootView>
                         </NavigationContainer>
