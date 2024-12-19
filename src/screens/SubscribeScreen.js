@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useState} from "react";
 import {
     Alert,
     Image,
@@ -10,15 +10,20 @@ import {
     View
 } from "react-native";
 import Modal from "react-native-modal";
-import {Icon} from "@rneui/themed";
+import {Icon, useTheme} from "@rneui/themed";
 import {storage} from "../storage";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {Text} from "../components/Text";
-import {useTheme} from "@rneui/themed";
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {useFocusEffect} from '@react-navigation/native';
+import {
+    getUserNewsChannelConfig,
+    getUserNewsChannelConfigCurrentVersion,
+    updateUserNewsChannelConfig
+} from "../apis/User";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
@@ -32,16 +37,53 @@ export const SubscribeScreen = () => {
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
 
-    useEffect(() => {
-        const stringifyChannelList = storage.getString('channelList')
+    const loadChannelList = async () => {
+        const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
 
+        if (syncEnabled) {
+            const localVersion = storage.getString('newsChannelConfigVersion');
+            try {
+                getUserNewsChannelConfigCurrentVersion().then(async response => {
+                    const data = await response.json();
+                    const serverVersion = data.version;
+                    if (serverVersion !== undefined && localVersion !== undefined && serverVersion > localVersion) {
+                        getUserNewsChannelConfig().then(async response => {
+                            const data = await response.json();
+                            const serverChannelList = JSON.parse(data.content);
+                            const version = data.version;
+                            const processedList = injectChannelComponentFields(serverChannelList || DEFAULT_CHANNEL_LIST);
+                            setChannelList(processedList);
+                            saveChannelListToStorage(serverChannelList);
+                            storage.set('newsChannelConfigVersion', version?.toString());
+                        });
+                    } else {
+                        loadLocalChannelList();
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading channel list from server:', error);
+                loadLocalChannelList();
+            }
+        } else {
+            loadLocalChannelList();
+        }
+    };
+
+    const loadLocalChannelList = () => {
+        const stringifyChannelList = storage.getString('channelList');
         if (stringifyChannelList) {
             setChannelList(injectChannelComponentFields(JSON.parse(stringifyChannelList) || DEFAULT_CHANNEL_LIST));
         } else {
-            setChannelList(injectChannelComponentFields(DEFAULT_CHANNEL_LIST))
+            setChannelList(injectChannelComponentFields(DEFAULT_CHANNEL_LIST));
             saveChannelListToStorage(DEFAULT_CHANNEL_LIST);
         }
-    }, []);
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            loadChannelList();
+        }, [])
+    );
 
     const injectChannelComponentFields = (channelList) => {
         return channelList.filter(channel => CHANNEL_COMPONENT_MAP[channel.id] || channel.isRss)
@@ -60,10 +102,25 @@ export const SubscribeScreen = () => {
             delete pureChannel.renderIcon;
             return pureChannel;
         });
-        saveChannelListToStorage(pureChannelList);
+        saveChannelListToStorage(pureChannelList, true);
     }
 
-    const saveChannelListToStorage = (newChannelList) => {
+    const saveChannelListToStorage = async (newChannelList, needSync = false) => {
+        const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
+        
+        if (syncEnabled && needSync) {
+            updateUserNewsChannelConfig(newChannelList).then(async response => {
+                if (response.ok) {
+                    const data = await response.json();
+                    storage.set('newsChannelConfigVersion', data.newVersion?.toString());
+                } else {
+                    console.error('failed to update channel list to server');
+                }
+            }).catch(error => {
+                console.error('failed to update channel list to server', error);
+            });
+        }
+
         storage.set('channelList', JSON.stringify(newChannelList));
         console.log('successfully update channel list');
     }
@@ -89,7 +146,7 @@ export const SubscribeScreen = () => {
         })
 
         setChannelList(newChannelList);
-        saveChannelListToStorage(newChannelList);
+        saveChannelListToStorage(newChannelList, true);
     }
 
     const saveRssResource = async (rssUrl) => {
@@ -131,7 +188,7 @@ export const SubscribeScreen = () => {
                 });
 
                 setChannelList(newChannelList);
-                saveChannelListToStorage(newChannelList);
+                saveChannelListToStorage(newChannelList, true);
 
                 closeRssInfoModal();
                 setRssName('');
@@ -165,7 +222,7 @@ export const SubscribeScreen = () => {
                     onPress: () => {
                         const newChannelList = channelList.filter(channel => channel.id !== editingChannel.id);
                         setChannelList(newChannelList);
-                        saveChannelListToStorage(newChannelList);
+                        saveChannelListToStorage(newChannelList, true);
                         closeRssInfoModal();
                     }
                 }
@@ -242,7 +299,7 @@ export const SubscribeScreen = () => {
                 );
 
                 setChannelList(newChannelList);
-                saveChannelListToStorage(newChannelList);
+                saveChannelListToStorage(newChannelList, true);
 
                 closeRssInfoModal();
                 setRssName('');

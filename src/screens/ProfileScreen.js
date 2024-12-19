@@ -8,7 +8,6 @@ import { useDarkMode, useDarkModeValue } from '../hooks/DarkModeHooks';
 import { storage } from "../storage";
 import { useDarkModeStore } from "../hooks/DarkModeStore";
 import LoginModal from "../components/LoginModal";
-import Toast from "react-native-toast-message";
 import {
     getUserInfo,
     getUserNewsChannelConfig,
@@ -16,16 +15,19 @@ import {
     updateUserNewsChannelConfig
 } from "../apis/User";
 import { useFocusEffect } from '@react-navigation/native';
+import * as Burnt from "burnt";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
     const [darkModeModalVisible, setDarkModeModalVisible] = useState(false);
     const [loginModalVisible, setLoginModalVisible] = useState(false);
     const [aboutModalVisible, setAboutModalVisible] = useState(false);
+    const [syncModalVisible, setSyncModalVisible] = useState(false);
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
     const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
     const [userInfo, setUserInfo] = useState(null);
     const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? true);
+    const [lastSyncTime, setLastSyncTime] = useState(storage.getString('lastSyncTime'));
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
     const { theme } = useTheme();
@@ -44,6 +46,10 @@ export const ProfileScreen = () => {
         }
     }, [accessToken]);
 
+    useEffect(() => {
+        storage.set('isSyncEnabled', isSyncEnabled);
+    }, [isSyncEnabled]);
+
     useFocusEffect(
         useCallback(() => {
             if (accessToken) {
@@ -58,7 +64,10 @@ export const ProfileScreen = () => {
                 const data = await response.json();
                 setUserInfo(data);
             } else {
-                Toast.show('获取用户信息失败');
+                Burnt.toast({
+                    title: '获取用户信息失败',
+                    preset: 'error',
+                });
             }
         });
     };
@@ -72,8 +81,6 @@ export const ProfileScreen = () => {
         const response = await getUserNewsChannelConfigCurrentVersion();
         const { version: serverVersion } = await response.json();
         const channelSettings = JSON.parse(storage.getString('channelList')) || DEFAULT_CHANNEL_LIST;
-        console.log('localVersion', localVersion);
-        console.log('serverVersion', serverVersion);
 
         if (!serverVersion) {
             console.log('no server version, update user news channel config');
@@ -82,6 +89,7 @@ export const ProfileScreen = () => {
                 if (response.ok) {
                     const { newVersion } = data;
                     updateChannelConfigVersion(newVersion);
+                    updateLastSyncTime();
                     console.log('update user news channel config success, new version:', storage.getString('newsChannelConfigVersion'));
                 } else {
                     throw new Error(data?.message || '更新订阅配置失败');
@@ -98,8 +106,8 @@ export const ProfileScreen = () => {
                         style: 'cancel'
                     },
                     {
-                        text: '确定',
                         style: 'destructive',
+                        text: '确定',
                         onPress: () => fetchUserNewsChannelConfigFromServer()
                     }
                 ]
@@ -111,6 +119,12 @@ export const ProfileScreen = () => {
         storage.set('newsChannelConfigVersion', version?.toString() || undefined);
     }
 
+    const updateLastSyncTime = () => {
+        const now = new Date().toLocaleString();
+        storage.set('lastSyncTime', now);
+        setLastSyncTime(now);
+    }
+
     const fetchUserNewsChannelConfigFromServer = async () => {
         getUserNewsChannelConfig().then(async response => {
             if (response.ok) {
@@ -119,11 +133,43 @@ export const ProfileScreen = () => {
                 const channelSettings = data.content;
                 storage.set('channelList', channelSettings);
                 updateChannelConfigVersion(version);
+                updateLastSyncTime();
                 console.log('fetch user news channel config from server success');
             } else {
                 throw new Error(await response.json());
             }
         }).catch(e => console.error('fetch user news channel config from server error', e));
+    };
+
+    const handleManualSync = async () => {
+        if (!accessToken) {
+            promptLoginForSync();
+            return;
+        }
+        const channelSettings = JSON.parse(storage.getString('channelList')) || DEFAULT_CHANNEL_LIST;
+        try {
+            const response = await updateUserNewsChannelConfig(channelSettings);
+            const data = await response.json();
+            if (response.ok) {
+                const { newVersion } = data;
+                updateChannelConfigVersion(newVersion);
+                updateLastSyncTime();
+                Burnt.toast({
+                    title: '同步成功',
+                    preset: 'done',
+                    message: '已将本地配置同步至云端',
+                    duration: 2,
+                });
+            } else {
+                throw new Error(data?.message || '同步失败');
+            }
+        } catch (e) {
+            Burnt.toast({
+                title: '同步失败',
+                preset: 'error',
+                message: e.message
+            });
+        }
     };
 
     const handleLogout = () => {
@@ -175,6 +221,10 @@ export const ProfileScreen = () => {
         setAboutModalVisible(false);
     }
 
+    const closeSyncModal = () => {
+        setSyncModalVisible(false);
+    }
+
     const onLoginSuccess = (token) => {
         storage.set('accessToken', token);
         setAccessToken(token);
@@ -188,7 +238,15 @@ export const ProfileScreen = () => {
             return;
         }
         setIsSyncEnabled(value);
-        storage.set('isSyncEnabled', value);
+        fetchUserNewsChannelConfig();
+    };
+
+    const showSyncInfo = () => {
+        Alert.alert(
+            '同步说明',
+            '将手机端的资讯频道订阅配置备份到云端，以便在浏览器扩展程序或其他设备中查看和使用',
+            [{ text: '知道了', style: 'cancel' }]
+        );
     };
 
     const renderFontSizeModal = () => (
@@ -253,6 +311,14 @@ export const ProfileScreen = () => {
         }
     }
 
+    const openSyncModal = () => {
+        if (!accessToken) {
+            promptLoginForSync();
+            return;
+        }
+        setSyncModalVisible(true);
+    }
+
     const renderDarkModeModal = () => (
         <Modal
             isVisible={darkModeModalVisible}
@@ -290,6 +356,80 @@ export const ProfileScreen = () => {
                             )}
                         </TouchableOpacity>
                     ))}
+                </View>
+            </View>
+        </Modal>
+    );
+
+    const renderSyncModal = () => (
+        <Modal
+            isVisible={syncModalVisible}
+            style={{ margin: 0 }}
+            backdropOpacity={0.5}
+            onBackdropPress={() => closeSyncModal()}
+            onSwipeComplete={() => closeSyncModal()}
+            backdropTransitionOutTiming={0}
+            swipeDirection="down"
+        >
+            <View style={styles.modalOverlay}>
+                <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+                    <View style={styles.modalHeader}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>同步设置</Text>
+                            <TouchableOpacity onPress={showSyncInfo} style={styles.infoIcon}>
+                                <Icon name="help-circle-outline" type="ionicon" size={20} color={theme.colors.secondaryText} />
+                            </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => closeSyncModal()}
+                        >
+                            <Icon name="close-outline" type="ionicon" size={24}
+                                color={theme.colors.text} />
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12 }]}
+                        onPress={() => promptLoginForSync()}
+                    >
+                        <View style={styles.settingLeft}>
+                            <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text} />
+                            <Text style={[styles.settingText, { color: theme.colors.text }]}>与其他设备同步</Text>
+                        </View>
+                        <Switch
+                            value={isSyncEnabled}
+                            onValueChange={handleSyncToggle}
+                            trackColor={{ false: theme.colors.border, true: theme.colors.indicator }}
+                            style={{ transform: [{ scale: 0.8 }], opacity: accessToken ? 1 : 0.3 }}
+                            disabled={!accessToken}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12 }]}
+                        onPress={handleManualSync}
+                        disabled={!accessToken}
+                    >
+                        <View style={styles.settingLeft}>
+                            <Icon name="cloud-upload-outline" type="ionicon" size={20} color={theme.colors.text} />
+                            <Text style={[styles.settingText, { color: theme.colors.text }]}>同步数据到云端</Text>
+                        </View>
+                        <Text 
+                            style={[styles.actionText, { 
+                                color: theme.colors.primary,
+                                opacity: accessToken ? 1 : 0.3 
+                            }]}
+                        >
+                            立即同步
+                        </Text>
+                    </TouchableOpacity>
+                    {lastSyncTime && (
+                        <Text style={[styles.lastSyncTime, { color: theme.colors.secondaryText }]}>
+                            上次同步时间: {lastSyncTime}
+                        </Text>
+                    )}
                 </View>
             </View>
         </Modal>
@@ -380,23 +520,25 @@ export const ProfileScreen = () => {
             <View
                 style={[styles.settingList, styles.firstGroup, { backgroundColor: theme.colors.card }]}>
                 <TouchableOpacity
-                    style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12 }]}
-                    onPress={() => promptLoginForSync()}
+                    activeOpacity={0.8}
+                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    onPress={openSyncModal}
                 >
                     <View style={styles.settingLeft}>
                         <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>与其他设备同步</Text>
+                        <Text style={[styles.settingText, { color: theme.colors.text }]}>同步设置</Text>
                     </View>
-                    <Switch
-                        value={isSyncEnabled}
-                        onValueChange={handleSyncToggle}
-                        trackColor={{ false: theme.colors.border, true: theme.colors.indicator }}
-                        style={{ transform: [{ scale: 0.8 }], opacity: accessToken ? 1 : 0.3 }}
-                        disabled={!accessToken}
-                    />
+                    <View style={styles.settingRight}>
+                        <Text style={[styles.settingValue, { color: theme.colors.secondaryText }]}>
+                            {isSyncEnabled ? '已开启' : '已关闭'}
+                        </Text>
+                        <Icon name="chevron-forward-outline" type="ionicon" size={20}
+                            color={theme.colors.secondaryText} />
+                    </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                    activeOpacity={0.8}
                     style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
                     onPress={() => setFontSizeModalVisible(true)}
                 >
@@ -412,8 +554,11 @@ export const ProfileScreen = () => {
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
-                    onPress={() => setDarkModeModalVisible(true)}>
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    onPress={() => setDarkModeModalVisible(true)}
+                >
                     <View style={styles.settingLeft}>
                         <Icon name={isDarkMode ? "moon" : "moon-outline"} type="ionicon" size={20}
                             color={theme.colors.text} />
@@ -439,6 +584,7 @@ export const ProfileScreen = () => {
                 </View>
 
                 <TouchableOpacity
+                    activeOpacity={0.8}
                     style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
                     onPress={() => Linking.openURL('https://jsj.top/f/pcMbRS')}
                 >
@@ -451,6 +597,7 @@ export const ProfileScreen = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity 
+                    activeOpacity={0.8}
                     style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
                     onPress={() => setAboutModalVisible(true)}
                 >
@@ -467,13 +614,13 @@ export const ProfileScreen = () => {
 
         {renderFontSizeModal()}
         {renderDarkModeModal()}
+        {renderSyncModal()}
         {renderAboutModal()}
         <LoginModal
             isVisible={loginModalVisible}
             onClose={closeLoginModal}
             onSuccess={onLoginSuccess}
         />
-        <Toast />
     </SafeAreaView>;
 };
 
@@ -615,6 +762,20 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 14,
         marginLeft: 8,
+    },
+    actionText: {
+        fontSize: 14,
+        fontWeight: '500'
+    },
+    lastSyncTime: {
+        fontSize: 14,
+        marginLeft: 32,
+        marginTop: 12,
+        marginBottom: 24,
+    },
+    infoIcon: {
+        marginLeft: 4,
+        padding: 4
     }
 });
 
