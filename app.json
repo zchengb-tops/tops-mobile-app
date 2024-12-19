@@ -34,6 +34,9 @@
         "projectId": "641d3952-0de1-4a28-afa6-6a0a2b2b3a74"
       }
     },
-    "owner": "zxchengb"
+    "owner": "zxchengb",
+    "plugins": [
+      "expo-build-properties"
+    ]
   }
 }
