@@ -4,6 +4,7 @@ import Modal from "react-native-modal";
 import { Icon, useTheme } from "@rneui/themed";
 import { Text } from "./Text";
 import { sendVerificationCode, signIn } from "../apis/User";
+import { useDarkMode } from "../hooks/DarkModeHooks";
 
 const STEP = {
     EMAIL: 1,
@@ -27,6 +28,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     const [resendLoading, setResendLoading] = useState(false);
     const inputRefs = Array(6).fill(0).map(() => useRef(null));
     const { theme } = useTheme();
+    const isDarkMode = useDarkMode();
 
     useEffect(() => {
         let timer;
@@ -64,6 +66,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                 setCountdown(countDown);
                 setEmailError('');
                 setVerificationError('');
+                inputRefs[0]?.current?.focus();
             } else {
                 const errorMessage = await response.json();
                 throw new Error(errorMessage?.message || '发送验证码失败');
@@ -248,7 +251,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                                 backgroundColor: theme.colors.inputBackground,
                                 color: theme.colors.text,
                                 borderColor: verificationError ? 'red' : theme.colors.border,
-                                borderWidth: 1
+                                borderWidth: (verificationError || isDarkMode) ? 1 : 0
                             }]}
                             value={digit}
                             onChangeText={(text) => handleVerificationCodeChange(text, index)}
