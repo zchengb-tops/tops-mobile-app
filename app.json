@@ -12,7 +12,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "cn.zxchengb.tops-mobile-app",
+      "bundleIdentifier": "cn.zchengb.infohub",
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "cn.zxchengb.topsmobileapp"
+      "package": "cn.zchengb.infohub"
     },
     "web": {
       "favicon": "./assets/favicon.png"

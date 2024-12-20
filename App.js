@@ -21,6 +21,7 @@ import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
 import {useDarkMode} from "./src/hooks/DarkModeHooks";
 import {ThemeContext, ThemeProvider} from "@rneui/themed";
+import analytics from  '@react-native-firebase/analytics';
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
