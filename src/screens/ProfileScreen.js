@@ -25,7 +25,7 @@ export const ProfileScreen = () => {
     const [syncModalVisible, setSyncModalVisible] = useState(false);
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
     const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
-    const [userInfo, setUserInfo] = useState(null);
+    const [userInfo, setUserInfo] = useState(JSON.parse(storage.getString('userInfo') || null));
     const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? true);
     const [lastSyncTime, setLastSyncTime] = useState(storage.getString('lastSyncTime'));
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
@@ -46,8 +46,12 @@ export const ProfileScreen = () => {
         }
     }, [accessToken]);
 
+
     useEffect(() => {
         storage.set('isSyncEnabled', isSyncEnabled);
+        if (!isSyncEnabled) {
+            storage.delete('newsChannelConfigVersion');
+        }
     }, [isSyncEnabled]);
 
     useFocusEffect(
@@ -63,6 +67,7 @@ export const ProfileScreen = () => {
             if (response.ok) {
                 const data = await response.json();
                 setUserInfo(data);
+                storage.set('userInfo', JSON.stringify(data));
             } else {
                 Burnt.toast({
                     title: '获取用户信息失败',
@@ -185,6 +190,7 @@ export const ProfileScreen = () => {
                     text: '确定',
                     onPress: () => {
                         storage.delete('accessToken');
+                        storage.delete('userInfo');
                         setAccessToken(null);
                         setUserInfo(null);
                     }
@@ -233,12 +239,14 @@ export const ProfileScreen = () => {
         fetchUserNewsChannelConfig();
     }
 
-    const handleSyncToggle = (value) => {
+    const handleSyncToggle = (syncToggleValue) => {
         if (!accessToken) {
             return;
         }
-        setIsSyncEnabled(value);
-        fetchUserNewsChannelConfig();
+        setIsSyncEnabled(syncToggleValue);
+        if (syncToggleValue) {
+            fetchUserNewsChannelConfig();
+        }
     };
 
     const showSyncInfo = () => {

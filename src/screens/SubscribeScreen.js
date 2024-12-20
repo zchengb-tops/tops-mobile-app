@@ -113,6 +113,7 @@ export const SubscribeScreen = () => {
                 if (response.ok) {
                     const data = await response.json();
                     storage.set('newsChannelConfigVersion', data.newVersion?.toString());
+                    storage.set('lastSyncTime', new Date().toLocaleString());
                 } else {
                     console.error('failed to update channel list to server');
                 }
