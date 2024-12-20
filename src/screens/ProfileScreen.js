@@ -16,6 +16,8 @@ import {
 } from "../apis/User";
 import { useFocusEffect } from '@react-navigation/native';
 import * as Burnt from "burnt";
+import * as Application from 'expo-application';
+
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -26,7 +28,7 @@ export const ProfileScreen = () => {
     const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
     const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
     const [userInfo, setUserInfo] = useState(JSON.parse(storage.getString('userInfo') || null));
-    const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? true);
+    const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? false);
     const [lastSyncTime, setLastSyncTime] = useState(storage.getString('lastSyncTime'));
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
@@ -41,11 +43,23 @@ export const ProfileScreen = () => {
     ];
 
     useEffect(() => {
+        const accessTokenListener = storage.addOnValueChangedListener((key) => {
+            if (key === 'accessToken') {
+                const newAccessToken = storage.getString('accessToken');
+                setAccessToken(newAccessToken);
+            }
+        });
+
+        return () => {
+            accessTokenListener.remove();
+        };
+    }, []);
+
+    useEffect(() => {
         if (accessToken) {
             fetchUserInfo();
         }
     }, [accessToken]);
-
 
     useEffect(() => {
         storage.set('isSyncEnabled', isSyncEnabled);
@@ -416,7 +430,7 @@ export const ProfileScreen = () => {
                     </TouchableOpacity>
                     <TouchableOpacity
                         activeOpacity={0.8}
-                        style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12 }]}
+                        style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12, marginBottom: !lastSyncTime ? 56 : 0 }]}
                         onPress={handleManualSync}
                         disabled={!accessToken}
                     >
@@ -471,7 +485,7 @@ export const ProfileScreen = () => {
                             style={styles.appIcon}
                         />
                         <Text style={[styles.appName, { color: theme.colors.text }]}>InfoHub</Text>
-                        <Text style={[styles.appVersion, { color: theme.colors.secondaryText }]}>版本 1.0.0</Text>
+                        <Text style={[styles.appVersion, { color: theme.colors.secondaryText }]}>版本 {Application.nativeApplicationVersion || '未知'}</Text>
                         <Text style={[styles.appDesc, { color: theme.colors.text }]}>
                             InfoHub是一款支持自定义订阅RSS源的资讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub 对您有起到帮助，欢迎您给我支持或反馈，让 InfoHub 走得更远 :)
                         </Text>
@@ -588,7 +602,7 @@ export const ProfileScreen = () => {
                         <Icon name="phone-portrait-outline" type="ionicon" size={20} color={theme.colors.text} />
                         <Text style={[styles.settingText, { color: theme.colors.text }]}>当前版本</Text>
                     </View>
-                    <Text style={[styles.settingValue, { color: theme.colors.secondaryText }]}>1.0.0</Text>
+                    <Text style={[styles.settingValue, { color: theme.colors.secondaryText }]}>{Application.nativeApplicationVersion || '未知'}</Text>
                 </View>
 
                 <TouchableOpacity

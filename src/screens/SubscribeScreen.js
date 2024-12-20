@@ -39,23 +39,28 @@ export const SubscribeScreen = () => {
 
     const loadChannelList = async () => {
         const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
-
-        if (syncEnabled) {
+        const accessToken = storage.getString('accessToken');
+        
+        if (syncEnabled && accessToken) {
             const localVersion = storage.getString('newsChannelConfigVersion');
             try {
                 getUserNewsChannelConfigCurrentVersion().then(async response => {
-                    const data = await response.json();
-                    const serverVersion = data.version;
-                    if (serverVersion !== undefined && localVersion !== undefined && serverVersion > localVersion) {
-                        getUserNewsChannelConfig().then(async response => {
-                            const data = await response.json();
-                            const serverChannelList = JSON.parse(data.content);
-                            const version = data.version;
-                            const processedList = injectChannelComponentFields(serverChannelList || DEFAULT_CHANNEL_LIST);
-                            setChannelList(processedList);
-                            saveChannelListToStorage(serverChannelList);
-                            storage.set('newsChannelConfigVersion', version?.toString());
-                        });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const serverVersion = data.version;
+                        if (serverVersion !== undefined && localVersion !== undefined && serverVersion > localVersion) {
+                            getUserNewsChannelConfig().then(async response => {
+                                const data = await response.json();
+                                const serverChannelList = JSON.parse(data.content);
+                                const version = data.version;
+                                const processedList = injectChannelComponentFields(serverChannelList || DEFAULT_CHANNEL_LIST);
+                                setChannelList(processedList);
+                                saveChannelListToStorage(serverChannelList);
+                                storage.set('newsChannelConfigVersion', version?.toString());
+                            });
+                        } else {
+                            loadLocalChannelList();
+                        }
                     } else {
                         loadLocalChannelList();
                     }
@@ -71,6 +76,7 @@ export const SubscribeScreen = () => {
 
     const loadLocalChannelList = () => {
         const stringifyChannelList = storage.getString('channelList');
+        console.log('stringifyChannelList:', stringifyChannelList, 'loadLocalChannelList');
         if (stringifyChannelList) {
             setChannelList(injectChannelComponentFields(JSON.parse(stringifyChannelList) || DEFAULT_CHANNEL_LIST));
         } else {
