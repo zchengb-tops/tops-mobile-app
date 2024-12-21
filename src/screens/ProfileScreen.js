@@ -15,7 +15,7 @@ import {
     getUserNewsChannelConfigCurrentVersion,
     updateUserNewsChannelConfig
 } from "../apis/User";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import * as Burnt from "burnt";
 import * as Application from 'expo-application';
 import analytics from '@react-native-firebase/analytics';
@@ -35,6 +35,7 @@ export const ProfileScreen = () => {
     const isDarkMode = useDarkMode();
     const { theme } = useTheme();
     const darkMode = useDarkModeValue();
+    const isFocused = useIsFocused();
 
     const fontSizes = [FONT_SIZE.SMALL, FONT_SIZE.MEDIUM, FONT_SIZE.LARGE];
     const darkModes = [
@@ -42,6 +43,14 @@ export const ProfileScreen = () => {
         { value: 'light', label: '浅色模式' },
         { value: 'dark', label: '深色模式' }
     ];
+
+
+    useEffect(() => {
+        analytics().logEvent('screen_view', {
+            screen_name: 'ProfileScreen',
+            page_title: 'ProfileScreen'
+        });
+    }, [isFocused]);
 
     useEffect(() => {
         const accessTokenListener = storage.addOnValueChangedListener((key) => {

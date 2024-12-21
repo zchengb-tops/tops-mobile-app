@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
     Alert,
     StyleSheet,
@@ -25,6 +25,7 @@ import {
     updateUserNewsChannelConfig
 } from "../apis/User";
 import analytics from '@react-native-firebase/analytics';
+import { useIsFocused } from '@react-navigation/native';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -37,6 +38,14 @@ export const SubscribeScreen = () => {
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        analytics().logEvent('screen_view', {
+            screen_name: 'SubscribeScreen',
+            page_title: 'SubscribeScreen'
+        });
+    }, [isFocused]);
 
     const loadChannelList = async () => {
         const syncEnabled = storage.getBoolean('isSyncEnabled') || false;

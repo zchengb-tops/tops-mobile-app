@@ -32,13 +32,13 @@ export const DiscoveryScreen = () => {
                 screen_name: 'DiscoveryScreen',
                 page_title: channelList[tabIndex]?.tabTitle || 'unknown',
             }).then(() => {
-                console.log('成功记录调试事件:', {
+                console.log('record screen view event success:', {
                     event: 'screen_view',
                     screen_name: 'DiscoveryScreen',
                     page_title: channelList[tabIndex]?.tabTitle || 'unknown',
                 });
             }).catch(error => {
-                console.error('记录调试事件失败:', error);
+                console.error('record screen view event failed:', error);
             });
         }
     }, [isFocused, tabIndex]);
