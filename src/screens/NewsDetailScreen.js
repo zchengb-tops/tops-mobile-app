@@ -63,6 +63,12 @@ export const NewsDetailScreen = ({route}) => {
                     },
                 ],
             },
+            android: {
+                title: currentTitle,
+                subject: currentTitle,
+                message: currentUrl,
+                url: currentUrl
+            }
         });
 
         Share.open(options).catch(err => console.log(err));
@@ -70,7 +76,6 @@ export const NewsDetailScreen = ({route}) => {
 
 
     const handleNavigationStateChange = (navState) => {
-        console.log('handleNavigationStateChange', navState);
         setCurrentUrl(navState.url);
         setCurrentTitle(navState.title);
     };
