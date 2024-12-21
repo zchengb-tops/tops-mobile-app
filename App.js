@@ -202,7 +202,15 @@ export default function App() {
                         <NavigationContainer>
                             <GestureHandlerRootView style={{flex: 1}}>
                                 <View style={{flex: 1}}>
-                                    <Stack.Navigator screenOptions={{headerShown: false}}>
+                                    <Stack.Navigator 
+                                        screenOptions={{
+                                            headerShown: false,
+                                            headerStyle: {
+                                                backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF'
+                                            },
+                                            headerTintColor: isDarkMode ? '#FFFFFF' : '#464646'
+                                        }}
+                                    >
                                         <Stack.Screen name="InfoHub">
                                             {() => (
                                                 <Tab.Navigator

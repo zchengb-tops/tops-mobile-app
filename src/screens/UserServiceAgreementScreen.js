@@ -2,8 +2,16 @@ import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Text } from '../components/Text';
 import { useTheme } from '@rneui/themed';
+import {useVisibility} from "../providers/VisibilityProvider";
 
 export const UserServiceAgreementScreen = ({ navigation, route }) => {
+    const { setIsNavBarVisible } = useVisibility();
+
+    useEffect(() => {
+        setIsNavBarVisible(false);
+        return () => setIsNavBarVisible(true);
+    }, []);
+
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', () => {
             route.params?.onGoBack?.();

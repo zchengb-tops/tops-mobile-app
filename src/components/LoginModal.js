@@ -1,12 +1,11 @@
 import {useEffect, useRef, useState} from "react";
-import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View, Image, Alert } from "react-native";
+import {ActivityIndicator, Alert, Image, StyleSheet, TextInput, TouchableOpacity, View} from "react-native";
 import Modal from "react-native-modal";
-import { Icon, useTheme } from "@rneui/themed";
-import { Text } from "./Text";
-import { sendVerificationCode, signIn } from "../apis/User";
-import { useDarkMode } from "../hooks/DarkModeHooks";
-import { useNavigation } from "@react-navigation/native";
-import { useVisibility } from "../providers/VisibilityProvider";
+import {Icon, useTheme} from "@rneui/themed";
+import {Text} from "./Text";
+import {sendVerificationCode, signIn} from "../apis/User";
+import {useDarkMode} from "../hooks/DarkModeHooks";
+import {useNavigation} from "@react-navigation/native";
 
 const STEP = {
     EMAIL: 1,
@@ -32,7 +31,6 @@ const LoginModal = ({ isVisible, setIsVisible, onClose, onSuccess }) => {
     const { theme } = useTheme();
     const isDarkMode = useDarkMode();
     const navigation = useNavigation();
-    const {setIsNavBarVisible} = useVisibility();
 
     useEffect(() => {
         let timer;
@@ -185,12 +183,10 @@ const LoginModal = ({ isVisible, setIsVisible, onClose, onSuccess }) => {
 
     const handleNavigateToAgreement = (screenName) => {
         setIsVisible(false);
-        setIsNavBarVisible(false);
-        
+
         navigation.navigate(screenName, {
             onGoBack: () => {
                 setIsVisible(true);
-                setIsNavBarVisible(true);
             }
         });
     };

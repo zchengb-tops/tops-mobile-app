@@ -1,13 +1,13 @@
-import { Icon, useTheme } from "@rneui/themed";
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {Icon, useTheme} from "@rneui/themed";
+import React, {useCallback, useEffect, useState} from "react";
+import {Alert, Image, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking} from "react-native";
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
-import { Text } from "../components/Text";
-import { DEFAULT_AVATAR, DEFAULT_CHANNEL_LIST, FONT_SIZE } from "../constant";
-import { useDarkMode, useDarkModeValue } from '../hooks/DarkModeHooks';
-import { storage } from "../storage";
-import { useDarkModeStore } from "../hooks/DarkModeStore";
+import {Text} from "../components/Text";
+import {DEFAULT_AVATAR, DEFAULT_CHANNEL_LIST, FONT_SIZE} from "../constant";
+import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
+import {storage} from "../storage";
+import {useDarkModeStore} from "../hooks/DarkModeStore";
 import LoginModal from "../components/LoginModal";
 import {
     getUserInfo,
@@ -15,7 +15,7 @@ import {
     getUserNewsChannelConfigCurrentVersion,
     updateUserNewsChannelConfig
 } from "../apis/User";
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Burnt from "burnt";
 import * as Application from 'expo-application';
 import analytics from '@react-native-firebase/analytics';
@@ -33,15 +33,15 @@ export const ProfileScreen = () => {
     const [lastSyncTime, setLastSyncTime] = useState(storage.getString('lastSyncTime'));
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
-    const { theme } = useTheme();
+    const {theme} = useTheme();
     const darkMode = useDarkModeValue();
     const isFocused = useIsFocused();
-
+    const navigation = useNavigation();
     const fontSizes = [FONT_SIZE.SMALL, FONT_SIZE.MEDIUM, FONT_SIZE.LARGE];
     const darkModes = [
-        { value: 'system', label: '跟随系统' },
-        { value: 'light', label: '浅色模式' },
-        { value: 'dark', label: '深色模式' }
+        {value: 'system', label: '跟随系统'},
+        {value: 'light', label: '浅色模式'},
+        {value: 'dark', label: '深色模式'}
     ];
 
 
@@ -108,7 +108,7 @@ export const ProfileScreen = () => {
         }
         const localVersion = storage.getString('newsChannelConfigVersion');
         const response = await getUserNewsChannelConfigCurrentVersion();
-        const { version: serverVersion } = await response.json();
+        const {version: serverVersion} = await response.json();
         const channelSettings = JSON.parse(storage.getString('channelList')) || DEFAULT_CHANNEL_LIST;
 
         if (!serverVersion) {
@@ -116,7 +116,7 @@ export const ProfileScreen = () => {
             updateUserNewsChannelConfig(channelSettings).then(async response => {
                 const data = await response.json();
                 if (response.ok) {
-                    const { newVersion } = data;
+                    const {newVersion} = data;
                     updateChannelConfigVersion(newVersion);
                     updateLastSyncTime();
                     console.log('update user news channel config success, new version:', storage.getString('newsChannelConfigVersion'));
@@ -180,7 +180,7 @@ export const ProfileScreen = () => {
             const response = await updateUserNewsChannelConfig(channelSettings);
             const data = await response.json();
             if (response.ok) {
-                const { newVersion } = data;
+                const {newVersion} = data;
                 updateChannelConfigVersion(newVersion);
                 updateLastSyncTime();
                 Burnt.toast({
@@ -282,14 +282,14 @@ export const ProfileScreen = () => {
         Alert.alert(
             '同步说明',
             '将手机端的资讯频道订阅配置备份到云端，以便在浏览器扩展程序或其他设备中查看和使用',
-            [{ text: '知道了', style: 'cancel' }]
+            [{text: '知道了', style: 'cancel'}]
         );
     };
 
     const renderFontSizeModal = () => (
         <Modal
             isVisible={fontSizeModalVisible}
-            style={{ margin: 0 }}
+            style={{margin: 0}}
             backdropOpacity={0.5}
             onBackdropPress={() => closeFontSizeModal()}
             onSwipeComplete={() => closeFontSizeModal()}
@@ -297,29 +297,29 @@ export const ProfileScreen = () => {
             swipeDirection="down"
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
                     <View style={styles.modalHeader}>
                         <Text
-                            style={[styles.modalTitle, { color: theme.colors.text }]}>选择字体大小</Text>
+                            style={[styles.modalTitle, {color: theme.colors.text}]}>选择字体大小</Text>
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={() => closeFontSizeModal()}
                         >
                             <Icon name="close-outline" type="ionicon" size={24}
-                                color={theme.colors.text} />
+                                  color={theme.colors.text}/>
                         </TouchableOpacity>
                     </View>
                     {fontSizes.map((size) => (
                         <TouchableOpacity
                             key={size}
-                            style={[styles.fontSizeOption, { borderBottomColor: theme.colors.border }]}
+                            style={[styles.fontSizeOption, {borderBottomColor: theme.colors.border}]}
                             onPress={() => handleFontSizeChange(size)}
                         >
                             <Text
-                                style={[styles.fontSizeText, { color: theme.colors.text }]}>{size}</Text>
+                                style={[styles.fontSizeText, {color: theme.colors.text}]}>{size}</Text>
                             {selectedFontSize === size && (
                                 <Icon name="checkmark-outline" type="ionicon" size={20}
-                                    color={theme.colors.text} />
+                                      color={theme.colors.text}/>
                             )}
                         </TouchableOpacity>
                     ))}
@@ -364,7 +364,7 @@ export const ProfileScreen = () => {
     const renderDarkModeModal = () => (
         <Modal
             isVisible={darkModeModalVisible}
-            style={{ margin: 0 }}
+            style={{margin: 0}}
             backdropOpacity={0.5}
             onBackdropPress={() => closeDarkModeModal()}
             onSwipeComplete={() => closeDarkModeModal()}
@@ -372,29 +372,29 @@ export const ProfileScreen = () => {
             swipeDirection="down"
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
                     <View style={styles.modalHeader}>
                         <Text
-                            style={[styles.modalTitle, { color: theme.colors.text }]}>选择显示模式</Text>
+                            style={[styles.modalTitle, {color: theme.colors.text}]}>选择显示模式</Text>
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={() => closeDarkModeModal()}
                         >
                             <Icon name="close-outline" type="ionicon" size={24}
-                                color={theme.colors.text} />
+                                  color={theme.colors.text}/>
                         </TouchableOpacity>
                     </View>
                     {darkModes.map((mode) => (
                         <TouchableOpacity
                             key={mode.value}
-                            style={[styles.fontSizeOption, { borderBottomColor: theme.colors.border }]}
+                            style={[styles.fontSizeOption, {borderBottomColor: theme.colors.border}]}
                             onPress={() => handleDarkModeChange(mode.value)}
                         >
                             <Text
-                                style={[styles.fontSizeText, { color: theme.colors.text }]}>{mode.label}</Text>
+                                style={[styles.fontSizeText, {color: theme.colors.text}]}>{mode.label}</Text>
                             {darkMode === mode.value && (
                                 <Icon name="checkmark-outline" type="ionicon" size={20}
-                                    color={theme.colors.text} />
+                                      color={theme.colors.text}/>
                             )}
                         </TouchableOpacity>
                     ))}
@@ -406,7 +406,7 @@ export const ProfileScreen = () => {
     const renderSyncModal = () => (
         <Modal
             isVisible={syncModalVisible}
-            style={{ margin: 0 }}
+            style={{margin: 0}}
             backdropOpacity={0.5}
             onBackdropPress={() => closeSyncModal()}
             onSwipeComplete={() => closeSyncModal()}
@@ -414,12 +414,13 @@ export const ProfileScreen = () => {
             swipeDirection="down"
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
                     <View style={styles.modalHeader}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>同步设置</Text>
+                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                            <Text style={[styles.modalTitle, {color: theme.colors.text}]}>同步设置</Text>
                             <TouchableOpacity onPress={showSyncInfo} style={styles.infoIcon}>
-                                <Icon name="help-circle-outline" type="ionicon" size={20} color={theme.colors.secondaryText} />
+                                <Icon name="help-circle-outline" type="ionicon" size={20}
+                                      color={theme.colors.secondaryText}/>
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity
@@ -427,48 +428,52 @@ export const ProfileScreen = () => {
                             onPress={() => closeSyncModal()}
                         >
                             <Icon name="close-outline" type="ionicon" size={24}
-                                color={theme.colors.text} />
+                                  color={theme.colors.text}/>
                         </TouchableOpacity>
                     </View>
-                    
+
                     <TouchableOpacity
                         activeOpacity={0.8}
-                        style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12 }]}
+                        style={[styles.settingItem, {borderBottomColor: theme.colors.border, paddingVertical: 12}]}
                         onPress={() => promptLoginForSync()}
                     >
                         <View style={styles.settingLeft}>
-                            <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text} />
-                            <Text style={[styles.settingText, { color: theme.colors.text }]}>与其他设备同步</Text>
+                            <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                            <Text style={[styles.settingText, {color: theme.colors.text}]}>与其他设备同步</Text>
                         </View>
                         <Switch
                             value={isSyncEnabled}
                             onValueChange={handleSyncToggle}
-                            trackColor={{ false: theme.colors.border, true: theme.colors.indicator }}
-                            style={{ transform: [{ scale: 0.8 }], opacity: accessToken ? 1 : 0.3 }}
+                            trackColor={{false: theme.colors.border, true: theme.colors.indicator}}
+                            style={{transform: [{scale: 0.8}], opacity: accessToken ? 1 : 0.3}}
                             disabled={!accessToken}
                         />
                     </TouchableOpacity>
                     <TouchableOpacity
                         activeOpacity={0.8}
-                        style={[styles.settingItem, { borderBottomColor: theme.colors.border, paddingVertical: 12, marginBottom: !lastSyncTime ? 56 : 0 }]}
+                        style={[styles.settingItem, {
+                            borderBottomColor: theme.colors.border,
+                            paddingVertical: 12,
+                            marginBottom: !lastSyncTime ? 56 : 0
+                        }]}
                         onPress={handleManualSync}
                         disabled={!accessToken}
                     >
                         <View style={styles.settingLeft}>
-                            <Icon name="cloud-upload-outline" type="ionicon" size={20} color={theme.colors.text} />
-                            <Text style={[styles.settingText, { color: theme.colors.text }]}>同步数据到云端</Text>
+                            <Icon name="cloud-upload-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                            <Text style={[styles.settingText, {color: theme.colors.text}]}>同步数据到云端</Text>
                         </View>
-                        <Text 
-                            style={[styles.actionText, { 
+                        <Text
+                            style={[styles.actionText, {
                                 color: theme.colors.primary,
-                                opacity: accessToken ? 1 : 0.3 
+                                opacity: accessToken ? 1 : 0.3
                             }]}
                         >
                             立即同步
                         </Text>
                     </TouchableOpacity>
                     {lastSyncTime && (
-                        <Text style={[styles.lastSyncTime, { color: theme.colors.secondaryText }]}>
+                        <Text style={[styles.lastSyncTime, {color: theme.colors.secondaryText}]}>
                             上次同步时间: {lastSyncTime}
                         </Text>
                     )}
@@ -480,7 +485,7 @@ export const ProfileScreen = () => {
     const renderAboutModal = () => (
         <Modal
             isVisible={aboutModalVisible}
-            style={{ margin: 0 }}
+            style={{margin: 0}}
             backdropOpacity={0.5}
             onBackdropPress={() => closeAboutModal()}
             onSwipeComplete={() => closeAboutModal()}
@@ -488,32 +493,34 @@ export const ProfileScreen = () => {
             swipeDirection="down"
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
                     <View style={styles.modalHeader}>
-                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>关于</Text>
+                        <Text style={[styles.modalTitle, {color: theme.colors.text}]}>关于</Text>
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={() => closeAboutModal()}
                         >
                             <Icon name="close-outline" type="ionicon" size={24}
-                                color={theme.colors.text} />
+                                  color={theme.colors.text}/>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.aboutContent}>
-                        <Image 
-                            source={require('../../assets/images/icon-468.png')} 
+                        <Image
+                            source={require('../../assets/images/icon-468.png')}
                             style={styles.appIcon}
                         />
-                        <Text style={[styles.appName, { color: theme.colors.text }]}>InfoHub</Text>
-                        <Text style={[styles.appVersion, { color: theme.colors.secondaryText }]}>版本 {Application.nativeApplicationVersion || '未知'}</Text>
-                        <Text style={[styles.appDesc, { color: theme.colors.text }]}>
-                            InfoHub是一款支持自定义订阅RSS源的资讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub 对您有起到帮助，欢迎您给我支持或反馈，让 InfoHub 走得更远 :)
+                        <Text style={[styles.appName, {color: theme.colors.text}]}>InfoHub</Text>
+                        <Text
+                            style={[styles.appVersion, {color: theme.colors.secondaryText}]}>版本 {Application.nativeApplicationVersion || '未知'}</Text>
+                        <Text style={[styles.appDesc, {color: theme.colors.text}]}>
+                            InfoHub是一款支持自定义订阅RSS源的资讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub
+                            对您有起到帮助，欢迎您给我支持或反馈，让 InfoHub 走得更远 :)
                         </Text>
-                        <TouchableOpacity 
-                            style={[styles.aboutButton, { backgroundColor: theme.colors.indicator }]}
+                        <TouchableOpacity
+                            style={[styles.aboutButton, {backgroundColor: theme.colors.indicator}]}
                             onPress={() => Linking.openURL('https://infohub.net.cn/')}
                         >
-                            <Icon name="globe-outline" type="ionicon" size={20} color="#fff" />
+                            <Icon name="globe-outline" type="ionicon" size={20} color="#fff"/>
                             <Text style={styles.aboutButtonText}>InfoHub 官网</Text>
                         </TouchableOpacity>
                     </View>
@@ -522,7 +529,7 @@ export const ProfileScreen = () => {
         </Modal>
     );
 
-    return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
         <ScrollView>
             <TouchableOpacity
                 activeOpacity={0.8}
@@ -536,22 +543,22 @@ export const ProfileScreen = () => {
             >
                 {
                     accessToken ? (
-                        <Image style={styles.avatar} source={{ uri: userInfo?.avatar || DEFAULT_AVATAR }} />
+                        <Image style={styles.avatar} source={{uri: userInfo?.avatar || DEFAULT_AVATAR}}/>
                     ) : (
-                        <Image source={require('../../assets/images/default-avatar.png')} style={styles.avatar} />
+                        <Image source={require('../../assets/images/default-avatar.png')} style={styles.avatar}/>
                     )
                 }
                 <View style={styles.profileInfo}>
-                    <Text style={[styles.profileName, { color: theme.colors.text }]}>
+                    <Text style={[styles.profileName, {color: theme.colors.text}]}>
                         {userInfo?.name || '未登录'}
                     </Text>
-                    <Text style={[styles.profileDesc, { color: theme.colors.secondaryText }]}>
+                    <Text style={[styles.profileDesc, {color: theme.colors.secondaryText}]}>
                         {userInfo?.email || '登录后即可同步资讯订阅至云端'}
                     </Text>
                 </View>
                 {userInfo && (
                     <TouchableOpacity
-                        style={[styles.logoutButton, { backgroundColor: theme.colors.card }]}
+                        style={[styles.logoutButton, {backgroundColor: theme.colors.card}]}
                         onPress={handleLogout}
                     >
                         <Icon
@@ -565,45 +572,45 @@ export const ProfileScreen = () => {
             </TouchableOpacity>
 
             <View
-                style={[styles.settingList, styles.firstGroup, { backgroundColor: theme.colors.card }]}>
+                style={[styles.settingList, styles.firstGroup, {backgroundColor: theme.colors.card}]}>
                 <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={openSyncModal}
                 >
                     <View style={styles.settingLeft}>
-                        <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>同步设置</Text>
+                        <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>同步设置</Text>
                     </View>
                     <View style={styles.settingRight}>
-                        <Text style={[styles.settingValue, { color: theme.colors.secondaryText }]}>
+                        <Text style={[styles.settingValue, {color: theme.colors.secondaryText}]}>
                             {isSyncEnabled ? '已开启' : '已关闭'}
                         </Text>
                         <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                            color={theme.colors.secondaryText} />
+                              color={theme.colors.secondaryText}/>
                     </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={() => setFontSizeModalVisible(true)}
                 >
                     <View style={styles.settingLeft}>
-                        <Icon name="text-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>字体大小</Text>
+                        <Icon name="text-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>字体大小</Text>
                     </View>
                     <View style={styles.settingRight}>
                         <Text
-                            style={[styles.settingValue, { color: theme.colors.secondaryText }]}>{selectedFontSize}</Text>
+                            style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{selectedFontSize}</Text>
                         <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                            color={theme.colors.secondaryText} />
+                              color={theme.colors.secondaryText}/>
                     </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={async () => {
                         await analytics().logEvent('open_dark_mode_modal');
                         setDarkModeModalVisible(true);
@@ -611,53 +618,80 @@ export const ProfileScreen = () => {
                 >
                     <View style={styles.settingLeft}>
                         <Icon name={isDarkMode ? "moon" : "moon-outline"} type="ionicon" size={20}
-                            color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>深色模式</Text>
+                              color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>深色模式</Text>
                     </View>
                     <View style={styles.settingRight}>
                         <Text
-                            style={[styles.settingValue, { color: theme.colors.secondaryText }]}>{getDarkModeText()}</Text>
+                            style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{getDarkModeText()}</Text>
                         <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                            color={theme.colors.secondaryText} />
+                              color={theme.colors.secondaryText}/>
                     </View>
                 </TouchableOpacity>
             </View>
 
             <View
-                style={[styles.settingList, styles.secondGroup, { backgroundColor: theme.colors.card }]}>
-                <View style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}>
+                style={[styles.settingList, styles.secondGroup, {backgroundColor: theme.colors.card}]}>
+                <View style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}>
                     <View style={styles.settingLeft}>
-                        <Icon name="phone-portrait-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>当前版本</Text>
+                        <Icon name="phone-portrait-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>当前版本</Text>
                     </View>
-                    <Text style={[styles.settingValue, { color: theme.colors.secondaryText }]}>{Application.nativeApplicationVersion || '未知'}</Text>
+                    <Text
+                        style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{Application.nativeApplicationVersion || '未知'}</Text>
                 </View>
 
                 <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={() => Linking.openURL('https://jsj.top/f/T4STLU')}
                 >
                     <View style={styles.settingLeft}>
-                        <Icon name="chatbox-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>意见反馈</Text>
+                        <Icon name="chatbox-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>意见反馈</Text>
                     </View>
                     <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                        color={theme.colors.secondaryText} />
+                          color={theme.colors.secondaryText}/>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                     activeOpacity={0.8}
                     style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    onPress={() => navigation.navigate('UserServiceAgreementScreen')}
+                >
+                    <View style={styles.settingLeft}>
+                        <Icon name="document-text-outline" type="ionicon" size={20} color={theme.colors.text} />
+                        <Text style={[styles.settingText, { color: theme.colors.text }]}>用户协议</Text>
+                    </View>
+                    <Icon name="chevron-forward-outline" type="ionicon" size={20}
+                          color={theme.colors.secondaryText} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    onPress={() => navigation.navigate('UserPrivacyAgreementScreen')}
+                >
+                    <View style={styles.settingLeft}>
+                        <Icon name="shield-checkmark-outline" type="ionicon" size={20} color={theme.colors.text} />
+                        <Text style={[styles.settingText, { color: theme.colors.text }]}>隐私政策</Text>
+                    </View>
+                    <Icon name="chevron-forward-outline" type="ionicon" size={20}
+                          color={theme.colors.secondaryText} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={() => setAboutModalVisible(true)}
                 >
                     <View style={styles.settingLeft}>
                         <Icon name="information-circle-outline" type="ionicon" size={20}
-                            color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>关于</Text>
+                              color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>关于</Text>
                     </View>
                     <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                        color={theme.colors.secondaryText} />
+                          color={theme.colors.secondaryText}/>
                 </TouchableOpacity>
             </View>
         </ScrollView>
