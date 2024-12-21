@@ -21,6 +21,7 @@ export const History = () => {
     const renderItem = (item, index) => {
         return (
             <TouchableOpacity style={[styles.itemWrapper]}
+                key={index}
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('NewsDetailScreen', {
                     url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
