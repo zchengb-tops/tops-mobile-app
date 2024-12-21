@@ -5,7 +5,8 @@ import {
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    View
+    View,
+    ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
@@ -26,7 +27,7 @@ import {
 import analytics from '@react-native-firebase/analytics';
 
 export const SubscribeScreen = () => {
-    const [channelList, setChannelList] = useState([]);
+    const [channelList, setChannelList] = useState(null);
     const [rssModalVisible, setRssModalVisible] = useState(false);
     const [rssName, setRssName] = useState('');
     const [rssLink, setRssLink] = useState('');
@@ -523,16 +524,24 @@ export const SubscribeScreen = () => {
             </TouchableOpacity>
         </View>
         <View style={styles.channelContainer}>
-            <Text style={[styles.dragTips, {color: theme.colors.secondaryText}]}>Tips: 长按即可进行拖拽排序</Text>
-            <GestureHandlerRootView style={styles.gestureContainer}>
-                <DraggableFlatList
-                    containerStyle={styles.dragContainer}
-                    data={channelList}
-                    onDragEnd={({data}) => reorderChannelList(data)}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderItem}
-                />
-            </GestureHandlerRootView>
+            {channelList === null ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                </View>
+            ) : (
+                <>
+                    <Text style={[styles.dragTips, {color: theme.colors.secondaryText}]}>Tips: 长按即可进行拖拽排序</Text>
+                    <GestureHandlerRootView style={styles.gestureContainer}>
+                        <DraggableFlatList
+                            containerStyle={styles.dragContainer}
+                            data={channelList}
+                            onDragEnd={({data}) => reorderChannelList(data)}
+                            keyExtractor={(item) => item.id}
+                            renderItem={renderItem}
+                        />
+                    </GestureHandlerRootView>
+                </>
+            )}
         </View>
 
         {renderRssModal()}
@@ -570,6 +579,11 @@ const styles = StyleSheet.create({
     channelContainer: {
         marginTop: 12,
         flex: 1,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     gestureContainer: {
         flex: 1

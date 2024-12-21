@@ -355,7 +355,6 @@ const styles = StyleSheet.create({
     },
     modalTitle: {
         fontSize: 24,
-        lineHeight: 24,
         fontWeight: '600',
     },
     modalDesc: {

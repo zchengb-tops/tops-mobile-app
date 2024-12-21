@@ -24,21 +24,15 @@ const getStyleValue = (style, property) => {
 
 const scaleStyle = (style, fontScale) => {
     const fontSize = getStyleValue(style, 'fontSize') || 14;
-    const lineHeight = getStyleValue(style, 'lineHeight');
+    const lineHeight = getStyleValue(style, 'lineHeight') || fontSize * 1.4;
 
     if (Array.isArray(style)) {
         return style.map(s => {
             const scaled = { 
                 ...s, 
-                fontSize: fontSize * fontScale 
+                fontSize: fontSize * fontScale,
+                lineHeight: lineHeight * fontScale
             };
-            
-            if (lineHeight && fontScale === 1.2) {
-                scaled.lineHeight = s.lineHeight * 1.2;
-            } else if (!lineHeight && fontScale === 1.2) {
-                scaled.lineHeight = 18 * 1.2;
-            }
-            
             return scaled;
         });
     }
@@ -46,7 +40,7 @@ const scaleStyle = (style, fontScale) => {
     return {
         ...style,
         fontSize: fontSize * fontScale,
-        ...(lineHeight && fontScale === 1.2 ? { lineHeight: lineHeight * 1.2 } : {})
+        lineHeight: lineHeight * fontScale
     };
 };
 
