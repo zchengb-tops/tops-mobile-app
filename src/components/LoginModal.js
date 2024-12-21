@@ -5,6 +5,8 @@ import { Icon, useTheme } from "@rneui/themed";
 import { Text } from "./Text";
 import { sendVerificationCode, signIn } from "../apis/User";
 import { useDarkMode } from "../hooks/DarkModeHooks";
+import { useNavigation } from "@react-navigation/native";
+import { useVisibility } from "../providers/VisibilityProvider";
 
 const STEP = {
     EMAIL: 1,
@@ -16,7 +18,7 @@ const validateEmail = (email) => {
     return re.test(email);
 };
 
-const LoginModal = ({ isVisible, onClose, onSuccess }) => {
+const LoginModal = ({ isVisible, setIsVisible, onClose, onSuccess }) => {
     const [email, setEmail] = useState('');
     const [verificationCode, setVerificationCode] = useState(['','','','','','']);
     const [countdown, setCountdown] = useState(0);
@@ -29,6 +31,8 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
     const inputRefs = Array(6).fill(0).map(() => useRef(null));
     const { theme } = useTheme();
     const isDarkMode = useDarkMode();
+    const navigation = useNavigation();
+    const {setIsNavBarVisible} = useVisibility();
 
     useEffect(() => {
         let timer;
@@ -179,6 +183,18 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
         }
     };
 
+    const handleNavigateToAgreement = (screenName) => {
+        setIsVisible(false);
+        setIsNavBarVisible(false);
+        
+        navigation.navigate(screenName, {
+            onGoBack: () => {
+                setIsVisible(true);
+                setIsNavBarVisible(true);
+            }
+        });
+    };
+
     const renderEmailInputStage = () => {
         return (
             <>
@@ -225,7 +241,20 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                         />
                     </TouchableOpacity>
                     <Text style={[styles.agreementText, { color: theme.colors.secondaryText }]}>
-                        我已认真阅读、理解并同意《InfoHub用户协议》、《隐私协议》
+                        我已认真阅读、理解并同意
+                        <Text 
+                            style={[styles.agreementLink, { color: theme.colors.primary }]}
+                            onPress={() => handleNavigateToAgreement('UserServiceAgreementScreen')}
+                        >
+                            《InfoHub用户协议》
+                        </Text>
+                        、
+                        <Text 
+                            style={[styles.agreementLink, { color: theme.colors.primary }]}
+                            onPress={() => handleNavigateToAgreement('UserPrivacyAgreementScreen')}
+                        >
+                            《隐私协议》
+                        </Text>
                     </Text>
                 </View>
             </>
@@ -275,7 +304,7 @@ const LoginModal = ({ isVisible, onClose, onSuccess }) => {
                         <Text style={[styles.resendText, {
                             color: countdown > 0 ? theme.colors.secondaryText : theme.colors.primary
                         }]}>
-                            {countdown > 0 ? `${countdown}秒后重新发送` : '重新发送'}
+                            {countdown > 0 ? `${countdown}秒后重新发送` : '重���发送'}
                         </Text>
                     )}
                 </TouchableOpacity>
@@ -401,6 +430,9 @@ const styles = StyleSheet.create({
     agreementText: {
         fontSize: 14,
         flex: 1
+    },
+    agreementLink: {
+        fontSize: 14
     },
     errorText: {
         color: 'red',

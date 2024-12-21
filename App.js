@@ -21,6 +21,8 @@ import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
 import {useDarkMode} from "./src/hooks/DarkModeHooks";
 import {ThemeContext, ThemeProvider} from "@rneui/themed";
+import {UserPrivacyAgreementScreen} from "./src/screens/UserPrivacyAgreementScreen";
+import {UserServiceAgreementScreen} from "./src/screens/UserServiceAgreementScreen";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -200,18 +202,34 @@ export default function App() {
                         <NavigationContainer>
                             <GestureHandlerRootView style={{flex: 1}}>
                                 <View style={{flex: 1}}>
-                                    <Tab.Navigator
-                                        initialRouteName="DiscoveryScreen"
-                                        screenOptions={{
-                                            headerShown: false,
-                                            animationEnabled: false,
-                                            tabBarStyle: {display: 'none'},
-                                        }}
-                                    >
-                                        <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
-                                        <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
-                                        <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
-                                    </Tab.Navigator>
+                                    <Stack.Navigator screenOptions={{headerShown: false}}>
+                                        <Stack.Screen name="InfoHub">
+                                            {() => (
+                                                <Tab.Navigator
+                                                    initialRouteName="DiscoveryScreen"
+                                                    screenOptions={{
+                                                        headerShown: false,
+                                                        animationEnabled: false,
+                                                        tabBarStyle: {display: 'none'},
+                                                    }}
+                                                >
+                                                    <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
+                                                    <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
+                                                    <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
+                                                </Tab.Navigator>
+                                            )}
+                                        </Stack.Screen>
+                                        <Stack.Screen 
+                                            name="UserPrivacyAgreementScreen" 
+                                            component={UserPrivacyAgreementScreen} 
+                                            options={{title: "隐私协议", headerShown: true}}
+                                        />
+                                        <Stack.Screen 
+                                            name="UserServiceAgreementScreen" 
+                                            component={UserServiceAgreementScreen}
+                                            options={{title: "用户协议", headerShown: true}}
+                                        />
+                                    </Stack.Navigator>
                                     <PlayerBar/>
                                     <NavBar/>
                                 </View>

@@ -668,6 +668,7 @@ export const ProfileScreen = () => {
         {renderAboutModal()}
         <LoginModal
             isVisible={loginModalVisible}
+            setIsVisible={setLoginModalVisible}
             onClose={closeLoginModal}
             onSuccess={onLoginSuccess}
         />
