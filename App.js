@@ -20,7 +20,7 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
 import {useDarkMode} from "./src/hooks/DarkModeHooks";
-import {ThemeContext, ThemeProvider} from "@rneui/themed";
+import {ThemeContext, ThemeProvider, useTheme} from "@rneui/themed";
 import {UserPrivacyAgreementScreen} from "./src/screens/UserPrivacyAgreementScreen";
 import {UserServiceAgreementScreen} from "./src/screens/UserServiceAgreementScreen";
 
@@ -114,12 +114,18 @@ const loadCacheTrackPlay = async () => {
 initializeTrackPlayer().then(r => loadCacheTrackPlay());
 
 const DiscoveryStackNavigator = () => {
+    const { theme } = useTheme();
+
     return (
         <Stack.Navigator screenOptions={{
             headerShown: false,
             gestureEnabled: true,
             gestureDirection: 'horizontal',
             animationEnabled: true,
+            headerStyle: {
+                backgroundColor: theme.colors.background
+            },
+            headerTintColor: theme.colors.text
         }}>
             <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: '发现'}}/>
             <Stack.Screen name="NewsDetailScreen" component={NewsDetailScreen}
