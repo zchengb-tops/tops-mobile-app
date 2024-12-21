@@ -6,14 +6,15 @@ import { TabView } from "../components/TabView";
 import { CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST } from "../constant";
 import { NewsContext } from "../providers/NewsProvider";
 import { storage } from "../storage";
-import {useTheme} from "@rneui/themed";
+import { useTheme } from "@rneui/themed";
+import analytics from '@react-native-firebase/analytics';
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
-    const {fetchNormalNews, fetchRssNews} = useContext(NewsContext);
+    const { fetchNormalNews, fetchRssNews } = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
-    const {theme} = useTheme();
+    const { theme } = useTheme();
 
     useEffect(() => {
         initialChannelList();
@@ -23,6 +24,23 @@ export const DiscoveryScreen = () => {
         fetchNormalNews().then(() => console.log('Successfully fetch normal news :)'));
         fetchRssNews().then(() => console.log('Successfully fetch rss news :)'));
     }, []);
+
+    useEffect(() => {
+        if (isFocused && channelList) {
+            analytics().logEvent('screen_view', {
+                screen_name: 'DiscoveryScreen',
+                page_title: channelList[tabIndex]?.tabTitle || 'unknown',
+            }).then(() => {
+                console.log('成功记录调试事件:', {
+                    event: 'screen_view',
+                    screen_name: 'DiscoveryScreen',
+                    page_title: channelList[tabIndex]?.tabTitle || 'unknown',
+                });
+            }).catch(error => {
+                console.error('记录调试事件失败:', error);
+            });
+        }
+    }, [isFocused, tabIndex]);
 
     const initialChannelList = () => {
         const stringifyChannelList = storage.getString("channelList");
@@ -75,9 +93,9 @@ export const DiscoveryScreen = () => {
         ));
     }
 
-    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
-        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
-        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
+    return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} />
+        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} />
     </SafeAreaView>
 };
 
