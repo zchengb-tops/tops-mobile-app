@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "26223609726",
+    "project_id": "infohub-app",
+    "storage_bucket": "infohub-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:26223609726:android:3b8def77ff653962a0d52f",
+        "android_client_info": {
+          "package_name": "cn.zchengb.infohub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs_NJIp5uABt6rHp5xpY0AP2TQbPWOigI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
