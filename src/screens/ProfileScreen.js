@@ -636,7 +636,7 @@ export const ProfileScreen = () => {
                 <TouchableOpacity
                     activeOpacity={0.8}
                     style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
-                    onPress={() => Linking.openURL('https://jsj.top/f/pcMbRS')}
+                    onPress={() => Linking.openURL('https://jsj.top/f/T4STLU')}
                 >
                     <View style={styles.settingLeft}>
                         <Icon name="chatbox-outline" type="ionicon" size={20} color={theme.colors.text} />
