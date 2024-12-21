@@ -535,7 +535,7 @@ export const SubscribeScreen = () => {
         <View style={styles.channelContainer}>
             {channelList === null ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <ActivityIndicator size="large" color={theme.colors.indicator} />
                 </View>
             ) : (
                 <>
