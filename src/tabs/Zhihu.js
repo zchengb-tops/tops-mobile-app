@@ -71,7 +71,6 @@ export const Zhihu = () => {
 
 const styles = StyleSheet.create({
     contentContainer: {
-        paddingBottom: 48
     },
     newsItemWrapper: {
         justifyContent: 'center',

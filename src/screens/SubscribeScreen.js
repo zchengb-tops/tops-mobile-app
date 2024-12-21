@@ -1,14 +1,13 @@
 import React, {useCallback, useState} from "react";
 import {
     Alert,
-    Image,
-    SafeAreaView,
     StyleSheet,
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
 import {Icon, useTheme} from "@rneui/themed";
 import {storage} from "../storage";
@@ -508,7 +507,7 @@ export const SubscribeScreen = () => {
         );
     }
 
-    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
+    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]} edges={['top']}>
         <View style={styles.topBar}>
             <Text style={[styles.pageTitle, {color: theme.colors.text}]}>资讯订阅</Text>
             <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
@@ -545,7 +544,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     topBar: {
-        marginTop: 12,
         flexDirection: 'row',
         paddingHorizontal: 20,
         justifyContent: 'space-between',
@@ -570,7 +568,6 @@ const styles = StyleSheet.create({
         marginLeft: 2
     },
     channelContainer: {
-        marginBottom: 48,
         marginTop: 12,
         flex: 1,
     },

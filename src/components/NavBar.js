@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Platform, SafeAreaView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, Easing, Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVisibility } from "../providers/VisibilityProvider";
-import {Icon, useTheme} from "@rneui/themed";
+import { Icon, useTheme } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 import { Text } from "./Text";
-import {useDarkMode} from "../hooks/DarkModeHooks";
+import { useDarkMode } from "../hooks/DarkModeHooks";
 
 
 export const NavBar = () => {
@@ -117,18 +118,21 @@ export const NavBar = () => {
         navigation.navigate(routeName);
     }
 
+    if (!isNavBarVisible) {
+        return null;
+    }
+
     return (
-        <Animated.View
-            style={[
-                styles.navBarWrapper,
-                {
-                    backgroundColor: isDarkMode ? '#000000' : '#F5F5F5',
-                    transform: [{ translateY: positionAnim }],
-                }
-            ]}
-        >
-            <SafeAreaView>
-                <View style={[styles.navBar, { backgroundColor: isDarkMode ? '#000000' : '#F5F5F5' }]}>
+        <SafeAreaView edges={['bottom']} style={{backgroundColor: isDarkMode ? '#000000' : '#F5F5F5',}}>
+            <Animated.View
+                style={[
+                    styles.navBarWrapper,
+                    {
+                        transform: [{ translateY: positionAnim }],
+                    }
+                ]}
+            >
+                <View style={[styles.navBar]}>
                     <Animated.View style={[styles.navButtonSelected, {
                         backgroundColor: theme.colors.indicator,
                         transform: [{ translateX: translateAnim }]
@@ -161,15 +165,13 @@ export const NavBar = () => {
                         {renderLabel(routeMapping.PROFILE, '我的')}
                     </TouchableOpacity>
                 </View>
-            </SafeAreaView>
-        </Animated.View>
+            </Animated.View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     navBarWrapper: {
-        position: 'absolute',
-        bottom: 0,
         width: '100%',
     },
     navBar: {

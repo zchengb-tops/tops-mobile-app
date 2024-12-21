@@ -1,6 +1,7 @@
 import { useIsFocused } from "@react-navigation/native";
 import React, { useContext, useEffect, useState } from "react";
-import { SafeAreaView, StyleSheet } from 'react-native';
+import {StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabBar } from "../components/TabBar";
 import { TabView } from "../components/TabView";
 import { CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST } from "../constant";
@@ -93,7 +94,7 @@ export const DiscoveryScreen = () => {
         ));
     }
 
-    return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
         <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} />
         <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} />
     </SafeAreaView>

@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {Text} from "./Text";
-import {darkModeHooks} from "../hooks/DarkModeHooks";
 import {useTheme} from "@rneui/themed";
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
@@ -11,7 +10,6 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const scrollViewRef = useRef(null);
     const screenWidth = Dimensions.get('window').width;
     const [scrollX, setScrollX] = useState(0);
-    const statusBarHeight = StatusBar.currentHeight || 0;
     const [isAnimating, setIsAnimating] = useState(false);
     const {theme} = useTheme();
 
@@ -79,7 +77,6 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     return (
         <ScrollView
             style={[styles.tabBar, {
-                marginTop: statusBarHeight,
                 borderBottomColor: theme.colors.border,
                 backgroundColor: theme.colors.background,
             }]}

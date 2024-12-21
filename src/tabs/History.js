@@ -1,14 +1,14 @@
-import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
-import {useNavigation} from "@react-navigation/native";
-import {globalStyles} from "../globalStyle";
-import {Text} from "../components/Text";
+import { ScrollView, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { NewsContext } from "../providers/NewsProvider";
+import { useNavigation } from "@react-navigation/native";
+import { globalStyles } from "../globalStyle";
+import { Text } from "../components/Text";
 import { useTheme } from '@rneui/themed';
 
 export const History = () => {
     const { theme } = useTheme();
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
+    const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
 
@@ -21,13 +21,13 @@ export const History = () => {
     const renderItem = (item, index) => {
         return (
             <TouchableOpacity style={[styles.itemWrapper]}
-                              activeOpacity={0.8}
-                              onPress={() => navigation.navigate('NewsDetailScreen', {
-                                  url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
-                                  title: item.title
-                              })}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('NewsDetailScreen', {
+                    url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
+                    title: item.title
+                })}
             >
-                <View style={styles.symbol}/>
+                <View style={styles.symbol} />
                 <View style={styles.textInfoWrapper}>
                     <Text style={[styles.year, { color: theme.colors.secondaryText }]}>{item.year}年</Text>
                     <Text style={[styles.title, { color: theme.colors.text }]}>{item.title}</Text>
@@ -41,17 +41,16 @@ export const History = () => {
     }
 
 
-    return <FlatList
+    return <ScrollView
         style={styles.container}
-        contentContainerStyle={[styles.contentContainer, { borderLeftColor: theme.colors.border }]}
-        initialNumToRender={20}
-        data={news}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
         }
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({item, index}) => renderItem(item, index)}
-    />
+    >
+        <View style={[styles.contentContainer, {borderLeftColor: theme.colors.border}]}>
+            {news.map((item, index) => renderItem(item, index))}
+        </View>
+    </ScrollView>
 }
 
 const styles = StyleSheet.create({
@@ -64,7 +63,6 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginRight: 16,
         marginLeft: 28,
-        paddingBottom: 48
     },
     itemWrapper: {
         position: 'relative',
@@ -76,17 +74,18 @@ const styles = StyleSheet.create({
         left: 0,
         top: 4,
         transform: [
-            {translateX: -4},
-            {translateY: -4},
+            { translateX: -4 },
+            { translateY: -4 },
         ],
         width: 8,
         height: 8,
         borderRadius: 12,
         backgroundColor: '#E46603',
+        zIndex: 1,
     },
     textInfoWrapper: {
         transform: [
-            {translateY: -4}
+            { translateY: -4 }
         ]
     },
     year: {

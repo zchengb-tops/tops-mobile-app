@@ -84,7 +84,6 @@ export const Sspai = () => {
 
 const styles = StyleSheet.create({
     contentContainer: {
-        paddingBottom: 48
     },
     newsItemWrapper: {
         justifyContent: 'center',

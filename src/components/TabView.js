@@ -118,7 +118,6 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
 const styles = StyleSheet.create({
     tabView: {
         flex: 1,
-        backgroundColor: '#fffff',
     },
     tabBarIcon: {width: 16, height: 16, marginRight: 4},
     loadingView: {

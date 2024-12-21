@@ -1,6 +1,7 @@
 import { Icon, useTheme } from "@rneui/themed";
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking } from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
 import { Text } from "../components/Text";
 import { DEFAULT_AVATAR, DEFAULT_CHANNEL_LIST, FONT_SIZE } from "../constant";

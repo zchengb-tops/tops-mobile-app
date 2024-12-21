@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     contentContainer: {
-      paddingBottom: 48
     },
     itemWrapper: {
         flexDirection: 'row',
