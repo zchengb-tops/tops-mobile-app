@@ -31,7 +31,7 @@ export const NnGroup = () => {
                 style={styles.newsItemWrapper}
                 onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
-                        url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
+                        url: item.link,
                         title: item.title
                     })
                 }

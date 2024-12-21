@@ -137,7 +137,7 @@ export const Stock = () => {
             chart.on("click", (e) => {
                 console.log('e', e.data)
                 navigation.navigate('NewsDetailScreen', {
-                    url: process.env.EXPO_PUBLIC_API_URL + "/t/" + e.data.link,
+                    url: e.data.originLink,
                     title: e.data.name
                 })
             });

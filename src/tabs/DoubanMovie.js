@@ -2,7 +2,7 @@ import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} fro
 import React, {useContext, useEffect, useState} from "react";
 import {NewsContext} from "../providers/NewsProvider";
 import {useNavigation} from "@react-navigation/native";
-import {AirbnbRating, Rating} from "react-native-ratings";
+import {Rating} from "react-native-ratings";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
 import { useTheme } from '@rneui/themed';
@@ -39,7 +39,7 @@ export const DoubanMovie = () => {
                     activeOpacity={0.8}
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
-                            url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
+                            url: item.link,
                             title: item.title
                         })
                     }

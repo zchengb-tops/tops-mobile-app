@@ -45,7 +45,7 @@ export const Sina = () => {
                     style={styles.newsItem}
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
-                            url: apiUrl + "/t/" + item.shortLink,
+                            url: item.link,
                             title: item.title
                         })
                     }

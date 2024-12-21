@@ -42,7 +42,7 @@ export const Bilibili = () => {
             return <TouchableOpacity style={[styles.itemWrapper, {marginTop: index === 0 ? 16 : 8}]}
                                      activeOpacity={0.8}
                                      onPress={() => navigation.navigate('NewsDetailScreen', {
-                                         url: process.env.EXPO_PUBLIC_API_URL + "/t/" + item.shortLink,
+                                         url: item.link,
                                          title: item.title
                                      })}
             >
