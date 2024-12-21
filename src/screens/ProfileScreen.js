@@ -17,7 +17,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import * as Burnt from "burnt";
 import * as Application from 'expo-application';
-
+import analytics from '@react-native-firebase/analytics';
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -202,11 +202,12 @@ export const ProfileScreen = () => {
                 },
                 {
                     text: '确定',
-                    onPress: () => {
+                    onPress: async () => {
                         storage.delete('accessToken');
                         storage.delete('userInfo');
                         setAccessToken(null);
                         setUserInfo(null);
+                        await analytics().logEvent('user_logout');
                     }
                 }
             ]
@@ -219,8 +220,11 @@ export const ProfileScreen = () => {
         closeFontSizeModal();
     };
 
-    const handleDarkModeChange = (mode) => {
+    const handleDarkModeChange = async (mode) => {
         setDarkMode(mode);
+        await analytics().logEvent('dark_mode_change', {
+            mode: mode
+        });
         closeDarkModeModal();
     };
 
@@ -245,12 +249,13 @@ export const ProfileScreen = () => {
         setSyncModalVisible(false);
     }
 
-    const onLoginSuccess = (token) => {
+    const onLoginSuccess = async (token) => {
         storage.set('accessToken', token);
         setAccessToken(token);
         closeLoginModal();
         fetchUserInfo();
         fetchUserNewsChannelConfig();
+        await analytics().logEvent('user_login_success');
     }
 
     const handleSyncToggle = (syncToggleValue) => {
@@ -327,7 +332,12 @@ export const ProfileScreen = () => {
                 {
                     style: 'destructive',
                     text: '前往登录',
-                    onPress: () => setLoginModalVisible(true)
+                    onPress: async () => {
+                        await analytics().logEvent('open_login_modal', {
+                            source: 'sync_settings'
+                        });
+                        setLoginModalVisible(true);
+                    }
                 }
             ]);
         }
@@ -507,7 +517,12 @@ export const ProfileScreen = () => {
             <TouchableOpacity
                 activeOpacity={0.8}
                 style={styles.profileWrapper}
-                onPress={userInfo ? undefined : () => setLoginModalVisible(true)}
+                onPress={userInfo ? undefined : async () => {
+                    await analytics().logEvent('open_login_modal', {
+                        source: 'profile_header'
+                    });
+                    setLoginModalVisible(true);
+                }}
             >
                 {
                     accessToken ? (
@@ -579,7 +594,10 @@ export const ProfileScreen = () => {
                 <TouchableOpacity
                     activeOpacity={0.8}
                     style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
-                    onPress={() => setDarkModeModalVisible(true)}
+                    onPress={async () => {
+                        await analytics().logEvent('open_dark_mode_modal');
+                        setDarkModeModalVisible(true);
+                    }}
                 >
                     <View style={styles.settingLeft}>
                         <Icon name={isDarkMode ? "moon" : "moon-outline"} type="ionicon" size={20}

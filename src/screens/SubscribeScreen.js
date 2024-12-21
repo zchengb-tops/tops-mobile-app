@@ -24,6 +24,7 @@ import {
     getUserNewsChannelConfigCurrentVersion,
     updateUserNewsChannelConfig
 } from "../apis/User";
+import analytics from '@react-native-firebase/analytics';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState([]);
@@ -76,7 +77,6 @@ export const SubscribeScreen = () => {
 
     const loadLocalChannelList = () => {
         const stringifyChannelList = storage.getString('channelList');
-        console.log('stringifyChannelList:', stringifyChannelList, 'loadLocalChannelList');
         if (stringifyChannelList) {
             setChannelList(injectChannelComponentFields(JSON.parse(stringifyChannelList) || DEFAULT_CHANNEL_LIST));
         } else {
@@ -101,12 +101,15 @@ export const SubscribeScreen = () => {
             ));
     }
 
-    const reorderChannelList = (newChannelList) => {
+    const reorderChannelList = async (newChannelList) => {
         setChannelList(newChannelList);
         const pureChannelList = newChannelList.map((channel) => {
             const pureChannel = {...channel};
             delete pureChannel.renderIcon;
             return pureChannel;
+        });
+        await analytics().logEvent('reorder_channel', {
+            channel_count: newChannelList.length
         });
         saveChannelListToStorage(pureChannelList, true);
     }
@@ -132,7 +135,7 @@ export const SubscribeScreen = () => {
         console.log('successfully update channel list');
     }
 
-    const handleSubscribe = (channel) => {
+    const handleSubscribe = async (channel) => {
         const subscribedChannels = channelList.filter(item => item.enable);
 
         if (channel.enable && subscribedChannels.length === 1) {
@@ -151,6 +154,12 @@ export const SubscribeScreen = () => {
                 item.enable = !item.enable;
             }
         })
+
+        await analytics().logEvent('toggle_channel_subscription', {
+            channel_id: channel.id,
+            channel_name: channel.title,
+            enabled: !channel.enable
+        });
 
         setChannelList(newChannelList);
         saveChannelListToStorage(newChannelList, true);
@@ -194,6 +203,12 @@ export const SubscribeScreen = () => {
                     return channel;
                 });
 
+                await analytics().logEvent('edit_rss_channel', {
+                    channel_id: editingChannel.id,
+                    channel_name: rssName,
+                    rss_url: rssLink
+                });
+
                 setChannelList(newChannelList);
                 saveChannelListToStorage(newChannelList, true);
 
@@ -214,7 +229,7 @@ export const SubscribeScreen = () => {
         }
     }
 
-    const handleDeleteRss = () => {
+    const handleDeleteRss = async () => {
         Alert.alert(
             "删除RSS订阅",
             "确定要删除该RSS订阅吗？",
@@ -226,8 +241,12 @@ export const SubscribeScreen = () => {
                 {
                     text: "删除",
                     style: "destructive",
-                    onPress: () => {
+                    onPress: async () => {
                         const newChannelList = channelList.filter(channel => channel.id !== editingChannel.id);
+                        await analytics().logEvent('delete_rss_channel', {
+                            channel_id: editingChannel.id,
+                            channel_name: editingChannel.title
+                        });
                         setChannelList(newChannelList);
                         saveChannelListToStorage(newChannelList, true);
                         closeRssInfoModal();
@@ -291,10 +310,11 @@ export const SubscribeScreen = () => {
 
             if (response.status === 200) {
                 const newChannelList = [...channelList];
+                const newChannelId = generateUUID();
 
                 newChannelList.unshift(
                     {
-                        id: generateUUID(),
+                        id: newChannelId,
                         title: rssName,
                         tabTitle: rssName,
                         desc: data.description,
@@ -304,6 +324,12 @@ export const SubscribeScreen = () => {
                         isRss: true
                     }
                 );
+
+                await analytics().logEvent('add_rss_channel', {
+                    channel_id: newChannelId,
+                    channel_name: rssName,
+                    rss_url: rssLink
+                });
 
                 setChannelList(newChannelList);
                 saveChannelListToStorage(newChannelList, true);
