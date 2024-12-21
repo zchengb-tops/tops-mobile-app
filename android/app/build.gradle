@@ -110,9 +110,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.infohub"
+    namespace "cn.zchengb.infohub"
     defaultConfig {
-        applicationId "com.infohub"
+        applicationId "cn.zchengb.infohub"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
