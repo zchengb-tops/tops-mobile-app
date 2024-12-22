@@ -13,7 +13,7 @@ import NngroupIcon from "../assets/icons/nngroup.svg";
 import TiobeIcon from "../assets/icons/tiobe.svg";
 import HistoryIcon from "../assets/icons/history.svg";
 import React from "react";
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {DoubanMovie} from "./tabs/DoubanMovie";
 import {Bilibili} from "./tabs/Bilibili";
 import {Stock} from "./tabs/Stock";
@@ -162,12 +162,6 @@ export const CHANNEL_COMPONENT_MAP = {
                                                                                          style={style}/>,
         component: <History/>
     },
-};
-
-export const FONT_SIZE = {
-    SMALL: '小',
-    MEDIUM: '中',
-    LARGE: '大'
 };
 
 export const DEFAULT_AVATAR = "https://tops-resources.oss-cn-hangzhou.aliyuncs.com/avatar/avatar4.png";

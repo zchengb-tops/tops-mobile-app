@@ -11,9 +11,48 @@ import Animated, {runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withTiming
 import {BlurView} from "@react-native-community/blur";
 import {storage} from "../storage";
 import {useTrackStateStore} from "../hooks/AudioTrackStore";
-import {initializeTrackPlayer} from "../../App";
 import {Text} from "./Text";
-import {darkModeHooks, useDarkMode} from "../hooks/DarkModeHooks";
+import {useDarkMode} from "../hooks/DarkModeHooks";
+
+export const initializeTrackPlayer = async () => {
+    await TrackPlayer.setupPlayer();
+
+    await TrackPlayer.updateOptions({
+        progressUpdateEventInterval: 1,
+        stopWithApp: true,
+        capabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.JumpForward,
+            Capability.JumpBackward,
+            Capability.SeekTo
+        ],
+        compactCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.JumpForward,
+            Capability.JumpBackward
+        ],
+        notificationCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.JumpForward,
+            Capability.JumpBackward,
+            Capability.SeekTo
+        ],
+        androidCapabilities: [
+            Capability.Play,
+            Capability.Pause,
+            Capability.Stop,
+            Capability.JumpForward,
+            Capability.JumpBackward
+        ],
+    });
+
+    console.log('initialize track player done');
+}
 
 export const PlayerBar = () => {
     const progress = useProgress(800);

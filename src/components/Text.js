@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Text as RNText, StyleSheet } from 'react-native';
-import { FONT_SIZE } from '../constant';
 import { storage } from '../storage';
+
+export const FONT_SIZE = {
+    SMALL: '小',
+    MEDIUM: '中',
+    LARGE: '大'
+};
 
 const getFontScale = (savedFontSize) => {
     switch (savedFontSize) {

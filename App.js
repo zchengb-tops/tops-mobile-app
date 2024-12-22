@@ -7,13 +7,13 @@ import {NewsProvider} from "./src/providers/NewsProvider";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry, LogBox, TextInput, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
-import {PlayerBar} from "./src/components/PlayerBar";
+import {initializeTrackPlayer, PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 import {VisibilityProvider} from "./src/providers/VisibilityProvider";
 import {NavBar} from "./src/components/NavBar";
 import {SubscribeScreen} from "./src/screens/SubscribeScreen";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
-import {Capability, Event, useTrackPlayerEvents} from "react-native-track-player";
+import {Event, useTrackPlayerEvents} from "react-native-track-player";
 import {storage} from "./src/storage";
 import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
@@ -46,46 +46,6 @@ console.error = (...args) => {
 const Tab = createBottomTabNavigator();
 
 const Stack = createStackNavigator();
-
-export const initializeTrackPlayer = async () => {
-    await TrackPlayer.setupPlayer();
-
-    await TrackPlayer.updateOptions({
-        progressUpdateEventInterval: 1,
-        stopWithApp: true,
-        capabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.Stop,
-            Capability.JumpForward,
-            Capability.JumpBackward,
-            Capability.SeekTo
-        ],
-        compactCapabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.JumpForward,
-            Capability.JumpBackward
-        ],
-        notificationCapabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.Stop,
-            Capability.JumpForward,
-            Capability.JumpBackward,
-            Capability.SeekTo
-        ],
-        androidCapabilities: [
-            Capability.Play,
-            Capability.Pause,
-            Capability.Stop,
-            Capability.JumpForward,
-            Capability.JumpBackward
-        ],
-    });
-
-    console.log('initialize track player done');
-}
 
 const loadCacheTrackPlay = async () => {
     const currentTrack = storage.getString('currentTrack');
