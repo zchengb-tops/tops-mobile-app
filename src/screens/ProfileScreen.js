@@ -215,6 +215,8 @@ export const ProfileScreen = () => {
                     onPress: async () => {
                         storage.delete('accessToken');
                         storage.delete('userInfo');
+                        storage.delete('lastSyncTime');
+                        setIsSyncEnabled(false);
                         setAccessToken(null);
                         setUserInfo(null);
                         await analytics().logEvent('user_logout');
