@@ -15,8 +15,7 @@
     },
     "testflight": {
       "ios": {
-        "buildType": "release",
-        "distribution": "app-store"
+        "distribution": "store"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://infohub.net.cn/api"
@@ -24,8 +23,7 @@
     },
     "production": {
       "ios": {
-        "buildType": "release",
-        "distribution": "app-store"
+        "distribution": "store"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://infohub.net.cn/api"
