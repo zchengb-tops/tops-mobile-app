@@ -10,12 +10,40 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://zchengb.top/api"
+        "EXPO_PUBLIC_API_URL": "https://infohub.net.cn/api"
       }
     },
-    "production": {}
+    "testflight": {
+      "ios": {
+        "buildType": "release",
+        "distribution": "app-store"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://infohub.net.cn/api"
+      }
+    },
+    "production": {
+      "ios": {
+        "buildType": "release",
+        "distribution": "app-store"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://infohub.net.cn/api"
+      }
+    }
   },
   "submit": {
-    "production": {}
+    "testflight": {
+      "ios": {
+        "appleId": "zxchengb@163.com",
+        "ascAppId": "6739748229"
+      }
+    },
+    "production": {
+      "ios": {
+        "appleId": "zxchengb@163.com",
+        "ascAppId": "6739748229"
+      }
+    }
   }
 }
