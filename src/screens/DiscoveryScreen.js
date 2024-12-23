@@ -1,21 +1,21 @@
-import { useIsFocused } from "@react-navigation/native";
-import React, { useContext, useEffect, useState } from "react";
-import {StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TabBar } from "../components/TabBar";
-import { TabView } from "../components/TabView";
-import { CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST } from "../constant";
-import { NewsContext } from "../providers/NewsProvider";
-import { storage } from "../storage";
-import { useTheme } from "@rneui/themed";
-import analytics from '@react-native-firebase/analytics';
+import {useIsFocused} from "@react-navigation/native";
+import React, {useContext, useEffect, useState} from "react";
+import {StyleSheet} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {TabBar} from "../components/TabBar";
+import {TabView} from "../components/TabView";
+import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
+import {NewsContext} from "../providers/NewsProvider";
+import {storage} from "../storage";
+import {useTheme} from "@rneui/themed";
+import {logEvent} from "../analytics";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
-    const { fetchNormalNews, fetchRssNews } = useContext(NewsContext);
+    const {fetchNormalNews, fetchRssNews} = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
-    const { theme } = useTheme();
+    const {theme} = useTheme();
 
     useEffect(() => {
         initialChannelList();
@@ -28,15 +28,9 @@ export const DiscoveryScreen = () => {
 
     useEffect(() => {
         if (isFocused && channelList) {
-            analytics().logEvent('screen_view', {
+            logEvent('screen_view', {
                 screen_name: 'DiscoveryScreen',
                 page_title: channelList[tabIndex]?.tabTitle || 'unknown',
-            }).then(() => {
-                console.log('record screen view event success:', {
-                    event: 'screen_view',
-                    screen_name: 'DiscoveryScreen',
-                    page_title: channelList[tabIndex]?.tabTitle || 'unknown',
-                });
             }).catch(error => {
                 console.error('record screen view event failed:', error);
             });
@@ -94,9 +88,9 @@ export const DiscoveryScreen = () => {
         ));
     }
 
-    return <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
-        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} />
-        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} />
+    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]} edges={['top']}>
+        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
+        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
     </SafeAreaView>
 };
 

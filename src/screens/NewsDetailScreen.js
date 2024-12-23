@@ -6,8 +6,7 @@ import {useVisibility} from "../providers/VisibilityProvider";
 import Share from "react-native-share";
 import {Icon} from "@rneui/themed";
 import {Text} from "../components/Text";
-import analytics from '@react-native-firebase/analytics';
-
+import { logEvent } from "../analytics";
 export const NewsDetailScreen = ({route}) => {
     const {url, title} = route.params;
     const [loading, setLoading] = useState(true);
@@ -19,7 +18,7 @@ export const NewsDetailScreen = ({route}) => {
     const navigation = useNavigation();
 
     useEffect(() => {
-        analytics().logEvent('screen_view', {
+        logEvent('screen_view', {
             screen_name: 'NewsDetailScreen',
             page_title: title
         });

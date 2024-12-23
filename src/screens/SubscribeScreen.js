@@ -24,8 +24,8 @@ import {
     getUserNewsChannelConfigCurrentVersion,
     updateUserNewsChannelConfig
 } from "../apis/User";
-import analytics from '@react-native-firebase/analytics';
 import { useIsFocused } from '@react-navigation/native';
+import { logEvent } from "../analytics";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -41,7 +41,7 @@ export const SubscribeScreen = () => {
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        analytics().logEvent('screen_view', {
+        logEvent('screen_view', {
             screen_name: 'SubscribeScreen',
             page_title: 'SubscribeScreen'
         });
@@ -117,7 +117,7 @@ export const SubscribeScreen = () => {
             delete pureChannel.renderIcon;
             return pureChannel;
         });
-        await analytics().logEvent('reorder_channel', {
+        await logEvent('reorder_channel', {
             channel_count: newChannelList.length
         });
         saveChannelListToStorage(pureChannelList, true);
@@ -164,7 +164,7 @@ export const SubscribeScreen = () => {
             }
         })
 
-        await analytics().logEvent('toggle_channel_subscription', {
+        await logEvent('toggle_channel_subscription', {
             channel_id: channel.id,
             channel_name: channel.title,
             enabled: !channel.enable
@@ -212,7 +212,7 @@ export const SubscribeScreen = () => {
                     return channel;
                 });
 
-                await analytics().logEvent('edit_rss_channel', {
+                await logEvent('edit_rss_channel', {
                     channel_id: editingChannel.id,
                     channel_name: rssName,
                     rss_url: rssLink
@@ -252,7 +252,7 @@ export const SubscribeScreen = () => {
                     style: "destructive",
                     onPress: async () => {
                         const newChannelList = channelList.filter(channel => channel.id !== editingChannel.id);
-                        await analytics().logEvent('delete_rss_channel', {
+                        await logEvent('delete_rss_channel', {
                             channel_id: editingChannel.id,
                             channel_name: editingChannel.title
                         });
@@ -334,7 +334,7 @@ export const SubscribeScreen = () => {
                     }
                 );
 
-                await analytics().logEvent('add_rss_channel', {
+                await logEvent('add_rss_channel', {
                     channel_id: newChannelId,
                     channel_name: rssName,
                     rss_url: rssLink

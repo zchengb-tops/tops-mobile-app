@@ -18,7 +18,7 @@ import {
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Burnt from "burnt";
 import * as Application from 'expo-application';
-import analytics from '@react-native-firebase/analytics';
+import { logEvent } from "../analytics";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -46,7 +46,7 @@ export const ProfileScreen = () => {
 
 
     useEffect(() => {
-        analytics().logEvent('screen_view', {
+        logEvent('screen_view', {
             screen_name: 'ProfileScreen',
             page_title: 'ProfileScreen'
         });
@@ -219,7 +219,7 @@ export const ProfileScreen = () => {
                         setIsSyncEnabled(false);
                         setAccessToken(null);
                         setUserInfo(null);
-                        await analytics().logEvent('user_logout');
+                        await logEvent('user_logout');
                     }
                 }
             ]
@@ -234,7 +234,7 @@ export const ProfileScreen = () => {
 
     const handleDarkModeChange = async (mode) => {
         setDarkMode(mode);
-        await analytics().logEvent('dark_mode_change', {
+        await logEvent('dark_mode_change', {
             mode: mode
         });
         closeDarkModeModal();
@@ -267,7 +267,7 @@ export const ProfileScreen = () => {
         closeLoginModal();
         fetchUserInfo();
         fetchUserNewsChannelConfig();
-        await analytics().logEvent('user_login_success');
+        await logEvent('user_login_success');
     }
 
     const handleSyncToggle = (syncToggleValue) => {
@@ -345,7 +345,7 @@ export const ProfileScreen = () => {
                     style: 'destructive',
                     text: '前往登录',
                     onPress: async () => {
-                        await analytics().logEvent('open_login_modal', {
+                        await logEvent('open_login_modal', {
                             source: 'sync_settings'
                         });
                         setLoginModalVisible(true);
@@ -537,7 +537,7 @@ export const ProfileScreen = () => {
                 activeOpacity={0.8}
                 style={styles.profileWrapper}
                 onPress={userInfo ? undefined : async () => {
-                    await analytics().logEvent('open_login_modal', {
+                    await logEvent('open_login_modal', {
                         source: 'profile_header'
                     });
                     setLoginModalVisible(true);
@@ -614,7 +614,7 @@ export const ProfileScreen = () => {
                     activeOpacity={0.8}
                     style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={async () => {
-                        await analytics().logEvent('open_dark_mode_modal');
+                        await logEvent('open_dark_mode_modal');
                         setDarkModeModalVisible(true);
                     }}
                 >
