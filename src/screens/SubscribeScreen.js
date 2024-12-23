@@ -9,7 +9,7 @@ import {
     View,
     ActivityIndicator
 } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
 import {Icon, useTheme} from "@rneui/themed";
 import {storage} from "../storage";
@@ -25,8 +25,8 @@ import {
     getUserNewsChannelConfigCurrentVersion,
     updateUserNewsChannelConfig
 } from "../apis/User";
-import { useIsFocused } from '@react-navigation/native';
-import { logEvent } from "../analytics";
+import {useIsFocused} from '@react-navigation/native';
+import {logEvent} from "../analytics";
 import {SvgUri} from "react-native-svg";
 
 export const SubscribeScreen = () => {
@@ -52,7 +52,7 @@ export const SubscribeScreen = () => {
     const loadChannelList = async () => {
         const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
         const accessToken = storage.getString('accessToken');
-        
+
         if (syncEnabled && accessToken) {
             const localVersion = storage.getString('newsChannelConfigVersion');
             try {
@@ -127,7 +127,7 @@ export const SubscribeScreen = () => {
 
     const saveChannelListToStorage = async (newChannelList, needSync = false) => {
         const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
-        
+
         if (syncEnabled && needSync) {
             updateUserNewsChannelConfig(newChannelList).then(async response => {
                 if (response.ok) {
@@ -158,13 +158,16 @@ export const SubscribeScreen = () => {
             return;
         }
 
-        const newChannelList = [...channelList];
-
-        newChannelList.forEach(item => {
+        const newChannelList = channelList.map(item => {
             if (item.id === channel.id) {
-                item.enable = !item.enable;
+                return {
+                    ...item,
+                    enable: !channel.enable
+                };
             }
-        })
+            return item;
+        });
+
 
         await logEvent('toggle_channel_subscription', {
             channel_id: channel.id,
@@ -374,6 +377,7 @@ export const SubscribeScreen = () => {
     }
 
     const renderItem = useCallback(({item, index, drag, isActive}) => {
+        console.log('re-render item')
         return (
             <ScaleDecorator>
                 <TouchableOpacity
@@ -393,10 +397,11 @@ export const SubscribeScreen = () => {
                     {
                         item.isRss
                             ?
-                            (item.iconUrl?.endsWith('.svg') 
-            ? <SvgUri width={24} height={24} uri={item.iconUrl} style={styles.channelIcon}/>
-            : <Image source={{uri: item.iconUrl}} width={24} height={24} style={styles.channelIcon}/>
-        )
+                            (item.iconUrl?.endsWith('.svg')
+                                    ? <SvgUri width={24} height={24} uri={item.iconUrl} style={styles.channelIcon}/>
+                                    : <Image source={{uri: item.iconUrl}} width={24} height={24}
+                                             style={styles.channelIcon}/>
+                            )
                             :
                             item.renderIcon(styles.channelIcon, 24, 24)
                     }
@@ -540,11 +545,12 @@ export const SubscribeScreen = () => {
         <View style={styles.channelContainer}>
             {channelList === null ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={theme.colors.indicator} />
+                    <ActivityIndicator size="large" color={theme.colors.indicator}/>
                 </View>
             ) : (
                 <>
-                    <Text style={[styles.dragTips, {color: theme.colors.secondaryText}]}>Tips: 长按即可进行拖拽排序</Text>
+                    <Text style={[styles.dragTips, {color: theme.colors.secondaryText}]}>Tips:
+                        长按即可进行拖拽排序</Text>
                     <GestureHandlerRootView style={styles.gestureContainer}>
                         <DraggableFlatList
                             containerStyle={styles.dragContainer}

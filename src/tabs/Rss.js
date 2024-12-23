@@ -13,6 +13,7 @@ export const Rss = ({rssUrl}) => {
     const { theme } = useTheme();
     useEffect(() => {
         setNews(rssNews[rssUrl]?.items || [])
+        console.log('rssUrl', rssUrl)
     }, [rssNews]);
 
     useEffect(() => console.log('start to render rss tab view'), []);
