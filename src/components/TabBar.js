@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {Text} from "./Text";
 import {useTheme} from "@rneui/themed";
+import {SvgUri} from "react-native-svg";
 
 export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const tabWidths = useRef([]);
@@ -116,7 +117,11 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
                                 {
                                     channel.isRss
                                         ?
-                                        <Image source={{uri: channel.iconUrl}} style={styles.tabBarIcon}/>
+                                        (
+                                            channel.iconUrl?.endsWith('.svg')
+                                                ? <SvgUri width={16} height={16} uri={channel.iconUrl} style={styles.tabBarIcon}/>
+                                                : <Image source={{uri: channel.iconUrl}} style={styles.tabBarIcon}/>
+                                        )
                                         :
                                         channel.renderIcon()
                                 }

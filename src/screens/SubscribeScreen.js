@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {
     Alert,
+    Image,
     StyleSheet,
     TextInput,
     TouchableOpacity,
@@ -26,6 +27,7 @@ import {
 } from "../apis/User";
 import { useIsFocused } from '@react-navigation/native';
 import { logEvent } from "../analytics";
+import {SvgUri} from "react-native-svg";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -391,7 +393,10 @@ export const SubscribeScreen = () => {
                     {
                         item.isRss
                             ?
-                            <Image source={{uri: item.iconUrl}} width={24} height={24} style={styles.channelIcon}/>
+                            (item.iconUrl?.endsWith('.svg') 
+            ? <SvgUri width={24} height={24} uri={item.iconUrl} style={styles.channelIcon}/>
+            : <Image source={{uri: item.iconUrl}} width={24} height={24} style={styles.channelIcon}/>
+        )
                             :
                             item.renderIcon(styles.channelIcon, 24, 24)
                     }
