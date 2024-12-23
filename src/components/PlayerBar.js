@@ -143,15 +143,15 @@ export const PlayerBar = () => {
                             <Animated.View style={[styles.blurViewWrapper, animatedBlurStyle]}>
                                 <TouchableOpacity onPress={handleFlingLeft} activeOpacity={0.9}>
                                     <BlurView
-                                        style={[styles.blurView, {backgroundColor: isDarkMode ? '#F7F7F7' : 'transparent'}]}
-                                        blurType={isDarkMode ? "dark" : "light"}
+                                        style={[styles.blurView]}
+                                        blurType={isDarkMode ? "light" : "dark"}
                                         blurAmount={3}
                                     >
                                         <Icon size={16}
                                               name='chevron-back-outline'
                                               type='ionicon'
                                               style={styles.shrinkIcon}
-                                              color={isDarkMode ? '#fff' : '#000'}/>
+                                              color={'#fff'}/>
                                     </BlurView>
                                 </TouchableOpacity>
                             </Animated.View>
