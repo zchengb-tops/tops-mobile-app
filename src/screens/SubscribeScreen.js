@@ -320,8 +320,6 @@ export const SubscribeScreen = () => {
             setLoading(true);
             const {response, data} = await saveRssResource(rssLink);
 
-            console.log('handle add rss link:', data);
-
             if (response.status === 200) {
                 const newChannelList = [...channelList];
                 const newChannelId = generateUUID();
@@ -377,7 +375,6 @@ export const SubscribeScreen = () => {
     }
 
     const renderItem = useCallback(({item, index, drag, isActive}) => {
-        console.log('re-render item')
         return (
             <ScaleDecorator>
                 <TouchableOpacity

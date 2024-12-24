@@ -3,7 +3,7 @@ import {ActivityIndicator, Dimensions, Image, StyleSheet, TouchableOpacity, View
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackShowing, useTrackShrink, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
-import TrackPlayer, {State, useProgress} from "react-native-track-player";
+import TrackPlayer, {Capability, State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useVisibility} from "../providers/VisibilityProvider";
 import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";

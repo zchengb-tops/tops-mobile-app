@@ -135,7 +135,6 @@ export const Stock = () => {
             chart.setOption(chartOption);
 
             chart.on("click", (e) => {
-                console.log('e', e.data)
                 navigation.navigate('NewsDetailScreen', {
                     url: e.data.originLink,
                     title: e.data.name

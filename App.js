@@ -71,8 +71,6 @@ const loadCacheTrackPlay = async () => {
     }
 }
 
-initializeTrackPlayer().then(r => loadCacheTrackPlay());
-
 const DiscoveryStackNavigator = () => {
     const { theme } = useTheme();
 
@@ -159,6 +157,26 @@ export default function App() {
         console.log('need update theme...', isDarkMode);
         updateTheme && updateTheme(theme);
     }, [isDarkMode]);
+
+    useEffect(() => {
+        const initializePlayer = async () => {
+            try {
+                await initializeTrackPlayer();
+                await loadCacheTrackPlay();
+                console.log('initialize player success');
+            } catch (e) {
+                if (!e.message.includes('already been initialized')) {
+                    console.error('Failed to initialize player:', e);
+                }
+            }
+        };
+
+        initializePlayer();
+
+        return () => {
+            TrackPlayer?.destroy();
+        };
+    }, []);
 
     return (
         <SafeAreaProvider>
