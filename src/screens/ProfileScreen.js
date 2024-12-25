@@ -1,7 +1,7 @@
 import {Icon, useTheme} from "@rneui/themed";
 import React, {useCallback, useEffect, useState} from "react";
-import {Alert, Image, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking} from "react-native";
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {Alert, Image, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking, Platform, StatusBar} from "react-native";
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
 import {FONT_SIZE, Text} from "../components/Text";
 import {DEFAULT_AVATAR, DEFAULT_CHANNEL_LIST} from "../constant";
@@ -45,7 +45,7 @@ export const ProfileScreen = () => {
         {value: 'light', label: '浅色模式'},
         {value: 'dark', label: '深色模式'}
     ];
-
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -533,7 +533,7 @@ export const ProfileScreen = () => {
                         <Text
                             style={[styles.appVersion, {color: theme.colors.secondaryText}]}>版本 {Application.nativeApplicationVersion || '未知'}</Text>
                         <Text style={[styles.appDesc, {color: theme.colors.text}]}>
-                            InfoHub是一款支持自定义订阅RSS源的资讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub
+                            InfoHub是一款支持自定义订阅RSS源的���讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub
                             对您有起到帮助，欢迎您给我支持或反馈，让 InfoHub 走得更远 :)
                         </Text>
                         <TouchableOpacity
@@ -549,7 +549,15 @@ export const ProfileScreen = () => {
         </Modal>
     );
 
-    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
+    return <View 
+        style={[
+            styles.container, 
+            { 
+                backgroundColor: theme.colors.background,
+                paddingTop: insets.top
+            }
+        ]}
+    >
         <ScrollView>
             <TouchableOpacity
                 activeOpacity={0.8}
@@ -726,7 +734,7 @@ export const ProfileScreen = () => {
             onClose={closeLoginModal}
             onSuccess={onLoginSuccess}
         />
-    </SafeAreaView>;
+    </View>;
 };
 
 const styles = StyleSheet.create({
