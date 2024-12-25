@@ -130,8 +130,9 @@ export const SubscribeScreen = () => {
 
     const saveChannelListToStorage = async (newChannelList, needSync = false) => {
         const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
+        const accessToken = storage.getString('accessToken');
 
-        if (syncEnabled && needSync) {
+        if (accessToken && syncEnabled && needSync) {
             updateUserNewsChannelConfig(newChannelList).then(async response => {
                 if (response.ok) {
                     const data = await response.json();
