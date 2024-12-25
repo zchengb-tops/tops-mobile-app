@@ -1,6 +1,7 @@
 import React, {createContext, useState} from 'react';
 import {storage} from '../storage';
 import * as Burnt from "burnt";
+import {getNormalNews, getRssNews} from "../apis/News";
 
 export const NewsContext = createContext();
 
@@ -15,7 +16,7 @@ export const NewsProvider = ({children}) => {
     const [rssRefreshing, setRssRefreshing] = useState(false);
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-    const fetchRssNews = async () => {
+    const fetchRssNews = async (isRefreshing = false) => {
         setRssLoadError(false);
         setRssLoading(true);
         try {
@@ -24,19 +25,25 @@ export const NewsProvider = ({children}) => {
 
             if (rssChannels.length > 0) {
                 const rssUrls = rssChannels.map(channel => channel.rssUrl);
-                const rssResponse = await fetch(apiUrl + '/rss-news', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({rssUrls})
-                });
-                const originRssData = await rssResponse.json();
-                const rssNews = originRssData.reduce((news, item) => {
-                    news[item.rssUrl] = item
-                    return news
-                  }, {});
-                setRssNews(rssNews);
+                const response = await getRssNews(rssUrls);
+                const originRssData = await response.json();
+
+                if (response.ok) {
+                    const rssNews = originRssData.reduce((news, item) => {
+                        news[item.rssUrl] = item
+                        return news
+                    }, {});
+                    setRssNews(rssNews);
+                    if (isRefreshing) {
+                        Burnt.toast({
+                            title: '刷新成功',
+                            preset: 'done',
+                            duration: 1
+                        });
+                    }
+                } else {
+                    throw new Error(originRssData?.message || 'Failed to fetch rss news');
+                }
             }
         } catch (error) {
             console.error('Error fetching RSS news:', error);
@@ -46,34 +53,44 @@ export const NewsProvider = ({children}) => {
         }
     };
 
-    const fetchNormalNews = async () => {
+    const fetchNormalNews = async (isRefreshing = false) => {
         setNormalLoadError(false);
         setNormalLoading(true);
         try {
             console.log('expo API URL:', apiUrl);
-            const response = await fetch(apiUrl + '/normal-news');
+            const response = await getNormalNews();
             const data = await response.json();
-            setNormalNews(data);
-            await fetchRssNews();
+
+            if (response.ok) {
+                setNormalNews(data);
+                if (isRefreshing) {
+                    Burnt.toast({
+                        title: '刷新成功',
+                        preset: 'done',
+                        duration: 1
+                    });
+                }
+            } else {
+                throw new Error(data?.message || 'Failed to fetch normal news');
+            }
         } catch (error) {
             console.error('Error fetching normal news:', error);
             setNormalLoadError(true);
         } finally {
             setNormalLoading(false);
-
         }
     };
 
     const refreshNews = async () => {
         setNormalRefreshing(true);
-        await fetchNormalNews();
+        await fetchNormalNews(true);
         setNormalRefreshing(false);
         console.log('refresh normal news completed.');
     }
 
     const refreshRssNews = async () => {
         setRssRefreshing(true);
-        await fetchRssNews();
+        await fetchRssNews(true);
         setRssRefreshing(false);
         console.log('refresh rss news completed.');
     }
