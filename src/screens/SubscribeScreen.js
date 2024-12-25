@@ -540,7 +540,7 @@ export const SubscribeScreen = () => {
                             </View>
 
                             <Text style={[styles.rssModalTips, {color: theme.colors.secondaryText}]}>
-                                💡使用浏览器搜索关键字 '网站名 + RSS'���找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
+                                💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
                             </Text>
 
                             {isEditMode && (

@@ -37,6 +37,13 @@ export const DiscoveryScreen = () => {
         }
     }, [isFocused, tabIndex]);
 
+    useEffect(() => {
+        const hasRssChannels = channelList.some(channel => CHANNEL_COMPONENT_MAP[channel.id]?.isRss);
+        if (hasRssChannels) {
+            fetchRssNews().then(() => console.log('Successfully fetch rss news after channel list update :)'));
+        }
+    }, [channelList]);
+
     const initialChannelList = () => {
         const stringifyChannelList = storage.getString("channelList");
         let needUseDefaultChannelList = true;
