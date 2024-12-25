@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
-    ActivityIndicator
+    ActivityIndicator,
+    Platform
 } from "react-native";
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
@@ -28,6 +29,7 @@ import {
 import {useIsFocused} from '@react-navigation/native';
 import {logEvent} from "../analytics";
 import {SvgUri} from "react-native-svg";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -41,6 +43,7 @@ export const SubscribeScreen = () => {
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
     const isFocused = useIsFocused();
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -410,9 +413,8 @@ export const SubscribeScreen = () => {
                                     {item.isRss ? <Icon type={'ionicon'} name={'logo-rss'} color={'#f7a35e'} size={14}
                                                         style={styles.rssTag}/> : <></>}
                                 </View>
-                                {item.isRss && !item.desc ? <></> :
-                                    <Text style={[styles.channelDesc, {color: theme.colors.secondaryText}]}
-                                          numberOfLines={1}>{item.desc}</Text>}
+                                <Text style={[styles.channelDesc, {color: theme.colors.secondaryText}]}
+                                          numberOfLines={1}>{item.desc || item.title}</Text>
                             </View>
                             <TouchableOpacity
                                 style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : theme.colors.primary}]}
@@ -524,7 +526,15 @@ export const SubscribeScreen = () => {
         );
     }
 
-    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]} edges={['top']}>
+    return <View 
+        style={[
+            styles.container, 
+            {
+                backgroundColor: theme.colors.background,
+                paddingTop: insets.top
+            }
+        ]}
+    >
         <View style={styles.topBar}>
             <Text style={[styles.pageTitle, {color: theme.colors.text}]}>资讯订阅</Text>
             <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
@@ -562,7 +572,7 @@ export const SubscribeScreen = () => {
         </View>
 
         {renderRssModal()}
-    </SafeAreaView>;
+    </View>;
 };
 
 const styles = StyleSheet.create({
@@ -754,7 +764,10 @@ const styles = StyleSheet.create({
     rssModalDeleteLabel: {
         fontSize: 16,
         color: '#FF3B30',
-    }
+    },
+    topBarPadding: {
+        paddingTop: Platform.OS === 'ios' ? 8 : 12,
+    },
 });
 
 export default SubscribeScreen;
