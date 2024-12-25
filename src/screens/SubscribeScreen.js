@@ -30,6 +30,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {logEvent} from "../analytics";
 import {SvgUri} from "react-native-svg";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { debounce } from 'lodash';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -128,27 +129,48 @@ export const SubscribeScreen = () => {
         saveChannelListToStorage(pureChannelList, true);
     }
 
+    const debouncedSync = useCallback(
+        debounce((newChannelList) => {
+            const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
+            const accessToken = storage.getString('accessToken');
+
+            if (accessToken && syncEnabled) {
+                updateUserNewsChannelConfig(newChannelList).then(async response => {
+                    if (response.ok) {
+                        const data = await response.json();
+                        storage.set('newsChannelConfigVersion', data.newVersion?.toString());
+                        storage.set('lastSyncTime', new Date().toLocaleString());
+                        console.log('successfully update channel list to server');
+                    } else {
+                        console.error('failed to update channel list to server');
+                    }
+                }).catch(error => {
+                    console.error('failed to update channel list to server', error);
+                });
+            }
+        }, 5000),
+        []
+    );
+
     const saveChannelListToStorage = async (newChannelList, needSync = false) => {
         const syncEnabled = storage.getBoolean('isSyncEnabled') || false;
         const accessToken = storage.getString('accessToken');
 
         if (accessToken && syncEnabled && needSync) {
-            updateUserNewsChannelConfig(newChannelList).then(async response => {
-                if (response.ok) {
-                    const data = await response.json();
-                    storage.set('newsChannelConfigVersion', data.newVersion?.toString());
-                    storage.set('lastSyncTime', new Date().toLocaleString());
-                } else {
-                    console.error('failed to update channel list to server');
-                }
-            }).catch(error => {
-                console.error('failed to update channel list to server', error);
-            });
+            debouncedSync(newChannelList);
         }
 
         storage.set('channelList', JSON.stringify(newChannelList));
         console.log('successfully update channel list');
     }
+
+    useEffect(() => {
+        return () => {
+            if (debouncedSync.flush) {
+                debouncedSync.flush();
+            }
+        };
+    }, []);
 
     const handleSubscribe = async (channel) => {
         const subscribedChannels = channelList.filter(item => item.enable);
@@ -418,11 +440,20 @@ export const SubscribeScreen = () => {
                                           numberOfLines={1}>{item.desc || item.title}</Text>
                             </View>
                             <TouchableOpacity
-                                style={[styles.subscribeButton, {borderColor: item.enable ? '#B6B6B6' : theme.colors.primary}]}
+                                style={[
+                                    styles.subscribeButton, 
+                                    {borderColor: item.enable ? '#B6B6B6' : theme.colors.primary}
+                                ]}
                                 onPress={() => handleSubscribe(item)}
                             >
                                 <Text
-                                    style={[styles.subscribeButtonLabel, {color: item.enable ? theme.colors.secondaryText : theme.colors.primary}]}>{item.enable ? '已订阅' : '+ 订阅'}</Text>
+                                    style={[
+                                        styles.subscribeButtonLabel, 
+                                        {color: item.enable ? theme.colors.secondaryText : theme.colors.primary}
+                                    ]}
+                                >
+                                    {item.enable ? '已订阅' : '+ 订阅'}
+                                </Text>
                             </TouchableOpacity>
                         </View>
                         <View style={[styles.channelItemDivider, {backgroundColor: theme.colors.border}]}/>
@@ -509,7 +540,7 @@ export const SubscribeScreen = () => {
                             </View>
 
                             <Text style={[styles.rssModalTips, {color: theme.colors.secondaryText}]}>
-                                💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
+                                💡使用浏览器搜索关键字 '网站名 + RSS'���找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
                             </Text>
 
                             {isEditMode && (
