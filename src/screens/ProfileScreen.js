@@ -31,6 +31,8 @@ export const ProfileScreen = () => {
     const [userInfo, setUserInfo] = useState(JSON.parse(storage.getString('userInfo') || null));
     const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? false);
     const [lastSyncTime, setLastSyncTime] = useState(storage.getString('lastSyncTime'));
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [lastSyncClickTime, setLastSyncClickTime] = useState(0);
     const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
     const {theme} = useTheme();
@@ -171,10 +173,24 @@ export const ProfileScreen = () => {
     };
 
     const handleManualSync = async () => {
+        const now = Date.now();
+        if (now - lastSyncClickTime < 5000) {
+            Burnt.toast({
+                title: '操作频繁，请稍后再试',
+                preset: 'error',
+                duration: 2,
+            });
+            return;
+        }
+        
         if (!accessToken) {
             promptLoginForSync();
             return;
         }
+
+        setIsSyncing(true);
+        setLastSyncClickTime(now);
+        
         const channelSettings = JSON.parse(storage.getString('channelList')) || DEFAULT_CHANNEL_LIST;
         try {
             const response = await updateUserNewsChannelConfig(channelSettings);
@@ -198,6 +214,8 @@ export const ProfileScreen = () => {
                 preset: 'error',
                 message: e.message
             });
+        } finally {
+            setIsSyncing(false);
         }
     };
 
@@ -459,7 +477,7 @@ export const ProfileScreen = () => {
                             marginBottom: !lastSyncTime ? 56 : 0
                         }]}
                         onPress={handleManualSync}
-                        disabled={!accessToken}
+                        disabled={!accessToken || isSyncing}
                     >
                         <View style={styles.settingLeft}>
                             <Icon name="cloud-upload-outline" type="ionicon" size={20} color={theme.colors.text}/>
@@ -468,10 +486,10 @@ export const ProfileScreen = () => {
                         <Text
                             style={[styles.actionText, {
                                 color: theme.colors.primary,
-                                opacity: accessToken ? 1 : 0.3
+                                opacity: (accessToken && !isSyncing) ? 1 : 0.3
                             }]}
                         >
-                            立即同步
+                            {isSyncing ? '同步中...' : '立即同步'}
                         </Text>
                     </TouchableOpacity>
                     {lastSyncTime && (
