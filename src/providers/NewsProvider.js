@@ -34,13 +34,6 @@ export const NewsProvider = ({children}) => {
                         return news
                     }, {});
                     setRssNews(rssNews);
-                    if (isRefreshing) {
-                        Burnt.toast({
-                            title: '刷新成功',
-                            preset: 'done',
-                            duration: 1
-                        });
-                    }
                 } else {
                     throw new Error(originRssData?.message || 'Failed to fetch rss news');
                 }
@@ -63,13 +56,6 @@ export const NewsProvider = ({children}) => {
 
             if (response.ok) {
                 setNormalNews(data);
-                if (isRefreshing) {
-                    Burnt.toast({
-                        title: '刷新成功',
-                        preset: 'done',
-                        duration: 1
-                    });
-                }
             } else {
                 throw new Error(data?.message || 'Failed to fetch normal news');
             }
