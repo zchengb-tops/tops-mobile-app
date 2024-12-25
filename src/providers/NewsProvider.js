@@ -1,5 +1,6 @@
 import React, {createContext, useState} from 'react';
 import {storage} from '../storage';
+import * as Burnt from "burnt";
 
 export const NewsContext = createContext();
 
@@ -65,11 +66,16 @@ export const NewsProvider = ({children}) => {
 
     const refreshNews = async () => {
         setNormalRefreshing(true);
-        setRssRefreshing(true);
         await fetchNormalNews();
         setNormalRefreshing(false);
+        console.log('refresh normal news completed.');
+    }
+
+    const refreshRssNews = async () => {
+        setRssRefreshing(true);
+        await fetchRssNews();
         setRssRefreshing(false);
-        console.log('refresh completed.');
+        console.log('refresh rss news completed.');
     }
 
     return (
@@ -80,6 +86,7 @@ export const NewsProvider = ({children}) => {
                 fetchNormalNews,
                 fetchRssNews,
                 refreshNews,
+                refreshRssNews,
                 normalLoading,
                 rssLoading,
                 normalLoadError,

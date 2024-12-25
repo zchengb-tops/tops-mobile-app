@@ -7,7 +7,7 @@ import { Text } from "../components/Text";
 import { useTheme } from '@rneui/themed';
 
 export const Rss = ({rssUrl}) => {
-    const {rssNews, rssRefreshing, refreshNews} = useContext(NewsContext);
+    const {rssNews, rssRefreshing, refreshRssNews} = useContext(NewsContext);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const { theme } = useTheme();
@@ -60,7 +60,7 @@ export const Rss = ({rssUrl}) => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={rssRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={rssRefreshing} onRefresh={refreshRssNews}/>
         }
         style={styles.container}
         contentContainerStyle={styles.contentContainer}

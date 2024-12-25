@@ -174,7 +174,7 @@ export default function App() {
         initializePlayer();
 
         return () => {
-            TrackPlayer?.destroy();
+            TrackPlayer?.destroy && TrackPlayer?.destroy();
         };
     }, []);
 
