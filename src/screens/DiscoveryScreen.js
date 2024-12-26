@@ -12,6 +12,7 @@ import {logEvent} from "../analytics";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
+    const [isScrolling, setIsScrolling] = useState(false);
     const {fetchNormalNews, fetchRssNews} = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
@@ -95,9 +96,13 @@ export const DiscoveryScreen = () => {
         ));
     }
 
+    const handlePageScrollStateChanged = (state) => {
+        setIsScrolling(state === 'dragging' || state === 'settling');
+    };
+
     return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]} edges={['top']}>
-        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
-        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex}/>
+        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} isScrolling={isScrolling}/>
+        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} onPageScrollStateChanged={handlePageScrollStateChanged}/>
     </SafeAreaView>
 };
 

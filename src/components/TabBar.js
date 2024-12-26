@@ -4,7 +4,7 @@ import {Text} from "./Text";
 import {useTheme} from "@rneui/themed";
 import {SvgUri} from "react-native-svg";
 
-export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
+export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
     const tabWidths = useRef([]);
     const animatedPosition = useRef(new Animated.Value(0)).current;
     const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -15,10 +15,10 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
     const {theme} = useTheme();
 
     useEffect(() => {
-        if (tabWidths.current.length > 0) {
+        if (tabWidths.current.length > 0 && !isScrolling) {
             scrollToTab(tabIndex);
         }
-    }, [tabIndex, channelList]);
+    }, [tabIndex, channelList, isScrolling]);
 
     useEffect(() => {
         console.log('render tab bar')
@@ -28,6 +28,21 @@ export const TabBar = ({channelList, tabIndex, setTabIndex}) => {
         if (scrollViewRef.current && tabWidths.current[index] !== undefined) {
             const tabItemEndPosition = tabWidths.current.slice(0, index + 1).reduce((total, width) => total + width, 10 * (index + 1));
             const tabItemStartPosition = tabItemEndPosition - 10 - tabWidths.current[index];
+
+            Animated.parallel([
+                Animated.spring(animatedPosition, {
+                    toValue: tabItemStartPosition,
+                    useNativeDriver: true,
+                    tension: 50,
+                    friction: 7
+                }),
+                Animated.spring(animatedWidth, {
+                    toValue: tabWidths.current[index],
+                    useNativeDriver: false,
+                    tension: 50,
+                    friction: 7
+                })
+            ]).start();
 
             const currentScreenEndPosition = scrollX + screenWidth;
             const currentScreenStartPosition = currentScreenEndPosition - screenWidth;

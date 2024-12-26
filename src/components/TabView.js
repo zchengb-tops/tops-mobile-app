@@ -27,7 +27,7 @@ const TabContent = memo(({ channel, rssLoadError, normalLoadError, rssLoading, n
     ) : channel.component;
 });
 
-export const TabView = ({channelList, tabIndex, setTabIndex}) => {
+export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateChanged}) => {
     const context = useContext(NewsContext);
     const pagerRef = useRef(null);
     
@@ -47,6 +47,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex}) => {
             onPageSelected={(e) => {
                 setTabIndex(e.nativeEvent.position);
             }}
+            onPageScrollStateChanged={onPageScrollStateChanged}
             pageMargin={10}
             offscreenPageLimit={2}
         >
