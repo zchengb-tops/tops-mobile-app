@@ -62,7 +62,6 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateCh
             offscreenPageLimit={2}
         >
             {enabledChannels.map((channel, index) => {
-                console.log('render tab view', channel.title, index);
                 return (
                     <View key={index} style={styles.tabView}>
                         <TabContent channel={channel} />
