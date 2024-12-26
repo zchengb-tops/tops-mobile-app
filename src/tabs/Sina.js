@@ -11,7 +11,6 @@ export const Sina = () => {
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const { theme } = useTheme();
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
     useEffect(() => {
         setNews(normalNews['sina'])
@@ -46,7 +45,8 @@ export const Sina = () => {
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
                             url: item.link,
-                            title: item.title
+                            title: item.title,
+                            useTitleForShare: true
                         })
                     }
                 >

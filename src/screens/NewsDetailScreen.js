@@ -8,7 +8,7 @@ import {Icon} from "@rneui/themed";
 import {Text} from "../components/Text";
 import { logEvent } from "../analytics";
 export const NewsDetailScreen = ({route}) => {
-    const {url, title} = route.params;
+    const {url, title, useTitleForShare} = route.params;
     const [loading, setLoading] = useState(true);
     const [currentUrl, setCurrentUrl] = useState(url);
     const [currentTitle, setCurrentTitle] = useState(title);
@@ -57,6 +57,8 @@ export const NewsDetailScreen = ({route}) => {
         console.log('handle share', currentUrl)
         const options = Platform.select({
             ios: {
+                title: useTitleForShare ? title : currentTitle,
+                message: currentTitle,
                 activityItemSources: [
                     {
                         placeholderItem: {type: 'url', content: currentUrl},
@@ -64,15 +66,15 @@ export const NewsDetailScreen = ({route}) => {
                             default: {type: 'url', content: currentUrl},
                         },
                         subject: {
-                            default: currentTitle,
+                            default: useTitleForShare ? title : currentTitle,
                         },
-                        linkMetadata: {originalUrl: currentUrl, url: currentUrl, title: currentTitle},
+                        linkMetadata: {originalUrl: currentUrl, url: currentUrl, title: useTitleForShare ? title : currentTitle},
                     },
                 ],
             },
             android: {
-                title: currentTitle,
-                subject: currentTitle,
+                title: useTitleForShare ? title : currentTitle,
+                subject: useTitleForShare ? title : currentTitle,
                 message: currentUrl,
                 url: currentUrl
             }
