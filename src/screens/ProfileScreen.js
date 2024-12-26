@@ -539,7 +539,7 @@ export const ProfileScreen = () => {
                         />
                         <Text style={[styles.appName, {color: theme.colors.text}]}>InfoHub</Text>
                         <Text
-                            style={[styles.appVersion, {color: theme.colors.secondaryText}]}>版本 {Application.nativeApplicationVersion || '未知'}</Text>
+                            style={[styles.appVersion, {color: theme.colors.secondaryText}]}>版本 {Application.nativeApplicationVersion || '未知'}{Platform.OS === 'ios' ? ` (${Application.nativeBuildVersion})` : ''}</Text>
                         <Text style={[styles.appDesc, {color: theme.colors.text}]}>
                             InfoHub是一款支持自定义订阅RSS源的资讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub
                             对您有起到帮助，欢迎您给我支持或反馈，让 InfoHub 走得更远 :)
