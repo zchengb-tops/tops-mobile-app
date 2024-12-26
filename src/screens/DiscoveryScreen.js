@@ -1,5 +1,5 @@
 import {useIsFocused} from "@react-navigation/native";
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useState, useRef} from "react";
 import {StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {TabBar} from "../components/TabBar";
@@ -17,9 +17,12 @@ export const DiscoveryScreen = () => {
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
     const {theme} = useTheme();
+    const [pagerKey, setPagerKey] = useState(0); 
 
     useEffect(() => {
-        initialChannelList();
+        if (isFocused) {
+            initialChannelList();
+        }
     }, [isFocused]);
 
     useEffect(() => {
@@ -38,12 +41,6 @@ export const DiscoveryScreen = () => {
         }
     }, [isFocused, tabIndex]);
 
-    useEffect(() => {
-        const hasRssChannels = channelList.some(channel => CHANNEL_COMPONENT_MAP[channel.id]?.isRss);
-        if (hasRssChannels) {
-            fetchRssNews().then(() => console.log('Successfully fetch rss news after channel list update :)'));
-        }
-    }, [channelList]);
 
     const initialChannelList = () => {
         const stringifyChannelList = storage.getString("channelList");
@@ -58,7 +55,12 @@ export const DiscoveryScreen = () => {
                 needUseDefaultChannelList = false;
 
                 if (hasChanges) {
+                    const hasRssChannels = channelList.some(channel => CHANNEL_COMPONENT_MAP[channel.id]?.isRss);
+                    if (hasRssChannels) {
+                        fetchRssNews().then(() => console.log('Successfully fetch rss news after channel list update :)'));
+                    }
                     setTabIndex(0);
+                    setPagerKey(prevKey => prevKey + 1);
                 }
             }
         }
@@ -71,14 +73,18 @@ export const DiscoveryScreen = () => {
     }
 
     const checkChannelListChanges = (newList, oldList) => {
-        if (newList.length !== oldList.length) {
+        const enabledNewChannels = newList.filter(channel => channel.enable);
+        const enabledOldChannels = oldList.filter(channel => channel.enable);
+
+        if (enabledNewChannels.length !== enabledOldChannels.length) {
             return true;
         }
 
-        for (let i = 0; i < newList.length; i++) {
-            const newChannel = newList[i];
-            const oldChannel = oldList.find(channel => channel.id === newChannel.id);
-            if (!oldChannel || newChannel.enable !== oldChannel.enable) {
+        for (let i = 0; i < enabledNewChannels.length; i++) {
+            const newChannel = enabledNewChannels[i];
+            const oldChannel = enabledOldChannels.find(channel => channel.id === newChannel.id);
+            
+            if (!oldChannel) {
                 return true;
             }
         }
@@ -102,7 +108,13 @@ export const DiscoveryScreen = () => {
 
     return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]} edges={['top']}>
         <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} isScrolling={isScrolling}/>
-        <TabView channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} onPageScrollStateChanged={handlePageScrollStateChanged}/>
+        <TabView 
+            key={pagerKey}
+            channelList={channelList} 
+            tabIndex={tabIndex} 
+            setTabIndex={setTabIndex} 
+            onPageScrollStateChanged={handlePageScrollStateChanged}
+        />
     </SafeAreaView>
 };
 

@@ -5,7 +5,18 @@ import {NewsContext} from "../providers/NewsProvider";
 import {Rss} from "../tabs/Rss";
 import PagerView from 'react-native-pager-view';
 
-const TabContent = memo(({ channel, rssLoadError, normalLoadError, rssLoading, normalLoading, rssRefreshing, normalRefreshing, fetchRssNews, fetchNormalNews }) => {
+const TabContent = memo(({ channel }) => {
+    const {
+        rssLoadError,
+        normalLoadError,
+        rssLoading,
+        normalLoading,
+        rssRefreshing,
+        normalRefreshing,
+        fetchRssNews,
+        fetchNormalNews
+    } = useContext(NewsContext);
+
     if (channel.isRss) {
         if (rssLoadError) {
             return <ErrorScreen fetchNews={fetchRssNews}/>;
@@ -28,7 +39,6 @@ const TabContent = memo(({ channel, rssLoadError, normalLoadError, rssLoading, n
 });
 
 export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateChanged}) => {
-    const context = useContext(NewsContext);
     const pagerRef = useRef(null);
     
     useEffect(() => {
@@ -51,14 +61,14 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateCh
             pageMargin={10}
             offscreenPageLimit={2}
         >
-            {enabledChannels.map((channel, index) => (
-                <View key={index} style={styles.tabView}>
-                    <TabContent 
-                        channel={channel}
-                        {...context}
-                    />
-                </View>
-            ))}
+            {enabledChannels.map((channel, index) => {
+                console.log('render tab view', channel.title, index);
+                return (
+                    <View key={index} style={styles.tabView}>
+                        <TabContent channel={channel} />
+                    </View>
+                )
+            })}
         </PagerView>
     );
 };
