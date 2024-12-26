@@ -300,7 +300,7 @@ const LoginModal = ({ isVisible, setIsVisible, onClose, onSuccess }) => {
                         <Text style={[styles.resendText, {
                             color: countdown > 0 ? theme.colors.secondaryText : theme.colors.primary
                         }]}>
-                            {countdown > 0 ? `${countdown}秒后重新发送` : '重���发送'}
+                            {countdown > 0 ? `${countdown}秒后重新发送` : '重新发送'}
                         </Text>
                     )}
                 </TouchableOpacity>
