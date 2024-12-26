@@ -1,8 +1,9 @@
-import React, {useContext, useEffect, useRef, useState, memo} from 'react';
-import {ActivityIndicator, Dimensions, FlatList, StyleSheet, View} from 'react-native';
+import React, {useContext, useRef, memo, useEffect} from 'react';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
 import {NewsContext} from "../providers/NewsProvider";
 import {Rss} from "../tabs/Rss";
+import PagerView from 'react-native-pager-view';
 
 const TabContent = memo(({ channel, rssLoadError, normalLoadError, rssLoading, normalLoading, rssRefreshing, normalRefreshing, fetchRssNews, fetchNormalNews }) => {
     if (channel.isRss) {
@@ -28,81 +29,36 @@ const TabContent = memo(({ channel, rssLoadError, normalLoadError, rssLoading, n
 
 export const TabView = ({channelList, tabIndex, setTabIndex}) => {
     const context = useContext(NewsContext);
-    const screenWidth = Dimensions.get('window').width;
-    const [key, setKey] = useState(0);
-    const flatListRef = useRef(null);
-    const isManualScrolling = useRef(false);
-    const isTabPress = useRef(false);
+    const pagerRef = useRef(null);
     
     useEffect(() => {
-        setTabIndex(0);
-        setKey(prevKey => prevKey + 1);
-    }, [channelList]);
-
-    useEffect(() => {
-        if (!isManualScrolling.current && channelList.filter(channel => channel.enable).length > 0) {
-            isTabPress.current = true;
-            flatListRef.current?.scrollToIndex({
-                index: tabIndex,
-                animated: true
-            });
-            setTimeout(() => {
-                isTabPress.current = false;
-            }, 300);
+        if (pagerRef.current) {
+            pagerRef.current.setPage(tabIndex);
         }
     }, [tabIndex]);
 
-    const renderItem = ({ item: channel, index }) => (
-        <View style={[styles.tabView, { width: screenWidth }]}>
-            <TabContent 
-                channel={channel}
-                {...context}
-            />
-        </View>
-    );
-
-    const onMomentumScrollBegin = () => {
-        isManualScrolling.current = true;
-    };
-
-    const onMomentumScrollEnd = () => {
-        isManualScrolling.current = false;
-    };
-
-    const onViewableItemsChanged = useRef(({ viewableItems }) => {
-        if (viewableItems.length > 0 && !isTabPress.current) {
-            setTabIndex(viewableItems[0].index);
-        }
-    }).current;
-
-    const viewabilityConfig = useRef({
-        itemVisiblePercentThreshold: 50
-    }).current;
+    const enabledChannels = channelList.filter(channel => channel.enable);
 
     return (
-        <FlatList
-            ref={flatListRef}
-            key={key}
-            data={channelList.filter(channel => channel.enable)}
-            renderItem={renderItem}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            initialScrollIndex={tabIndex}
-            getItemLayout={(data, index) => ({
-                length: screenWidth,
-                offset: screenWidth * index,
-                index,
-            })}
-            onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={viewabilityConfig}
-            windowSize={3}
-            maxToRenderPerBatch={1}
-            removeClippedSubviews={true}
-            onMomentumScrollBegin={onMomentumScrollBegin}
-            onMomentumScrollEnd={onMomentumScrollEnd}
-        />
+        <PagerView
+            ref={pagerRef}
+            style={styles.pagerView}
+            initialPage={tabIndex}
+            onPageSelected={(e) => {
+                setTabIndex(e.nativeEvent.position);
+            }}
+            pageMargin={10}
+            offscreenPageLimit={2}
+        >
+            {enabledChannels.map((channel, index) => (
+                <View key={index} style={styles.tabView}>
+                    <TabContent 
+                        channel={channel}
+                        {...context}
+                    />
+                </View>
+            ))}
+        </PagerView>
     );
 };
 
@@ -110,10 +66,12 @@ const styles = StyleSheet.create({
     tabView: {
         flex: 1,
     },
-    tabBarIcon: {width: 16, height: 16, marginRight: 4},
     loadingView: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-    }
+    },
+    pagerView: {
+        flex: 1,
+    },
 });
