@@ -62,8 +62,16 @@ export const ProfileScreen = () => {
             }
         });
 
+        const lastSyncTimeListener = storage.addOnValueChangedListener((key) => {
+            if (key === 'lastSyncTime') {
+                const newLastSyncTime = storage.getString('lastSyncTime');
+                setLastSyncTime(newLastSyncTime);
+            }
+        });
+
         return () => {
             accessTokenListener.remove();
+            lastSyncTimeListener.remove();
         };
     }, []);
 
