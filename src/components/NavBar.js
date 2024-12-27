@@ -22,7 +22,19 @@ export const NavBar = () => {
     const { isNavBarVisible } = useVisibility();
     const { theme } = useTheme();
     const isDarkMode = useDarkMode();
+    const [isInitialized, setIsInitialized] = useState(false);
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (tabRefs.current[routeMapping.DISCOVERY]) {
+                const { x } = tabRefs.current[routeMapping.DISCOVERY];
+                translateAnim.setValue(x - 16);
+                setIsInitialized(true);
+            }
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         if (isNavBarVisible) {
@@ -44,6 +56,10 @@ export const NavBar = () => {
 
     const handleLayout = (screenName, layout) => {
         tabRefs.current[screenName] = layout;
+        if (screenName === routeMapping.DISCOVERY && !isInitialized) {
+            translateAnim.setValue(layout.x - 16);
+            setIsInitialized(true);
+        }
     };
 
     const renderLabel = (screenName, label) => {
@@ -106,12 +122,15 @@ export const NavBar = () => {
         }
     }
 
-    const goto = (routeName, index) => {
-        const { x } = tabRefs.current[routeName];
+    const goto = (routeName) => {
+        if (!tabRefs.current[routeName]) return;
 
+        const { x } = tabRefs.current[routeName];
         Animated.spring(translateAnim, {
             toValue: x - 16,
             useNativeDriver: true,
+            tension: 68,
+            friction: 8
         }).start();
 
         setCurrentRoute(routeName);
@@ -135,12 +154,13 @@ export const NavBar = () => {
                 <View style={[styles.navBar]}>
                     <Animated.View style={[styles.navButtonSelected, {
                         backgroundColor: theme.colors.indicator,
-                        transform: [{ translateX: translateAnim }]
+                        transform: [{ translateX: translateAnim }],
+                        opacity: isInitialized ? 1 : 0,
                     }]} />
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={styles.navButton}
-                        onPress={() => goto(routeMapping.DISCOVERY, 0)}
+                        onPress={() => goto(routeMapping.DISCOVERY)}
                         onLayout={(event) => handleLayout(routeMapping.DISCOVERY, event.nativeEvent.layout)}
                     >
                         {renderIcon(routeMapping.DISCOVERY)}
@@ -149,7 +169,7 @@ export const NavBar = () => {
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={styles.navButton}
-                        onPress={() => goto(routeMapping.SUBSCRIBE, 1)}
+                        onPress={() => goto(routeMapping.SUBSCRIBE)}
                         onLayout={(event) => handleLayout(routeMapping.SUBSCRIBE, event.nativeEvent.layout)}
                     >
                         {renderIcon(routeMapping.SUBSCRIBE)}
@@ -158,7 +178,7 @@ export const NavBar = () => {
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={styles.navButton}
-                        onPress={() => goto(routeMapping.PROFILE, 2)}
+                        onPress={() => goto(routeMapping.PROFILE)}
                         onLayout={(event) => handleLayout(routeMapping.PROFILE, event.nativeEvent.layout)}
                     >
                         {renderIcon(routeMapping.PROFILE)}
