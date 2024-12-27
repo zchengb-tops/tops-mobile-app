@@ -27,6 +27,10 @@
       "ios": {
         "distribution": "store"
       },
+      "android": {
+        "buildType": "apk",
+        "distribution": "internal"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://infohub.net.cn/api"
       }
