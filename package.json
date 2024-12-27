@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
-    "@react-native-community/blur": "^4.4.0",
     "@react-native-community/slider": "^4.5.2",
     "@react-native-firebase/analytics": "^21.6.1",
     "@react-native-firebase/app": "^21.6.1",

@@ -8,7 +8,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useVisibility} from "../providers/VisibilityProvider";
 import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";
 import Animated, {runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
-import {BlurView} from "@react-native-community/blur";
+import {BlurView} from "./BlurView";
 import {storage} from "../storage";
 import {useTrackStateStore} from "../hooks/AudioTrackStore";
 import {Text} from "./Text";
