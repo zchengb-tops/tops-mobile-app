@@ -30,6 +30,7 @@ import {logEvent} from "../analytics";
 import {SvgUri} from "react-native-svg";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { debounce } from 'lodash';
+import {saveRssResource, getRssResourceTitle} from "../apis/News";
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -39,7 +40,6 @@ export const SubscribeScreen = () => {
     const [loading, setLoading] = useState(false);
     const [editingChannel, setEditingChannel] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
     const isFocused = useIsFocused();
@@ -204,20 +204,6 @@ export const SubscribeScreen = () => {
         saveChannelListToStorage(newChannelList, true);
     }
 
-    const saveRssResource = async (rssUrl) => {
-        const response = await fetch(apiUrl + '/rss-resource', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                rssUrl: rssUrl
-            })
-        });
-        const data = await response.json();
-        return {response, data};
-    }
-
     const handleEditRss = async () => {
         if (!validRssName() || !validRssLink()) {
             return;
@@ -225,9 +211,10 @@ export const SubscribeScreen = () => {
 
         try {
             setLoading(true);
-            const {response, data} = await saveRssResource(rssLink);
+            const response = await saveRssResource(rssLink);
+            const data = await response.json();
 
-            if (response.status === 200) {
+            if (response.ok) {
                 const newChannelList = channelList.map(channel => {
                     if (channel.id === editingChannel.id) {
                         return {
@@ -315,7 +302,7 @@ export const SubscribeScreen = () => {
         const urlPattern = /^https?:\/\/.*$/;
         if (!urlPattern.test(rssLink)) {
             Alert.alert(
-                "添加失败",
+                "操作失败",
                 "请输入有效的RSS链接",
                 [{text: "确定"}]
             );
@@ -327,7 +314,7 @@ export const SubscribeScreen = () => {
     const validRssName = () => {
         if (rssName && rssName.length > 24) {
             Alert.alert(
-                "添加失败",
+                "操作失败",
                 "RSS名称不能超过24个字符",
                 [{text: "确定"}]
             );
@@ -343,9 +330,9 @@ export const SubscribeScreen = () => {
 
         try {
             setLoading(true);
-            const {response, data} = await saveRssResource(rssLink);
-
-            if (response.status === 200) {
+            const response = await saveRssResource(rssLink);
+            const data = await response.json();
+            if (response.ok) {
                 const newChannelList = [...channelList];
                 const newChannelId = generateUUID();
 
@@ -396,7 +383,37 @@ export const SubscribeScreen = () => {
     }
 
     const saveButtonDisabled = () => {
-        return loading || !rssName || !rssLink;
+        return !rssName || !rssLink;
+    }
+123
+    const handleGetRssTitle = async () => {
+        if (!validRssLink()) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await getRssResourceTitle(rssLink);
+            const data = await response.json();
+
+            if (response.ok) {
+                setRssName(data.title);
+            } else {
+                Alert.alert(
+                    "解析失败",
+                    data.message,
+                    [{text: "确定"}]
+                );
+            }
+        } catch (error) {
+            Alert.alert(
+                "解析失败",
+                "获取RSS标题失败，请手动输入",
+                [{text: "确定"}]
+            );
+        } finally {
+            setLoading(false);
+        }
     }
 
     const renderItem = useCallback(({item, index, drag, isActive}) => {
@@ -478,7 +495,7 @@ export const SubscribeScreen = () => {
                             <View style={styles.rssModalOperationBar}>
                                 <TouchableOpacity style={styles.rssModalButton} onPress={closeRssInfoModal}>
                                     <Text
-                                        style={[styles.rssModalCancelLabel, {color: loading ? 'rgba(0,0,0,0.25)' : theme.colors.primary}]}>
+                                        style={[styles.rssModalCancelLabel, {color: theme.colors.primary}]}>
                                         取消
                                     </Text>
                                 </TouchableOpacity>
@@ -501,6 +518,35 @@ export const SubscribeScreen = () => {
                             </View>
 
                             <View style={styles.rssModalInputItem}>
+                                <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>RSS链接：</Text>
+                                <View style={styles.rssModalInputWrapper}>
+                                    <TextInput
+                                        style={[styles.rssModalInput, styles.rssModalLinkInput, {
+                                            backgroundColor: theme.colors.inputBackground,
+                                            color: theme.colors.text,
+                                            borderColor: theme.colors.border,
+                                            borderWidth: isDarkMode ? 1 : 0
+                                        }]}
+                                        placeholder="RSS链接"
+                                        placeholderTextColor={theme.colors.secondaryText}
+                                        value={rssLink}
+                                        onChangeText={setRssLink}
+                                    />
+                                    <TouchableOpacity 
+                                        style={[styles.parseButton, {borderColor: loading || !rssLink ? theme.colors.deepBorder : theme.colors.primary}]}
+                                        onPress={handleGetRssTitle}
+                                        disabled={loading || !rssLink}
+                                    >
+                                        <Text style={[styles.parseButtonLabel, {
+                                            color: loading || !rssLink ? theme.colors.secondaryText : theme.colors.primary
+                                        }]}>
+                                            解析名称
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <View style={styles.rssModalInputItem}>
                                 <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>资讯名称：</Text>
                                 <View style={styles.rssModalInputWrapper}>
                                     <TextInput
@@ -520,22 +566,6 @@ export const SubscribeScreen = () => {
                                     <Text
                                         style={[styles.rssModalInputLimit, {color: theme.colors.secondaryText}]}>{rssName.length}/24</Text>
                                 </View>
-                            </View>
-
-                            <View style={styles.rssModalInputItem}>
-                                <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>RSS链接：</Text>
-                                <TextInput
-                                    style={[styles.rssModalInput, {
-                                        backgroundColor: theme.colors.inputBackground,
-                                        color: theme.colors.text,
-                                        borderColor: theme.colors.border,
-                                        borderWidth: isDarkMode ? 1 : 0
-                                    }]}
-                                    placeholder="RSS链接"
-                                    placeholderTextColor={theme.colors.secondaryText}
-                                    value={rssLink}
-                                    onChangeText={setRssLink}
-                                />
                             </View>
 
                             <Text style={[styles.rssModalTips, {color: theme.colors.secondaryText}]}>
@@ -777,6 +807,10 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingRight: 56
     },
+    rssModalLinkInput: {
+        flex: 1,
+        paddingRight: 100
+    },
     rssModalInputLimit: {
         position: 'absolute',
         right: 12
@@ -799,6 +833,17 @@ const styles = StyleSheet.create({
     topBarPadding: {
         paddingTop: Platform.OS === 'ios' ? 8 : 12,
     },
+    parseButton: {
+        position: 'absolute',
+        right: 8,
+        borderWidth: 0.5,
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 24,
+    },
+    parseButtonLabel: {
+        fontSize: 12,
+    }
 });
 
 export default SubscribeScreen;

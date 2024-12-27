@@ -147,6 +147,7 @@ export default function App() {
             primary: '#F76F00',
             darkPrimary: '#404040',
             border: isDarkMode ? '#3A3A3A' : '#E8E8E8',
+            deepBorder: isDarkMode ? '#2A2A2A' : '#939393',
             indicator: isDarkMode ? '#F76F00' : '#404040',
             inputBackground: isDarkMode ? '#1C1C1E' : '#F7F7F7',
             modalBackground: isDarkMode ? '#1C1C1E' : '#FFFFFF',

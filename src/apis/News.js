@@ -12,3 +12,16 @@ export const getNormalNews = () => {
         method: 'GET'
     });
 };
+
+export const saveRssResource = (rssUrl) => {
+    return request('/rss-resource', {
+        method: 'POST',
+        body: {rssUrl}
+    });
+};
+
+export const getRssResourceTitle = (rssUrl) => {
+    return request('/rss-resource/title?rssUrl=' + rssUrl, {
+        method: 'GET'
+    });
+};
