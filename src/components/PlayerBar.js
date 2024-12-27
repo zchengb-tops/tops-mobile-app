@@ -178,7 +178,7 @@ export const PlayerBar = () => {
                             </View>
                         </View>
                         <View style={styles.controls}>
-                            <Text style={{color: isDarkMode ? '#999999' : '#888888', width: 64, textAlign: 'center', fontSize: 12}}>
+                            <Text style={styles.timeText}>
                                 {
                                     formatTime(progress.position)
                                 }
@@ -188,19 +188,14 @@ export const PlayerBar = () => {
                                 maximumValue={progress.duration}
                                 minimumTrackTintColor={isDarkMode ? "#FFFFFF" : "#464646"}
                                 step={1}
-                                style={{
-                                    height: 18,
-                                    marginLeft: 8,
-                                    marginRight: 8,
-                                    width: 150,
-                                }}
-                                trackStyle={{height: 6}}
-                                thumbStyle={{height: 6, width: 6}}
+                                style={styles.slider}
+                                trackStyle={styles.sliderTrack}
+                                thumbStyle={styles.sliderThumb}
                                 thumbTintColor={isDarkMode ? "#FFFFFF" : "#464646"}
                                 value={progress.position}
                                 onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
                             />
-                            <Text style={{color: isDarkMode ? '#999999' : '#888888', width: 70, textAlign: 'center', fontSize: 12}}>
+                            <Text style={styles.timeText}>
                                 -{formatTime(progress.duration - progress.position)}
                             </Text>
                             {
@@ -308,6 +303,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         alignItems: 'center',
         marginTop: 8,
+        flex: 1,
+        width: '100%'
     },
     closeButton: {
         marginLeft: 8
@@ -334,5 +331,24 @@ const styles = StyleSheet.create({
         transform: [
             {translateX: -3}
         ]
+    },
+    timeText: {
+        color: isDarkMode => isDarkMode ? '#999999' : '#888888',
+        width: 70,
+        textAlign: 'center',
+        fontSize: 12
+    },
+    slider: {
+        height: 18,
+        marginLeft: 8,
+        marginRight: 8,
+        flex: 1
+    },
+    sliderTrack: {
+        height: 6
+    },
+    sliderThumb: {
+        height: 6,
+        width: 6
     }
 });
