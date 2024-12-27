@@ -87,6 +87,10 @@ export const DiscoveryScreen = () => {
             if (!oldChannel) {
                 return true;
             }
+
+            if (oldChannel.isRss && oldChannel.rssUrl !== newChannel.rssUrl) {
+                return true;
+            }
         }
 
         return false;
