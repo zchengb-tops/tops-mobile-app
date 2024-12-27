@@ -155,7 +155,7 @@ export const Xiaoyuzhou = () => {
             data={news}
             refreshControl={
                 <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing}
-                    onRefresh={refreshNews} />
+                    onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
             }
             contentContainerStyle={styles.contentContainer}
             keyExtractor={(item, index) => index.toString()}

@@ -156,7 +156,7 @@ export const Stock = () => {
     return <ScrollView
         contentContainerStyle={styles.stockContentWrapper}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
     >
         <View style={styles.timeTipsWrapper}>

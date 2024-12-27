@@ -36,7 +36,7 @@ export const Sspai = () => {
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}

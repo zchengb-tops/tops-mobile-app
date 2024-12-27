@@ -69,7 +69,7 @@ export const Tiobe = () => {
         initialNumToRender={20}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
         keyExtractor={(item, index) => index.toString()}
         ListHeaderComponent={renderHeader}

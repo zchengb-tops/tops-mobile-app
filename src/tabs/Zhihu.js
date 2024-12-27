@@ -27,7 +27,7 @@ export const Zhihu = () => {
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
         renderItem={({item, index}) => (
             <TouchableOpacity

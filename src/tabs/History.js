@@ -45,7 +45,7 @@ export const History = () => {
     return <ScrollView
         style={styles.container}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
     >
         <View style={[styles.contentContainer, {borderLeftColor: theme.colors.border}]}>

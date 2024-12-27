@@ -383,7 +383,7 @@ export const SubscribeScreen = () => {
     }
 
     const saveButtonDisabled = () => {
-        return !rssName || !rssLink;
+        return loading || !rssName || !rssLink;
     }
 123
     const handleGetRssTitle = async () => {

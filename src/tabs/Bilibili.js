@@ -35,7 +35,7 @@ export const Bilibili = () => {
         contentContainerStyle={styles.contentContainer}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {

@@ -24,7 +24,7 @@ export const DoubanMovie = () => {
     return <FlatList
         style={styles.container}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} />
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
         data={movies}
         contentContainerStyle={styles.contentContainer}

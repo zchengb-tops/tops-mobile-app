@@ -31,7 +31,7 @@ export const Sina = () => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
         }
         style={styles.container}
         contentContainerStyle={styles.contentContainer}

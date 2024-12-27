@@ -60,7 +60,12 @@ export const Rss = ({rssUrl}) => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={rssRefreshing} onRefresh={refreshRssNews}/>
+            <RefreshControl
+                style={globalStyles.refreshControl} 
+                refreshing={rssRefreshing} 
+                onRefresh={refreshRssNews}
+                tintColor={theme.colors.indicator}
+            />
         }
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
