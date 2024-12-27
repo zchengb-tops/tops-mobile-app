@@ -13,6 +13,7 @@ import {storage} from "../storage";
 import {useTrackStateStore} from "../hooks/AudioTrackStore";
 import {Text} from "./Text";
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {useTheme} from "@rneui/themed";
 
 export const initializeTrackPlayer = async () => {
     await TrackPlayer.setupPlayer();
@@ -65,7 +66,7 @@ export const PlayerBar = () => {
     const isShrink = useTrackShrink();
     const position = useSharedValue(0);
     const isDarkMode = useDarkMode();
-    
+    const { theme } = useTheme();
     const animatedPlayBarStyle = useAnimatedStyle(() => ({
         transform: [{translateX: position.value}],
     }));
@@ -178,7 +179,7 @@ export const PlayerBar = () => {
                             </View>
                         </View>
                         <View style={styles.controls}>
-                            <Text style={styles.timeText}>
+                            <Text style={[styles.timeText, {color: theme.colors.secondaryText}]}>
                                 {
                                     formatTime(progress.position)
                                 }
@@ -195,12 +196,12 @@ export const PlayerBar = () => {
                                 value={progress.position}
                                 onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
                             />
-                            <Text style={styles.timeText}>
+                            <Text style={[styles.timeText, {color: theme.colors.secondaryText}]}>
                                 -{formatTime(progress.duration - progress.position)}
                             </Text>
                             {
                                 currentTrack ?
-                                    <View style={{flexDirection: 'row', marginLeft: 12}}>
+                                    <View style={{flexDirection: 'row', marginLeft: 4}}>
                                         {status === State.Playing ? (
                                             <TouchableOpacity onPress={() => {
                                                 TrackPlayer.pause();
@@ -333,15 +334,14 @@ const styles = StyleSheet.create({
         ]
     },
     timeText: {
-        color: isDarkMode => isDarkMode ? '#999999' : '#888888',
         width: 70,
         textAlign: 'center',
         fontSize: 12
     },
     slider: {
         height: 18,
-        marginLeft: 8,
-        marginRight: 8,
+        marginLeft: 4,
+        marginRight: 4,
         flex: 1
     },
     sliderTrack: {
