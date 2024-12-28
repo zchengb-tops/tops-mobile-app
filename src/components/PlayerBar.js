@@ -70,13 +70,18 @@ export const PlayerBar = () => {
     const animatedPlayBarStyle = useAnimatedStyle(() => ({
         transform: [{translateX: position.value}],
     }));
-    const animatedBlurStyle = useAnimatedStyle(() => ({
-        opacity: withTiming(isShrink ? 1 : 0, {duration: 200}),
-    }));
+    const blurOpacity = useSharedValue(isShrink ? 1 : 0);
 
     useEffect(() => {
         position.value = withTiming(isShrink ? screenWidth - 24 : 0, {duration: 300});
     }, [isShrink]);
+
+    useEffect(() => {
+        if (isPlayBarVisible) {
+            position.value = withTiming(isShrink ? screenWidth - 24 : 0, {duration: 300});
+            blurOpacity.value = withTiming(isShrink ? 1 : 0, {duration: 200});
+        }
+    }, [isPlayBarVisible]);
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
@@ -131,12 +136,14 @@ export const PlayerBar = () => {
         initializeTrackPlayer().then(() => console.log('clean track play.'));
     }
 
+    const animatedBlurStyle = useAnimatedStyle(() => ({
+        opacity: blurOpacity.value,
+    }));
 
-    console.log('isPlayBarVisible', isPlayBarVisible, showing, isShrink);
     if (!isPlayBarVisible) return null;
 
     return (
-        showing ?
+        showing && isPlayBarVisible ? (
             <GestureDetector gesture={Gesture.Exclusive(flingRightGesture, flingLeftGesture)}>
                 <Animated.View
                     style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}, animatedPlayBarStyle]}>
@@ -251,7 +258,7 @@ export const PlayerBar = () => {
                     </View>
                 </Animated.View>
             </GestureDetector>
-            : <></>
+        ) : null
     );
 };
 
