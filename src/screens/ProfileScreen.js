@@ -676,7 +676,7 @@ export const ProfileScreen = () => {
                         <Text style={[styles.settingText, {color: theme.colors.text}]}>当前版本</Text>
                     </View>
                     <Text
-                        style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{Application.nativeApplicationVersion || '未知'}</Text>
+                        style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{Application.nativeApplicationVersion || '未知'}{Platform.OS === 'ios' ? ` (${Application.nativeBuildVersion})` : ''}</Text>
                 </View>
 
                 <TouchableOpacity
