@@ -477,29 +477,31 @@ export const ProfileScreen = () => {
                             disabled={!accessToken}
                         />
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        activeOpacity={0.8}
+                    <View
                         style={[styles.settingItem, {
                             borderBottomColor: theme.colors.border,
                             paddingVertical: 12,
                             marginBottom: !lastSyncTime ? 56 : 0
                         }]}
-                        onPress={handleManualSync}
-                        disabled={!accessToken || isSyncing}
                     >
                         <View style={styles.settingLeft}>
                             <Icon name="cloud-upload-outline" type="ionicon" size={20} color={theme.colors.text}/>
                             <Text style={[styles.settingText, {color: theme.colors.text}]}>同步数据到云端</Text>
                         </View>
-                        <Text
-                            style={[styles.actionText, {
-                                color: theme.colors.primary,
-                                opacity: (accessToken && !isSyncing) ? 1 : 0.3
-                            }]}
+                        <TouchableOpacity
+                            onPress={handleManualSync}
+                            disabled={!accessToken || isSyncing}
                         >
-                            {isSyncing ? '同步中...' : '立即同步'}
-                        </Text>
-                    </TouchableOpacity>
+                            <Text
+                                style={[styles.actionText, {
+                                    color: theme.colors.primary,
+                                    opacity: (accessToken && !isSyncing) ? 1 : 0.3
+                                }]}
+                            >
+                                {isSyncing ? '同步中...' : '立即同步'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                     {lastSyncTime && (
                         <Text style={[styles.lastSyncTime, {color: theme.colors.secondaryText}]}>
                             上次同步时间: {lastSyncTime}
