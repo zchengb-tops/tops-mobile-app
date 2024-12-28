@@ -6,11 +6,15 @@ import {useVisibility} from "../providers/VisibilityProvider";
 
 export const UserPrivacyAgreementScreen = ({ navigation, route }) => {
     const {theme} = useTheme();
-    const { setIsNavBarVisible } = useVisibility();
+    const { setIsNavBarVisible, setIsPlayBarVisible } = useVisibility();
 
     useEffect(() => {
         setIsNavBarVisible(false);
-        return () => setIsNavBarVisible(true);
+        setIsPlayBarVisible(false);
+        return () => {
+            setIsNavBarVisible(true);
+            setIsPlayBarVisible(true);
+        }
     }, []);
 
     useEffect(() => {

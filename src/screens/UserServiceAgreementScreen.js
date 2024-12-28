@@ -5,11 +5,15 @@ import { useTheme } from '@rneui/themed';
 import {useVisibility} from "../providers/VisibilityProvider";
 
 export const UserServiceAgreementScreen = ({ navigation, route }) => {
-    const { setIsNavBarVisible } = useVisibility();
+    const { setIsNavBarVisible, setIsPlayBarVisible } = useVisibility();
 
     useEffect(() => {
         setIsNavBarVisible(false);
-        return () => setIsNavBarVisible(true);
+        setIsPlayBarVisible(false);
+        return () => {
+            setIsNavBarVisible(true);
+            setIsPlayBarVisible(true);
+        };
     }, []);
 
     useEffect(() => {
