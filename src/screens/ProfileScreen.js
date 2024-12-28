@@ -344,10 +344,10 @@ export const ProfileScreen = () => {
                             onPress={() => handleFontSizeChange(size)}
                         >
                             <Text
-                                style={[styles.fontSizeText, {color: theme.colors.text}]}>{size}</Text>
+                                style={[styles.fontSizeText, {color: selectedFontSize === size ? theme.colors.primary : theme.colors.text}]}>{size}</Text>
                             {selectedFontSize === size && (
                                 <Icon name="checkmark-outline" type="ionicon" size={20}
-                                      color={theme.colors.text}/>
+                                      color={theme.colors.primary}/>
                             )}
                         </TouchableOpacity>
                     ))}
@@ -419,10 +419,10 @@ export const ProfileScreen = () => {
                             onPress={() => handleDarkModeChange(mode.value)}
                         >
                             <Text
-                                style={[styles.fontSizeText, {color: theme.colors.text}]}>{mode.label}</Text>
+                                style={[styles.fontSizeText, {color: darkMode === mode.value ? theme.colors.primary : theme.colors.text}]}>{mode.label}</Text>
                             {darkMode === mode.value && (
                                 <Icon name="checkmark-outline" type="ionicon" size={20}
-                                      color={theme.colors.text}/>
+                                      color={theme.colors.primary}/>
                             )}
                         </TouchableOpacity>
                     ))}
