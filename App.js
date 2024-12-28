@@ -85,7 +85,7 @@ const DiscoveryStackNavigator = () => {
             },
             headerTintColor: theme.colors.text
         }}>
-            <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: '发现'}}/>
+            <Stack.Screen name="DiscoveryScreen" component={DiscoveryScreen} options={{title: 'InfoHub'}}/>
             <Stack.Screen name="NewsDetailScreen" component={NewsDetailScreen}
                           options={{title: "资讯详情", headerShown: true}}/>
         </Stack.Navigator>
