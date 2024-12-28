@@ -39,7 +39,7 @@ export const Xiaoyuzhou = () => {
             let targetIndex = -1;
 
             newsItems.forEach((item, index) => {
-                if (item?.id === playingTrack.id) {
+                if (isCurrentItemInTrack(item)) {
                     targetIndex = index;
                 }
             })
