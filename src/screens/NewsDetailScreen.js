@@ -14,7 +14,7 @@ export const NewsDetailScreen = ({route}) => {
     const [currentTitle, setCurrentTitle] = useState(title);
     const [webviewKey, setWebviewKey] = useState(1);
     const isFocused = useIsFocused();
-    const {setIsNavBarVisible} = useVisibility();
+    const {setIsNavBarVisible, setIsPlayBarVisible} = useVisibility();
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -37,6 +37,7 @@ export const NewsDetailScreen = ({route}) => {
 
     useEffect(() => {
         setIsNavBarVisible(!isFocused);
+        setIsPlayBarVisible(!isFocused);
 
         if (!isFocused) {
             setWebviewKey(prevKey => prevKey + 1);
@@ -44,6 +45,7 @@ export const NewsDetailScreen = ({route}) => {
 
         return () => {
             setIsNavBarVisible(true);
+            setIsPlayBarVisible(true);
         };
     }, [isFocused]);
 
