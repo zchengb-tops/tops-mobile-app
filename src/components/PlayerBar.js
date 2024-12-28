@@ -64,7 +64,7 @@ export const PlayerBar = () => {
     const {isPlayBarVisible} = useVisibility();
     const screenWidth = Dimensions.get('window').width;
     const isShrink = useTrackShrink();
-    const position = useSharedValue(0);
+    const position = useSharedValue(isShrink ? screenWidth - 24 : 0);
     const isDarkMode = useDarkMode();
     const { theme } = useTheme();
     const animatedPlayBarStyle = useAnimatedStyle(() => ({
@@ -131,6 +131,8 @@ export const PlayerBar = () => {
         initializeTrackPlayer().then(() => console.log('clean track play.'));
     }
 
+
+    console.log('isPlayBarVisible', isPlayBarVisible, showing, isShrink);
     if (!isPlayBarVisible) return null;
 
     return (
