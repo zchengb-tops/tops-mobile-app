@@ -329,7 +329,7 @@ const LoginModal = ({ isVisible, setIsVisible, onClose, onSuccess }) => {
 
                     <View style={styles.iconContainer}>
                         <Image
-                            source={require('../../assets/images/icon-468.png')}
+                            source={require('../../assets/images/logo-468.png')}
                             style={styles.appIcon}
                             resizeMode="contain"
                         />

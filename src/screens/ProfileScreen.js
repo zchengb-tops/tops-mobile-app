@@ -534,7 +534,7 @@ export const ProfileScreen = () => {
                     </View>
                     <View style={styles.aboutContent}>
                         <Image
-                            source={require('../../assets/images/icon-468.png')}
+                            source={require('../../assets/images/logo-468.png')}
                             style={styles.appIcon}
                         />
                         <Text style={[styles.appName, {color: theme.colors.text}]}>InfoHub</Text>

@@ -11,7 +11,7 @@ export const ErrorScreen = ({fetchNews}) => {
         style={[styles.container, { backgroundColor: theme.colors.background }]}
         onPress={() => fetchNews().then(e => console.log('fetch'))}
     >
-        <Image source={require("../../assets/images/icon-64.png")}
+        <Image source={require("../../assets/images/logo-192.png")}
                style={styles.errorLogo}/>
         <Text style={[styles.errorText, { color: theme.colors.text }]}>Oops,
             加载失败</Text>
