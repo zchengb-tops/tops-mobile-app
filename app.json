@@ -22,10 +22,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/images/logo-436.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "cn.zchengb.infohub"
+      "package": "cn.zchengb.infohub",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"

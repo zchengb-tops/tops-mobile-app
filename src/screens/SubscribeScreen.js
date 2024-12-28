@@ -28,9 +28,9 @@ import {
 import {useIsFocused} from '@react-navigation/native';
 import {logEvent} from "../analytics";
 import {SvgUri} from "react-native-svg";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { debounce } from 'lodash';
 import {saveRssResource, getRssResourceTitle} from "../apis/News";
+import { useTopInset } from '../hooks/useTopInset';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -43,7 +43,7 @@ export const SubscribeScreen = () => {
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
     const isFocused = useIsFocused();
-    const insets = useSafeAreaInsets();
+    const topInset = useTopInset();
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -385,7 +385,7 @@ export const SubscribeScreen = () => {
     const saveButtonDisabled = () => {
         return loading || !rssName || !rssLink;
     }
-123
+
     const handleGetRssTitle = async () => {
         if (!validRssLink()) {
             return;
@@ -531,6 +531,7 @@ export const SubscribeScreen = () => {
                                         placeholderTextColor={theme.colors.secondaryText}
                                         value={rssLink}
                                         onChangeText={setRssLink}
+                                        autoFocus={true}
                                     />
                                     <TouchableOpacity 
                                         style={[styles.parseButton, {borderColor: loading || !rssLink ? theme.colors.deepBorder : theme.colors.primary}]}
@@ -561,7 +562,6 @@ export const SubscribeScreen = () => {
                                         value={rssName}
                                         onChangeText={setRssName}
                                         maxLength={24}
-                                        autoFocus={true}
                                     />
                                     <Text
                                         style={[styles.rssModalInputLimit, {color: theme.colors.secondaryText}]}>{rssName.length}/24</Text>
@@ -592,7 +592,7 @@ export const SubscribeScreen = () => {
             styles.container, 
             {
                 backgroundColor: theme.colors.background,
-                paddingTop: insets.top
+                paddingTop: topInset
             }
         ]}
     >
