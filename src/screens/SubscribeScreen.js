@@ -519,53 +519,60 @@ export const SubscribeScreen = () => {
 
                             <View style={styles.rssModalInputItem}>
                                 <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>RSS链接：</Text>
-                                <View style={styles.rssModalInputWrapper}>
-                                    <TextInput
-                                        style={[styles.rssModalInput, styles.rssModalLinkInput, {
-                                            backgroundColor: theme.colors.inputBackground,
-                                            color: theme.colors.text,
-                                            borderColor: theme.colors.border,
-                                            borderWidth: isDarkMode ? 1 : 0
-                                        }]}
-                                        placeholder="RSS链接"
-                                        placeholderTextColor={theme.colors.secondaryText}
-                                        value={rssLink}
-                                        onChangeText={setRssLink}
-                                        autoFocus={true}
-                                    />
-                                    <TouchableOpacity 
-                                        style={[styles.parseButton, {borderColor: loading || !rssLink ? theme.colors.deepBorder : theme.colors.primary}]}
-                                        onPress={handleGetRssTitle}
-                                        disabled={loading || !rssLink}
-                                    >
-                                        <Text style={[styles.parseButtonLabel, {
-                                            color: loading || !rssLink ? theme.colors.secondaryText : theme.colors.primary
-                                        }]}>
-                                            解析名称
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
+                                <TextInput
+                                    style={[styles.rssModalInput, {
+                                        backgroundColor: theme.colors.inputBackground,
+                                        color: theme.colors.text,
+                                        borderColor: theme.colors.border,
+                                        borderWidth: isDarkMode ? 1 : 0
+                                    }]}
+                                    placeholder="RSS链接"
+                                    placeholderTextColor={theme.colors.secondaryText}
+                                    value={rssLink}
+                                    onChangeText={setRssLink}
+                                    autoFocus={true}
+                                />
                             </View>
 
                             <View style={styles.rssModalInputItem}>
-                                <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>资讯名称：</Text>
-                                <View style={styles.rssModalInputWrapper}>
-                                    <TextInput
-                                        style={[styles.rssModalInput, styles.rssModalNameInput, {
-                                            backgroundColor: theme.colors.inputBackground,
-                                            color: theme.colors.text,
-                                            borderColor: theme.colors.border,
-                                            borderWidth: isDarkMode ? 1 : 0
-                                        }]}
-                                        placeholder="资讯名称"
-                                        placeholderTextColor={theme.colors.secondaryText}
-                                        value={rssName}
-                                        onChangeText={setRssName}
-                                        maxLength={24}
-                                    />
-                                    <Text
-                                        style={[styles.rssModalInputLimit, {color: theme.colors.secondaryText}]}>{rssName.length}/24</Text>
+                                <View style={styles.labelContainer}>
+                                    <Text style={[styles.rssModalInputLabel, {marginBottom: 0, color: theme.colors.text}]}>资讯名称：</Text>
+                                    <TouchableOpacity 
+                                        onPress={handleGetRssTitle}
+                                        disabled={loading || !rssLink}
+                                    >
+                                        {loading ? (
+                                            <ActivityIndicator size="small" color={theme.colors.primary} />
+                                        ) : (
+                                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                                <Icon
+                                                    name="lightbulb-outline" 
+                                                    size={14}
+                                                    color={loading || !rssLink ? theme.colors.secondaryText : theme.colors.primary}
+                                                    style={{marginRight: 2}}
+                                                />
+                                                <Text style={[
+                                                    styles.parseText,
+                                                    {color: loading || !rssLink ? theme.colors.secondaryText : theme.colors.primary}
+                                                ]}>
+                                                    尝试解析名称
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
                                 </View>
+                                <TextInput
+                                    style={[styles.rssModalInput, {
+                                        backgroundColor: theme.colors.inputBackground,
+                                        color: theme.colors.text,
+                                        borderColor: theme.colors.border,
+                                        borderWidth: isDarkMode ? 1 : 0
+                                    }]}
+                                    placeholder="资讯名称"
+                                    placeholderTextColor={theme.colors.secondaryText}
+                                    value={rssName}
+                                    onChangeText={setRssName}
+                                />
                             </View>
 
                             <Text style={[styles.rssModalTips, {color: theme.colors.secondaryText}]}>
@@ -834,15 +841,28 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'ios' ? 8 : 12,
     },
     parseButton: {
-        position: 'absolute',
-        right: 8,
-        borderWidth: 0.5,
-        paddingVertical: 4,
-        paddingHorizontal: 8,
-        borderRadius: 24,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 4,
+        borderWidth: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 32
     },
     parseButtonLabel: {
         fontSize: 12,
+        fontWeight: '400'
+    },
+    labelContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 12
+    },
+    parseText: {
+        fontSize: 14,
+        fontWeight: '400'
     }
 });
 
