@@ -1,10 +1,22 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Image, StyleSheet, TouchableOpacity} from "react-native";
 import {Text} from "../components/Text";
 import {useTheme} from "@rneui/themed";
+import NetInfo from "@react-native-community/netinfo";
 
 export const ErrorScreen = ({fetchNews}) => {
     const {theme} = useTheme();
+
+    useEffect(() => {
+        const unsubscribe = NetInfo.addEventListener(state => {
+            if (state.isConnected && state.isInternetReachable) {
+                fetchNews();
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
 
     return <TouchableOpacity
         activeOpacity={0.8}
