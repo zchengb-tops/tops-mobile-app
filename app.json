@@ -21,10 +21,12 @@
       "buildNumber": "11"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo-436.png",
+      "splash": {
+        "resizeMode": "contain",
+        "image": "./assets/welcomePage.png",
         "backgroundColor": "#ffffff"
       },
+      "icon": "./assets/images/logo-436.png",
       "package": "cn.zchengb.infohub",
       "versionCode": 4
     },
