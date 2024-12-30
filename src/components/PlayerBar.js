@@ -74,6 +74,7 @@ export const PlayerBar = () => {
 
     useEffect(() => {
         position.value = withTiming(isShrink ? screenWidth - 24 : 0, {duration: 300});
+        blurOpacity.value = withTiming(isShrink ? 1 : 0, {duration: 200});
     }, [isShrink]);
 
     useEffect(() => {
