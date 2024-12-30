@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
     },
     newsInfoWrapper: {
         flexDirection: 'row',
+        alignItems: 'center',
         maxWidth: '84%'
     },
     title: {
