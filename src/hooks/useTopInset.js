@@ -5,6 +5,6 @@ export const useTopInset = () => {
     const insets = useSafeAreaInsets();
     return Platform.select({
         ios: insets.top,
-        android: 16
+        android: 32
     });
 }; 
