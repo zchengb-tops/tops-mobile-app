@@ -55,7 +55,8 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-track-player": "^4.1.1",
     "react-native-webview": "13.8.6",
-    "zustand": "^4.5.5"
+    "zustand": "^4.5.5",
+    "expo-splash-screen": "~0.27.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -18,7 +18,7 @@
           "audio"
         ]
       },
-      "buildNumber": "11"
+      "buildNumber": "12"
     },
     "android": {
       "splash": {
@@ -28,7 +28,7 @@
       },
       "icon": "./assets/images/logo-436.png",
       "package": "cn.zchengb.infohub",
-      "versionCode": 4
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/logo.png"
