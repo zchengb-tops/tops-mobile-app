@@ -1,3 +1,6 @@
+import { useNavigation } from "@react-navigation/native";
+import { Icon, useTheme } from "@rneui/themed";
+import React, { useContext, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -7,18 +10,14 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
+import { AnimatedCircularProgress } from "react-native-circular-progress";
+import TrackPlayer, { State, useProgress } from 'react-native-track-player';
 import AuthorIcon from "../../assets/icons/author.svg";
-import TrackPlayer, {State, useProgress} from 'react-native-track-player';
-import {useTrackStateStore} from "../hooks/AudioTrackStore";
-import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
-import {Icon} from "@rneui/themed";
-import {AnimatedCircularProgress} from "react-native-circular-progress";
-import {globalStyles} from "../globalStyle";
-import {useNavigation} from "@react-navigation/native";
-import {Text} from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import { Text } from "../components/Text";
+import { globalStyles } from "../globalStyle";
+import { useTrackStateStore } from "../hooks/AudioTrackStore";
+import { useTrack, useTrackStatus, useTrackShrink } from "../hooks/TrackHooks";
+import { NewsContext } from "../providers/NewsProvider";
 
 export const Xiaoyuzhou = () => {
     const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);
@@ -28,9 +27,11 @@ export const Xiaoyuzhou = () => {
     const playingTrack = useTrack();
     const navigation = useNavigation();
     const { theme } = useTheme();
+    const playBarShrink = useTrackShrink();
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
+    const setShrink = useTrackStateStore.getState().setShrink;
 
     useEffect(() => {
         if (playingTrack) {
@@ -79,14 +80,15 @@ export const Xiaoyuzhou = () => {
     }
 
     const isCurrentMediaItemPlayedComplete = (mediaItem) => {
-        return mediaItem.id === playingTrack?.id && progress.position >= progress.duration;
+        return (isCurrentItemInTrack(mediaItem) && progress.position >= progress.duration) || mediaItem.position >= mediaItem.duration;
     }
 
     const triggerTrackPlayerToPlay = async (mediaItem) => {
-        if (!playingTrack || playingTrack?.id !== mediaItem.id || isCurrentMediaItemPlayedComplete(mediaItem)) {
+        if (!playingTrack || !isCurrentItemInTrack(mediaItem) || isCurrentMediaItemPlayedComplete(mediaItem)) {
             setPlayerBarShowing();
             let tracks = await TrackPlayer.getQueue();
-            const trackIndex = tracks.findIndex(item => item.id === mediaItem.id)
+            const trackIndex = tracks.findIndex(item => (item.id === mediaItem.id && item.title === mediaItem.title && item.artist === mediaItem.author && item.source === 'xiaoyuzhou'))
+
             const track = {
                 id: mediaItem.id,
                 url: mediaItem.mediaUrl,
@@ -97,20 +99,23 @@ export const Xiaoyuzhou = () => {
                 source: 'xiaoyuzhou'
             };
             setTrack(track);
-
             if (trackIndex !== -1) {
                 console.log('start to skip.');
                 await TrackPlayer.skip(trackIndex, isCurrentMediaItemPlayedComplete(mediaItem) ? 0 : mediaItem.position);
             } else {
-                console.log('add new track to queue.');
                 await TrackPlayer.add(track);
-
+                
                 markHasBeenActive(mediaItem);
                 const queue = await TrackPlayer.getQueue();
                 await TrackPlayer.skip(queue.length - 1, mediaItem.position);
+                console.log('add new track to queue.');
             }
         }
 
+
+        if (playBarShrink) {
+            setShrink(false);
+        }
         await TrackPlayer.play();
     }
 
