@@ -70,18 +70,19 @@ export const PlayerBar = () => {
         transform: [{translateX: position.value}],
     }));
     const blurOpacity = useSharedValue(isShrink ? 1 : 0);
+    const isGestureAnimating = useSharedValue(false);
 
     useEffect(() => {
+        if (!isPlayBarVisible) return;
+        
+        if (isGestureAnimating.value) {
+            isGestureAnimating.value = false;
+            return;
+        }
+        
         position.value = withTiming(isShrink ? screenWidth - 24 : 0, {duration: 300});
         blurOpacity.value = withTiming(isShrink ? 1 : 0, {duration: 200});
-    }, [isShrink]);
-
-    useEffect(() => {
-        if (isPlayBarVisible) {
-            position.value = withTiming(isShrink ? screenWidth - 24 : 0, {duration: 300});
-            blurOpacity.value = withTiming(isShrink ? 1 : 0, {duration: 200});
-        }
-    }, [isPlayBarVisible]);
+    }, [isShrink, isPlayBarVisible]);
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
@@ -103,28 +104,28 @@ export const PlayerBar = () => {
         return progress.position >= progress.duration
     }
 
-    const delayedSetIsShrink = (value, delay) => {
-        setTimeout(() => {
-            setShrink(value);
-        }, delay);
-    };
-
     const flingRightGesture = Gesture.Fling()
         .direction(Directions.RIGHT)
         .onStart((e) => {
+            isGestureAnimating.value = true;
             position.value = withTiming(screenWidth - 24, {duration: 300});
-            runOnJS(delayedSetIsShrink)(true, 100);
+            blurOpacity.value = withTiming(1, {duration: 200});
+            runOnJS(setShrink)(true);
         });
 
     const handleFlingLeft = () => {
-        runOnUI(() => position.value = withTiming(0, {duration: 300}))();
+        isGestureAnimating.value = true;
+        position.value = withTiming(0, {duration: 300});
+        blurOpacity.value = withTiming(0, {duration: 200});
         runOnJS(setShrink)(false);
     }
 
     const flingLeftGesture = Gesture.Fling()
         .direction(Directions.LEFT)
         .onStart(() => {
+            isGestureAnimating.value = true;
             position.value = withTiming(0, {duration: 300});
+            blurOpacity.value = withTiming(0, {duration: 200});
             runOnJS(setShrink)(false);
         });
 
@@ -170,7 +171,7 @@ export const PlayerBar = () => {
                     }
                     <View
                         activeOpacity={1}
-                        style={[styles.playerBarInternalWrapper, {backgroundColor: isShrink ? 'transparent' : isDarkMode ? '#2A2A2A' : '#F7F7F7'}]}>
+                        style={[styles.playerBarInternalWrapper, {backgroundColor: isDarkMode ? '#2A2A2A' : '#F7F7F7'}]}>
                         <View style={styles.trackInfo}>
                             {
                                 currentTrack?.artwork
