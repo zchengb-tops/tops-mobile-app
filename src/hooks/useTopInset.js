@@ -1,5 +1,5 @@
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {Platform} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export const useTopInset = () => {
     const insets = useSafeAreaInsets();

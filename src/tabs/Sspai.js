@@ -1,18 +1,24 @@
 import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
+import React, {useEffect, useState} from "react";
 import {useNavigation} from "@react-navigation/native";
 import FlashlightIcon from "../../assets/icons/flashlight.svg";
 import CommentIcon from "../../assets/icons/comment.svg";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {useTheme} from '@rneui/themed';
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const Sspai = () => {
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
+    const normalNews = useNewsStore(state => state.normalNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const refreshNews = useNewsStore(state => state.refreshNews);
+    
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const { theme } = useTheme();
+    const {theme} = useTheme();
+    const isDarkMode = useDarkMode();
+
     useEffect(() => {
         setNews(normalNews['sspai'])
     }, [normalNews]);
@@ -36,7 +42,7 @@ export const Sspai = () => {
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}

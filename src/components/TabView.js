@@ -1,21 +1,19 @@
-import React, {useContext, useRef, memo, useEffect} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
-import {NewsContext} from "../providers/NewsProvider";
 import {Rss} from "../tabs/Rss";
 import PagerView from 'react-native-pager-view';
+import useNewsStore from '../stores/useNewsStore';
 
 const TabContent = memo(({ channel }) => {
-    const {
-        rssLoadError,
-        normalLoadError,
-        rssLoading,
-        normalLoading,
-        rssRefreshing,
-        normalRefreshing,
-        fetchRssNews,
-        fetchNormalNews
-    } = useContext(NewsContext);
+    const rssLoadError = useNewsStore(state => state.rssLoadError);
+    const normalLoadError = useNewsStore(state => state.normalLoadError);
+    const rssLoading = useNewsStore(state => state.rssLoading);
+    const normalLoading = useNewsStore(state => state.normalLoading);
+    const rssRefreshing = useNewsStore(state => state.rssRefreshing);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const fetchRssNews = useNewsStore(state => state.fetchRssNews);
+    const fetchNormalNews = useNewsStore(state => state.fetchNormalNews);
 
     if (channel.isRss) {
         if (rssLoadError) {

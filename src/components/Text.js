@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Text as RNText, StyleSheet } from 'react-native';
-import { storage } from '../storage';
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, Text as RNText} from 'react-native';
+import {storage} from '../storage';
 
 export const FONT_SIZE = {
     SMALL: '小',

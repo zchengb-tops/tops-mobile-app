@@ -1,9 +1,8 @@
-import React, {useContext, useEffect} from "react";
-import {NavigationContainer} from "@react-navigation/native";
+import React, {useContext, useEffect} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from "@react-navigation/stack";
 import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
-import {NewsProvider} from "./src/providers/NewsProvider";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry, LogBox, TextInput, View} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
@@ -183,52 +182,50 @@ export default function App() {
         <SafeAreaProvider>
             <ThemeProvider theme={theme}>
                 <VisibilityProvider>
-                    <NewsProvider>
-                        <NavigationContainer>
-                            <GestureHandlerRootView style={{flex: 1}}>
-                                <View style={{flex: 1}}>
-                                    <Stack.Navigator 
-                                        screenOptions={{
-                                            headerShown: false,
-                                            headerStyle: {
-                                                backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF'
-                                            },
-                                            headerTintColor: isDarkMode ? '#FFFFFF' : '#464646'
-                                        }}
-                                    >
-                                        <Stack.Screen name="InfoHub">
-                                            {() => (
-                                                <Tab.Navigator
-                                                    initialRouteName="DiscoveryScreen"
-                                                    screenOptions={{
-                                                        headerShown: false,
-                                                        animationEnabled: false,
-                                                        tabBarStyle: {display: 'none'},
-                                                    }}
-                                                >
-                                                    <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
-                                                    <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
-                                                    <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
-                                                </Tab.Navigator>
-                                            )}
-                                        </Stack.Screen>
-                                        <Stack.Screen 
-                                            name="UserPrivacyAgreementScreen" 
-                                            component={UserPrivacyAgreementScreen} 
-                                            options={{title: "隐私协议", headerShown: true}}
-                                        />
-                                        <Stack.Screen 
-                                            name="UserServiceAgreementScreen" 
-                                            component={UserServiceAgreementScreen}
-                                            options={{title: "用户协议", headerShown: true}}
-                                        />
-                                    </Stack.Navigator>
-                                    <PlayerBar/>
-                                    <NavBar/>
-                                </View>
-                            </GestureHandlerRootView>
-                        </NavigationContainer>
-                    </NewsProvider>
+                    <NavigationContainer>
+                        <GestureHandlerRootView style={{flex: 1}}>
+                            <View style={{flex: 1}}>
+                                <Stack.Navigator 
+                                    screenOptions={{
+                                        headerShown: false,
+                                        headerStyle: {
+                                            backgroundColor: isDarkMode ? '#1A1A1A' : '#FFFFFF'
+                                        },
+                                        headerTintColor: isDarkMode ? '#FFFFFF' : '#464646'
+                                    }}
+                                >
+                                    <Stack.Screen name="InfoHub">
+                                        {() => (
+                                            <Tab.Navigator
+                                                initialRouteName="DiscoveryScreen"
+                                                screenOptions={{
+                                                    headerShown: false,
+                                                    animationEnabled: false,
+                                                    tabBarStyle: {display: 'none'},
+                                                }}
+                                            >
+                                                <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
+                                                <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
+                                                <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
+                                            </Tab.Navigator>
+                                        )}
+                                    </Stack.Screen>
+                                    <Stack.Screen 
+                                        name="UserPrivacyAgreementScreen" 
+                                        component={UserPrivacyAgreementScreen} 
+                                        options={{title: "隐私协议", headerShown: true}}
+                                    />
+                                    <Stack.Screen 
+                                        name="UserServiceAgreementScreen" 
+                                        component={UserServiceAgreementScreen}
+                                        options={{title: "用户协议", headerShown: true}}
+                                    />
+                                </Stack.Navigator>
+                                <PlayerBar/>
+                                <NavBar/>
+                            </View>
+                        </GestureHandlerRootView>
+                    </NavigationContainer>
                 </VisibilityProvider>
             </ThemeProvider>
         </SafeAreaProvider>

@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Animated, Dimensions, Platform, ScrollView, StatusBar, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {Animated, Dimensions, Image, Platform, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
 import {Text} from "./Text";
 import {useTheme} from "@rneui/themed";
 import {SvgUri} from "react-native-svg";

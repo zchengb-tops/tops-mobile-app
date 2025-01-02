@@ -1,17 +1,21 @@
-import { useNavigation } from "@react-navigation/native";
-import React, { useContext, useEffect, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
-import { globalStyles } from "../globalStyle";
-import { NewsContext } from "../providers/NewsProvider";
+import {useNavigation} from "@react-navigation/native";
+import React, {useEffect, useState} from "react";
+import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {useTheme} from '@rneui/themed';
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const Tiobe = () => {
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
+    const normalNews = useNewsStore(state => state.normalNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const refreshNews = useNewsStore(state => state.refreshNews);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const {theme} = useTheme();
+    const isDarkMode = useDarkMode();
     const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const { theme } = useTheme();
 
     useEffect(() => {
         setNews(normalNews['tiobe'])
@@ -45,17 +49,20 @@ export const Tiobe = () => {
 
     const renderItem = (item, index) => {
         return (
-            <TouchableOpacity style={[styles.itemWrapper, { borderBottomColor: theme.colors.border }]}
+            <TouchableOpacity style={[styles.itemWrapper, {borderBottomColor: theme.colors.border}]}
                               activeOpacity={0.8}
                               onPress={() => navigation.navigate('NewsDetailScreen', {
                                   url: item.link,
                                   title: item.title
                               })}
             >
-                <Text style={[styles.itemText, styles.rankCol, { color: theme.colors.text }]}>{item.rankNum}</Text>
-                <Text style={[styles.itemText, styles.rankLastYearCol, { color: theme.colors.text }]}>{item.properties.rankOfMonthLastYear}</Text>
-                <Text style={[styles.itemText, styles.languageCol, styles.languageText, { color: theme.colors.text }]}>{item.title}</Text>
-                <Text style={[styles.itemText, styles.percentageCol, { color: theme.colors.text }]}>{item.properties.ratings}</Text>
+                <Text style={[styles.itemText, styles.rankCol, {color: theme.colors.text}]}>{item.rankNum}</Text>
+                <Text
+                    style={[styles.itemText, styles.rankLastYearCol, {color: theme.colors.text}]}>{item.properties.rankOfMonthLastYear}</Text>
+                <Text
+                    style={[styles.itemText, styles.languageCol, styles.languageText, {color: theme.colors.text}]}>{item.title}</Text>
+                <Text
+                    style={[styles.itemText, styles.percentageCol, {color: theme.colors.text}]}>{item.properties.ratings}</Text>
                 <Text
                     style={[styles.itemText, styles.changeCol, {color: item.properties.isUp ? 'green' : 'red'}]}>{item.properties.change}</Text>
             </TouchableOpacity>
@@ -69,7 +76,8 @@ export const Tiobe = () => {
         initialNumToRender={20}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}
+                            tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         keyExtractor={(item, index) => index.toString()}
         ListHeaderComponent={renderHeader}
@@ -81,8 +89,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    contentContainer: {
-    },
+    contentContainer: {},
     header: {
         flexDirection: 'row',
         marginTop: 4,

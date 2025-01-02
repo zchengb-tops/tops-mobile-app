@@ -1,4 +1,4 @@
-import { request } from "../request";
+import {request} from "../request";
 
 export const getRssNews = (rssUrls) => {
     return request('/rss-news', {

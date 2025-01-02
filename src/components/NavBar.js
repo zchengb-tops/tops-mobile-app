@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Platform, StyleSheet, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useVisibility } from "../providers/VisibilityProvider";
-import { Icon, useTheme } from "@rneui/themed";
-import { useNavigation } from "@react-navigation/native";
-import { Text } from "./Text";
-import { useDarkMode } from "../hooks/DarkModeHooks";
+import React, {useEffect, useRef, useState} from "react";
+import {Animated, Easing, Platform, StyleSheet, TouchableOpacity, View} from "react-native";
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useVisibility} from "../providers/VisibilityProvider";
+import {Icon, useTheme} from "@rneui/themed";
+import {useNavigation} from "@react-navigation/native";
+import {Text} from "./Text";
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 
 export const NavBar = () => {

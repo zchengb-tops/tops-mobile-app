@@ -1,16 +1,18 @@
 import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
+import React, {useEffect, useState} from "react";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "react-native-ratings";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {useTheme} from '@rneui/themed';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import useNewsStore from '../stores/useNewsStore';
 
 export const DoubanMovie = () => {
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
     const [movies, setMovies] = useState([]);
+    const normalNews = useNewsStore(state => state.normalNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const refreshNews = useNewsStore(state => state.refreshNews);
     const navigation = useNavigation();
     const { theme } = useTheme();
     const darkMode = useDarkMode();
@@ -24,7 +26,7 @@ export const DoubanMovie = () => {
     return <FlatList
         style={styles.container}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={darkMode ? '#d77f31' : ''}/>
         }
         data={movies}
         contentContainerStyle={styles.contentContainer}

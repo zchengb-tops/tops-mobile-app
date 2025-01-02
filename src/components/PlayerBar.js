@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {ActivityIndicator, Dimensions, Image, StyleSheet, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackShowing, useTrackShrink, useTrackStatus} from "../hooks/TrackHooks";
-import {Icon, Slider} from "@rneui/themed";
+import {Icon, Slider, useTheme} from "@rneui/themed";
 import TrackPlayer, {Capability, State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useVisibility} from "../providers/VisibilityProvider";
@@ -13,7 +13,6 @@ import {storage} from "../storage";
 import {useTrackStateStore} from "../hooks/AudioTrackStore";
 import {Text} from "./Text";
 import {useDarkMode} from "../hooks/DarkModeHooks";
-import {useTheme} from "@rneui/themed";
 
 export const initializeTrackPlayer = async () => {
     await TrackPlayer.setupPlayer();

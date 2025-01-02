@@ -1,19 +1,25 @@
 import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
-import React, {useContext, useEffect, useState} from "react";
-import {NewsContext} from "../providers/NewsProvider";
+import React, {useEffect, useState} from "react";
 import {useNavigation} from "@react-navigation/native";
 import AuthorIcon from "../../assets/icons/author.svg"
 import ViewIcon from "../../assets/icons/view.svg"
 import LikeIcon from "../../assets/icons/like.svg"
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {useTheme} from '@rneui/themed';
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const Bilibili = () => {
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
+    const normalNews = useNewsStore(state => state.normalNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const refreshNews = useNewsStore(state => state.refreshNews);
+    
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const { theme } = useTheme();
+    const {theme} = useTheme();
+    const isDarkMode = useDarkMode()
+
     useEffect(() => {
         setNews(normalNews['bilibili'])
     }, [normalNews]);
@@ -35,7 +41,7 @@ export const Bilibili = () => {
         contentContainerStyle={styles.contentContainer}
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {

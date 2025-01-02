@@ -1,16 +1,21 @@
-import { ScrollView, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
-import { NewsContext } from "../providers/NewsProvider";
-import { useNavigation } from "@react-navigation/native";
-import { globalStyles } from "../globalStyle";
-import { Text } from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {useNavigation} from "@react-navigation/native";
+import {useTheme} from '@rneui/themed';
+import React, {useEffect, useState} from "react";
+import {RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
+import {Text} from "../components/Text";
+import {globalStyles} from "../globalStyle";
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const History = () => {
-    const { theme } = useTheme();
-    const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);
+    const normalNews = useNewsStore(state => state.normalNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const refreshNews = useNewsStore(state => state.refreshNews);
+    
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
+    const {theme} = useTheme();
+    const isDarkMode = useDarkMode();
 
     useEffect(() => {
         setNews(normalNews['history'])
@@ -45,7 +50,7 @@ export const History = () => {
     return <ScrollView
         style={styles.container}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
     >
         <View style={[styles.contentContainer, {borderLeftColor: theme.colors.border}]}>

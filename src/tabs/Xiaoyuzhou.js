@@ -1,32 +1,28 @@
-import { useNavigation } from "@react-navigation/native";
-import { Icon, useTheme } from "@rneui/themed";
-import React, { useContext, useEffect, useState } from "react";
-import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    TouchableOpacity,
-    View
-} from "react-native";
-import { AnimatedCircularProgress } from "react-native-circular-progress";
-import TrackPlayer, { State, useProgress } from 'react-native-track-player';
+import {useNavigation} from "@react-navigation/native";
+import {Icon, useTheme} from "@rneui/themed";
+import React, {useEffect, useState} from "react";
+import {ActivityIndicator, FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {AnimatedCircularProgress} from "react-native-circular-progress";
+import TrackPlayer, {State, useProgress} from 'react-native-track-player';
 import AuthorIcon from "../../assets/icons/author.svg";
-import { Text } from "../components/Text";
-import { globalStyles } from "../globalStyle";
-import { useTrackStateStore } from "../hooks/AudioTrackStore";
-import { useTrack, useTrackStatus, useTrackShrink } from "../hooks/TrackHooks";
-import { NewsContext } from "../providers/NewsProvider";
+import {Text} from "../components/Text";
+import {globalStyles} from "../globalStyle";
+import {useTrackStateStore} from "../hooks/AudioTrackStore";
+import {useTrack, useTrackShrink, useTrackStatus} from "../hooks/TrackHooks";
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const Xiaoyuzhou = () => {
-    const { normalNews, normalRefreshing, refreshNews } = useContext(NewsContext);
+    const normalNews = useNewsStore(state => state.normalNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const refreshNews = useNewsStore(state => state.refreshNews);
     const [news, setNews] = useState([]);
     const progress = useProgress();
     const playStatus = useTrackStatus();
     const playingTrack = useTrack();
     const navigation = useNavigation();
     const { theme } = useTheme();
+    const isDarkMode = useDarkMode();
     const playBarShrink = useTrackShrink();
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
@@ -160,7 +156,7 @@ export const Xiaoyuzhou = () => {
             data={news}
             refreshControl={
                 <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing}
-                    onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+                    onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
             }
             contentContainerStyle={styles.contentContainer}
             keyExtractor={(item, index) => index.toString()}

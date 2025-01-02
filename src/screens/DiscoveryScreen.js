@@ -1,23 +1,46 @@
 import {useIsFocused} from "@react-navigation/native";
-import React, {useContext, useEffect, useState, useRef} from "react";
-import {StyleSheet} from 'react-native';
+import {useTheme} from "@rneui/themed";
+import React, {useEffect, useState} from "react";
+import {AppState, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {logEvent} from "../analytics";
 import {TabBar} from "../components/TabBar";
 import {TabView} from "../components/TabView";
 import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
-import {NewsContext} from "../providers/NewsProvider";
 import {storage} from "../storage";
-import {useTheme} from "@rneui/themed";
-import {logEvent} from "../analytics";
+import useNewsStore from '../stores/useNewsStore';
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
     const [isScrolling, setIsScrolling] = useState(false);
-    const {fetchNormalNews, fetchRssNews} = useContext(NewsContext);
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
     const {theme} = useTheme();
-    const [pagerKey, setPagerKey] = useState(0); 
+    const [pagerKey, setPagerKey] = useState(0);
+    const fetchNormalNews = useNewsStore(state => state.fetchNormalNews);
+    const fetchRssNews = useNewsStore(state => state.fetchRssNews);
+
+    useEffect(() => {
+        let lastFetchTime = 0;
+        const FIVE_MINUTES = 5 * 60 * 1000;
+
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (nextAppState === 'active') {
+                const now = Date.now();
+                if (now - lastFetchTime >= FIVE_MINUTES) {
+                    lastFetchTime = now;
+                    fetchNormalNews().then(() => console.log('Successfully fetch normal news after app active :)'));
+                    fetchRssNews().then(() => console.log('Successfully fetch rss news after app active :)'));
+                } else {
+                    console.log('Skipping fetch - less than 2 minutes since last fetch');
+                }
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     useEffect(() => {
         if (isFocused) {
@@ -55,10 +78,6 @@ export const DiscoveryScreen = () => {
                 needUseDefaultChannelList = false;
 
                 if (hasChanges) {
-                    const hasRssChannels = parsedChannelList.some(channel => channel?.isRss);
-                    if (hasRssChannels) {
-                        fetchRssNews().then(() => console.log('Successfully fetch rss news after channel list update :)'));
-                    }
                     setTabIndex(0);
                     setPagerKey(prevKey => prevKey + 1);
                 }

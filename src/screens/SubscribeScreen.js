@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {
+    ActivityIndicator,
     Alert,
     Image,
+    Platform,
     StyleSheet,
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    View,
-    ActivityIndicator,
-    Platform
+    View
 } from "react-native";
 import Modal from "react-native-modal";
 import {Icon, useTheme} from "@rneui/themed";
@@ -19,18 +19,17 @@ import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {Text} from "../components/Text";
 import {useDarkMode} from "../hooks/DarkModeHooks";
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {
     getUserNewsChannelConfig,
     getUserNewsChannelConfigCurrentVersion,
     updateUserNewsChannelConfig
 } from "../apis/User";
-import {useIsFocused} from '@react-navigation/native';
 import {logEvent} from "../analytics";
 import {SvgUri} from "react-native-svg";
-import { debounce } from 'lodash';
-import {saveRssResource, getRssResourceTitle} from "../apis/News";
-import { useTopInset } from '../hooks/useTopInset';
+import {debounce} from 'lodash';
+import {getRssResourceTitle, saveRssResource} from "../apis/News";
+import {useTopInset} from '../hooks/useTopInset';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);

@@ -1,22 +1,27 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Dimensions, RefreshControl, ScrollView, StyleSheet, View} from 'react-native';
 import * as echarts from 'echarts/core';
 import {GridComponent, TooltipComponent, VisualMapComponent} from 'echarts/components';
 import {SvgChart, SVGRenderer} from '@wuba/react-native-echarts';
 import {BarChart, TreemapChart} from "echarts/charts";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
-import {NewsContext} from "../providers/NewsProvider";
 import {globalStyles} from "../globalStyle";
 import {useNavigation} from "@react-navigation/native";
 import {Text} from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {useTheme} from '@rneui/themed';
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
+
 echarts.use([SVGRenderer, GridComponent, BarChart, TreemapChart, VisualMapComponent, TooltipComponent]);
 
 export const Stock = () => {
+    const normalNews = useNewsStore(state => state.normalNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
+    const refreshNews = useNewsStore(state => state.refreshNews);
     const navigation = useNavigation();
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
+    const {theme} = useTheme();
+    const isDarkMode = useDarkMode();
     const [acquisitionTime, setAcquisitionTime] = useState(null);
-    const { theme } = useTheme();
     const [chartOption, setChartOption] = useState({
         series: {
             itemStyle: {
@@ -156,7 +161,7 @@ export const Stock = () => {
     return <ScrollView
         contentContainerStyle={styles.stockContentWrapper}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
     >
         <View style={styles.timeTipsWrapper}>

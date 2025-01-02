@@ -1,4 +1,4 @@
-import { request } from "../request";
+import {request} from "../request";
 
 export const sendVerificationCode = (email) => {
     return request('/sign-in-verification-code/email', {

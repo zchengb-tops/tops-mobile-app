@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Platform, StyleSheet} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 export const BlurView = ({children, blurType, style}) => {
     const isDark = blurType === 'dark';

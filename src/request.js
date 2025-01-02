@@ -1,4 +1,4 @@
-import { storage } from "./storage";
+import {storage} from "./storage";
 import * as Burnt from "burnt";
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;

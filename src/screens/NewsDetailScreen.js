@@ -1,12 +1,13 @@
 import React, {useEffect, useLayoutEffect, useState} from "react";
 import {WebView} from "react-native-webview";
-import {ActivityIndicator, Platform, StyleSheet, View, TouchableOpacity} from "react-native";
+import {ActivityIndicator, Platform, StyleSheet, TouchableOpacity, View} from "react-native";
 import {useIsFocused, useNavigation} from "@react-navigation/native";
 import {useVisibility} from "../providers/VisibilityProvider";
 import Share from "react-native-share";
 import {Icon} from "@rneui/themed";
 import {Text} from "../components/Text";
-import { logEvent } from "../analytics";
+import {logEvent} from "../analytics";
+
 export const NewsDetailScreen = ({route}) => {
     const {url, title, useTitleForShare} = route.params;
     const [loading, setLoading] = useState(true);

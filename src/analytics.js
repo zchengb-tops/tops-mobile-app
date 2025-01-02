@@ -1,5 +1,3 @@
-import analytics from '@react-native-firebase/analytics';
-
 const isDevelopment = process.env.EXPO_PUBLIC_IS_DEV;
 
 export const logEvent = async (eventName, params = {}) => {

@@ -1,6 +1,6 @@
 import {Icon, useTheme} from "@rneui/themed";
 import React, {useCallback, useEffect, useState} from "react";
-import {Alert, Image, ScrollView, StyleSheet, Switch, TouchableOpacity, View, Linking, Platform, StatusBar} from "react-native";
+import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View} from "react-native";
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
 import {FONT_SIZE, Text} from "../components/Text";
@@ -18,7 +18,7 @@ import {
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Burnt from "burnt";
 import * as Application from 'expo-application';
-import { logEvent } from "../analytics";
+import {logEvent} from "../analytics";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);

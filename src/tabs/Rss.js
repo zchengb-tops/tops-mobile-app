@@ -1,16 +1,21 @@
-import { useNavigation } from "@react-navigation/native";
-import React, { useContext, useEffect, useState } from "react";
-import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
-import { globalStyles } from "../globalStyle";
-import { NewsContext } from "../providers/NewsProvider";
-import { Text } from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {useNavigation} from "@react-navigation/native";
+import React, {useEffect, useState} from "react";
+import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {globalStyles} from "../globalStyle";
+import {Text} from "../components/Text";
+import {useTheme} from '@rneui/themed';
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const Rss = ({rssUrl}) => {
-    const {rssNews, rssRefreshing, refreshRssNews} = useContext(NewsContext);
+    const rssNews = useNewsStore(state => state.rssNews);
+    const rssRefreshing = useNewsStore(state => state.rssRefreshing);
+    const refreshRssNews = useNewsStore(state => state.refreshRssNews);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const { theme } = useTheme();
+    const isDarkMode = useDarkMode();
+    
     useEffect(() => {
         setNews(rssNews[rssUrl]?.items || [])
     }, [rssNews]);
@@ -64,7 +69,7 @@ export const Rss = ({rssUrl}) => {
                 style={globalStyles.refreshControl} 
                 refreshing={rssRefreshing} 
                 onRefresh={refreshRssNews}
-                tintColor={theme.colors.indicator}
+                tintColor={isDarkMode ? '#d77f31' : ''}
             />
         }
         style={styles.container}

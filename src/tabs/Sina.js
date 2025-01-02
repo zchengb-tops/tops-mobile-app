@@ -1,16 +1,20 @@
 import {useNavigation} from "@react-navigation/native";
-import React, {useContext, useEffect, useState} from "react";
+import {useTheme} from '@rneui/themed';
+import React, {useEffect, useState} from "react";
 import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
-import {globalStyles} from "../globalStyle";
-import {NewsContext} from "../providers/NewsProvider";
 import {Text} from "../components/Text";
-import { useTheme } from '@rneui/themed';
+import {globalStyles} from "../globalStyle";
+import useNewsStore from '../stores/useNewsStore';
+import {useDarkMode} from "../hooks/DarkModeHooks";
 
 export const Sina = () => {
-    const {normalNews, normalRefreshing, refreshNews} = useContext(NewsContext);
+    const normalNews = useNewsStore(state => state.normalNews);
+    const refreshNews = useNewsStore(state => state.refreshNews);
+    const normalRefreshing = useNewsStore(state => state.normalRefreshing);
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
-    const { theme } = useTheme();
+    const {theme} = useTheme();
+    const isDarkMode = useDarkMode();
 
     useEffect(() => {
         setNews(normalNews['sina'])
@@ -31,7 +35,7 @@ export const Sina = () => {
     return <FlatList
         initialNumToRender={20}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={theme.colors.indicator}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
