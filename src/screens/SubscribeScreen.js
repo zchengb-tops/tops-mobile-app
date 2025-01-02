@@ -836,9 +836,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#FF3B30',
     },
-    topBarPadding: {
-        paddingTop: Platform.OS === 'ios' ? 8 : 12,
-    },
     parseButton: {
         paddingHorizontal: 12,
         paddingVertical: 6,

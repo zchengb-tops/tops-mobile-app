@@ -1,8 +1,8 @@
 import {useIsFocused} from "@react-navigation/native";
 import {useTheme} from "@rneui/themed";
 import React, {useEffect, useState} from "react";
-import {AppState, StyleSheet} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {AppState, StyleSheet, View} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {logEvent} from "../analytics";
 import {TabBar} from "../components/TabBar";
 import {TabView} from "../components/TabView";
@@ -19,6 +19,7 @@ export const DiscoveryScreen = () => {
     const [pagerKey, setPagerKey] = useState(0);
     const fetchNormalNews = useNewsStore(state => state.fetchNormalNews);
     const fetchRssNews = useNewsStore(state => state.fetchRssNews);
+    const {top: topInset} = useSafeAreaInsets();
 
     useEffect(() => {
         let lastFetchTime = 0;
@@ -129,7 +130,15 @@ export const DiscoveryScreen = () => {
         setIsScrolling(state === 'dragging' || state === 'settling');
     };
 
-    return <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]} edges={['top']}>
+    return <View 
+        style={[
+            styles.container, 
+            {
+                backgroundColor: theme.colors.background,
+                paddingTop: topInset
+            }
+        ]}
+    >
         <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} isScrolling={isScrolling}/>
         <TabView 
             key={pagerKey}
@@ -138,7 +147,7 @@ export const DiscoveryScreen = () => {
             setTabIndex={setTabIndex} 
             onPageScrollStateChanged={handlePageScrollStateChanged}
         />
-    </SafeAreaView>
+    </View>
 };
 
 const styles = StyleSheet.create({
