@@ -11,7 +11,7 @@
     "ios:prod": "npm run setenv:production && expo run:ios --device",
     "android:local": "npm run setenv:local && expo run:android --device",
     "build-test:ios": "eas build --profile preview --platform ios",
-    "build-testflight:ios": "eas build --platform ios --profile testflight --auto-submit",
+    "build-testflight:ios": "eas build --platform ios --profile testflight --auto-submit && git add . && git commit -m 'feat: update ios build number.'",
     "build-prod:android": "eas build --platform android --profile production",
     "ios": "expo run:ios"
   },
