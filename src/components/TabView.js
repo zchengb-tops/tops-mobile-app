@@ -1,11 +1,10 @@
 import React, {memo, useEffect, useRef} from 'react';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
-import {Rss} from "../tabs/Rss";
 import PagerView from 'react-native-pager-view';
 import useNewsStore from '../stores/useNewsStore';
 
-const TabContent = memo(({ channel }) => {
+const TabContent = memo(({channel}) => {
     const rssLoadError = useNewsStore(state => state.rssLoadError);
     const normalLoadError = useNewsStore(state => state.normalLoadError);
     const rssLoading = useNewsStore(state => state.rssLoading);
@@ -25,9 +24,10 @@ const TabContent = memo(({ channel }) => {
             </View>
         ) : channel.component;
     }
-    
-    if (normalLoadError) {
-        return <ErrorScreen retry={fetchNormalNews}/>;
+
+    if (normalLoadError || !channel.component) {
+        return <ErrorScreen retry={fetchNormalNews}
+                            message={normalLoadError ? '' : '暂不支持该资讯频道，请等待后续版本升级 :)'}/>;
     }
     return normalLoading && !normalRefreshing ? (
         <View style={styles.loadingView}>
@@ -38,7 +38,7 @@ const TabContent = memo(({ channel }) => {
 
 export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateChanged}) => {
     const pagerRef = useRef(null);
-    
+
     useEffect(() => {
         if (pagerRef.current) {
             pagerRef.current.setPage(tabIndex);
@@ -70,7 +70,7 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateCh
             {enabledChannels.map((channel, index) => {
                 return (
                     <View key={index} style={styles.tabView}>
-                        <TabContent channel={channel} />
+                        <TabContent channel={channel}/>
                     </View>
                 )
             })}

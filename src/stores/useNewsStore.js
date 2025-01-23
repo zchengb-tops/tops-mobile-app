@@ -24,7 +24,7 @@ const useNewsStore = create((set, get) => ({
 
             const response = await getDefaultChannel();
             const data = await response.json();
-            const channelList = data.filter(item => item.isAppEnabled && (item.isRss || CHANNEL_COMPONENT_MAP[item?.channelCode]))
+            const channelList = data.filter(item => item.isAppEnabled)
                 .map(item => ({
                     ...item,
                     title: item.name,

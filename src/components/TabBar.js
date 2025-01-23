@@ -166,7 +166,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
                                 }}
                             >
                                 {
-                                    channel.isRss
+                                    channel.isRss || (!channel.renderIcon && channel.iconUrl)
                                         ?
                                         (
                                             channel.iconUrl?.endsWith('.svg')

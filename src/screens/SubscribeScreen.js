@@ -107,8 +107,7 @@ export const SubscribeScreen = () => {
     );
 
     const injectChannelComponentFields = (channelList) => {
-        return channelList.filter(channel => CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id] || channel.isRss)
-            .map((channel, index) => (
+        return channelList.map((channel, index) => (
                 {
                     ...channel,
                     renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon
@@ -435,7 +434,7 @@ export const SubscribeScreen = () => {
                     style={[styles.channelItem, {backgroundColor: theme.colors.background}]}
                 >
                     {
-                        item.isRss
+                        item.isRss || (!item.renderIcon && item.iconUrl)
                             ?
                             (item.iconUrl?.endsWith('.svg')
                                     ? <SvgUri width={24} height={24} uri={item.iconUrl} style={styles.channelIcon}/>
