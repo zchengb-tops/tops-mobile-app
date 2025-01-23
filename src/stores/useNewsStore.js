@@ -1,6 +1,7 @@
 import {create} from 'zustand'
 import {getNormalNews, getRssNews, getDefaultChannel} from "../apis/News";
 import {storage} from '../storage';
+import {CHANNEL_COMPONENT_MAP} from "../constant";
 
 const useNewsStore = create((set, get) => ({
     defaultChannelList: [],
@@ -23,7 +24,7 @@ const useNewsStore = create((set, get) => ({
 
             const response = await getDefaultChannel();
             const data = await response.json();
-            const channelList = data.filter(item => item.isAppEnabled)
+            const channelList = data.filter(item => item.isAppEnabled && (item.isRss || CHANNEL_COMPONENT_MAP[item?.channelCode]))
                 .map(item => ({
                     ...item,
                     title: item.name,
