@@ -92,18 +92,19 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
 
     if (!channelList?.length) {
         return (
-            <View style={[styles.tabBar, {
-                borderBottomColor: theme.colors.border,
-                backgroundColor: theme.colors.background,
-            }]}>
-                <ScrollView
-                    horizontal
-                    showsVerticalScrollIndicator={false}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={[styles.tabBarContent]}
-                >
-                    {[1, 2, 3, 4].map((_, index) => (
-                        <>
+            <ScrollView
+                style={[styles.tabBar, {
+                    borderBottomColor: theme.colors.border,
+                    backgroundColor: theme.colors.background,
+                }]}
+                horizontal
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                alwaysBounceVertical={false}
+                contentContainerStyle={[styles.tabBarContent]}
+            >
+                {[1, 2, 3, 4].map((_, index) => (
+                    <>
                         <View style={[styles.tabBarIcon, {
                             backgroundColor: '#F5F5F5',
                             borderRadius: 26,
@@ -119,10 +120,9 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
                             borderRadius: 8,
                             marginRight: 10,
                         }]} />
-                        </>
-                    ))}
-                </ScrollView>
-            </View>
+                    </>
+                ))}
+            </ScrollView>
         );
     }
 
