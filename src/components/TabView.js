@@ -17,7 +17,7 @@ const TabContent = memo(({ channel }) => {
 
     if (channel.isRss) {
         if (rssLoadError) {
-            return <ErrorScreen fetchNews={fetchRssNews}/>;
+            return <ErrorScreen retry={fetchRssNews}/>;
         }
         return rssLoading && !rssRefreshing ? (
             <View style={styles.loadingView}>
@@ -27,7 +27,7 @@ const TabContent = memo(({ channel }) => {
     }
     
     if (normalLoadError) {
-        return <ErrorScreen fetchNews={fetchNormalNews}/>;
+        return <ErrorScreen retry={fetchNormalNews}/>;
     }
     return normalLoading && !normalRefreshing ? (
         <View style={styles.loadingView}>
@@ -46,6 +46,14 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateCh
     }, [tabIndex]);
 
     const enabledChannels = channelList.filter(channel => channel.enable);
+
+    if (!enabledChannels?.length) {
+        return (
+            <View style={styles.loadingView}>
+                <ActivityIndicator/>
+            </View>
+        );
+    }
 
     return (
         <PagerView

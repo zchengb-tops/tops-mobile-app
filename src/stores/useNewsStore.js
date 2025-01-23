@@ -10,10 +10,12 @@ const useNewsStore = create((set, get) => ({
     rssLoading: false,
     normalLoadError: false,
     rssLoadError: false,
+    defaultChannelLoadError: false,
     normalRefreshing: false,
     rssRefreshing: false,
 
     fetchDefaultChannels: async () => {
+        set({defaultChannelLoadError: false});
         try {
             if (get().defaultChannelList.length > 0) {
                 return get().defaultChannelList;
@@ -42,6 +44,7 @@ const useNewsStore = create((set, get) => ({
             console.log('Default channels fetched:', channelList);
             return channelList;
         } catch (error) {
+            set({defaultChannelLoadError: true});
             console.error('Error fetching default channels:', error);
         }
     },

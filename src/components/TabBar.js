@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Animated, Dimensions, Image, Platform, ScrollView, StyleSheet, TouchableOpacity} from 'react-native';
+import {Animated, Dimensions, Image, Platform, ScrollView, StyleSheet, TouchableOpacity, View} from 'react-native';
 import {Text} from "./Text";
 import {useTheme} from "@rneui/themed";
 import {SvgUri} from "react-native-svg";
@@ -89,6 +89,42 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
         const {contentOffset} = event.nativeEvent;
         setScrollX(contentOffset.x);
     };
+
+    if (!channelList?.length) {
+        return (
+            <View style={[styles.tabBar, {
+                borderBottomColor: theme.colors.border,
+                backgroundColor: theme.colors.background,
+            }]}>
+                <ScrollView
+                    horizontal
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={[styles.tabBarContent]}
+                >
+                    {[1, 2, 3, 4].map((_, index) => (
+                        <>
+                        <View style={[styles.tabBarIcon, {
+                            backgroundColor: '#F5F5F5',
+                            borderRadius: 26,
+                            width: 24,
+                            height: 24,
+                            marginLeft: 2,
+                            marginRight: 2,
+                        }]}/>
+                        <View key={index} style={[styles.tabBarItem, {
+                            backgroundColor: '#F5F5F5',
+                            width: 72,
+                            height: 28,
+                            borderRadius: 8,
+                            marginRight: 10,
+                        }]} />
+                        </>
+                    ))}
+                </ScrollView>
+            </View>
+        );
+    }
 
     return (
         <ScrollView

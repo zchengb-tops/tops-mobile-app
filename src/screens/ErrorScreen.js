@@ -3,13 +3,13 @@ import {Image, StyleSheet, TouchableOpacity} from "react-native";
 import {Text} from "../components/Text";
 import {useTheme} from "@rneui/themed";
 
-export const ErrorScreen = ({fetchNews}) => {
+export const ErrorScreen = ({retry}) => {
     const {theme} = useTheme();
 
     return <TouchableOpacity
         activeOpacity={0.8}
         style={[styles.container, { backgroundColor: theme.colors.background }]}
-        onPress={() => fetchNews().then(e => console.log('fetch'))}
+        onPress={retry}
     >
         <Image source={require("../../assets/images/logo-192.png")}
                style={styles.errorLogo}/>

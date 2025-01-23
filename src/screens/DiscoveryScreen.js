@@ -10,6 +10,8 @@ import {CHANNEL_COMPONENT_MAP} from "../constant";
 import {storage} from "../storage";
 import useNewsStore from '../stores/useNewsStore';
 import {Rss} from "../tabs/Rss";
+import {ErrorScreen} from "./ErrorScreen";
+
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
@@ -20,9 +22,10 @@ export const DiscoveryScreen = () => {
     const [pagerKey, setPagerKey] = useState(0);
     const fetchNormalNews = useNewsStore(state => state.fetchNormalNews);
     const fetchRssNews = useNewsStore(state => state.fetchRssNews);
+    const defaultChannelLoadError = useNewsStore(state => state.defaultChannelLoadError);
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
     const {top: topInset} = useSafeAreaInsets();
-    
+
     useEffect(() => {
         let lastFetchTime = 0;
         const FIVE_MINUTES = 10 * 60 * 1000;
@@ -52,8 +55,7 @@ export const DiscoveryScreen = () => {
     }, [isFocused]);
 
     useEffect(() => {
-        fetchNormalNews().then(() => console.log('Successfully fetch normal news :)'));
-        fetchRssNews().then(() => console.log('Successfully fetch rss news :)'));
+        initNews();
     }, []);
 
     useEffect(() => {
@@ -67,6 +69,10 @@ export const DiscoveryScreen = () => {
         }
     }, [isFocused, tabIndex]);
 
+    const initNews = async () => {
+        fetchNormalNews().then(() => console.log('Successfully fetch normal news :)'));
+        fetchRssNews().then(() => console.log('Successfully fetch rss news :)'));
+    }
 
     const initialChannelList = async () => {
         const stringifyChannelList = storage.getString("channelList");
@@ -88,7 +94,7 @@ export const DiscoveryScreen = () => {
         }
 
         if (needUseDefaultChannelList) {
-            fetchDefaultChannels().then(defaultChannelList => { 
+            fetchDefaultChannels().then(defaultChannelList => {
                 storage.set("channelList", JSON.stringify(defaultChannelList));
                 setChannelList(injectChannelComponentFields(defaultChannelList));
                 setPagerKey(prevKey => prevKey + 1);
@@ -107,7 +113,7 @@ export const DiscoveryScreen = () => {
         for (let i = 0; i < enabledNewChannels.length; i++) {
             const newChannel = enabledNewChannels[i];
             const oldChannel = enabledOldChannels.find(channel => channel.id === newChannel.id);
-            
+
             if (!oldChannel) {
                 return true;
             }
@@ -125,9 +131,9 @@ export const DiscoveryScreen = () => {
             {
                 ...channel,
                 renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon,
-                component: channel.isRss 
-                ? <Rss rssUrl={channel.rssLink}/>
-                : CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.component
+                component: channel.isRss
+                    ? <Rss rssUrl={channel.rssLink}/>
+                    : CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.component
             }
         ));
     }
@@ -136,9 +142,9 @@ export const DiscoveryScreen = () => {
         setIsScrolling(state === 'dragging' || state === 'settling');
     };
 
-    return <View 
+    return <View
         style={[
-            styles.container, 
+            styles.container,
             {
                 backgroundColor: theme.colors.background,
                 paddingTop: topInset
@@ -146,13 +152,20 @@ export const DiscoveryScreen = () => {
         ]}
     >
         <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} isScrolling={isScrolling}/>
-        <TabView 
-            key={pagerKey}
-            channelList={channelList} 
-            tabIndex={tabIndex} 
-            setTabIndex={setTabIndex} 
-            onPageScrollStateChanged={handlePageScrollStateChanged}
-        />
+        {
+            defaultChannelLoadError
+                ? <ErrorScreen retry={() => {
+                    initialChannelList();
+                    initNews();
+                }}/>
+                : <TabView
+                    key={pagerKey}
+                    channelList={channelList}
+                    tabIndex={tabIndex}
+                    setTabIndex={setTabIndex}
+                    onPageScrollStateChanged={handlePageScrollStateChanged}
+                />
+        }
     </View>
 };
 
