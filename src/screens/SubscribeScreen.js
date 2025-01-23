@@ -13,7 +13,7 @@ import {
 import Modal from "react-native-modal";
 import {Icon, useTheme} from "@rneui/themed";
 import {storage} from "../storage";
-import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
+import {CHANNEL_COMPONENT_MAP} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
@@ -30,6 +30,7 @@ import {SvgUri} from "react-native-svg";
 import {debounce} from 'lodash';
 import {getRssResourceTitle, saveRssResource} from "../apis/News";
 import {useTopInset} from '../hooks/useTopInset';
+import useNewsStore from '../stores/useNewsStore';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -43,6 +44,7 @@ export const SubscribeScreen = () => {
     const isDarkMode = useDarkMode();
     const isFocused = useIsFocused();
     const topInset = useTopInset();
+    const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -67,7 +69,7 @@ export const SubscribeScreen = () => {
                                 const data = await response.json();
                                 const serverChannelList = JSON.parse(data.content);
                                 const version = data.version;
-                                const processedList = injectChannelComponentFields(serverChannelList || DEFAULT_CHANNEL_LIST);
+                                const processedList = injectChannelComponentFields(serverChannelList || await fetchDefaultChannels());
                                 setChannelList(processedList);
                                 saveChannelListToStorage(serverChannelList);
                                 storage.set('newsChannelConfigVersion', version?.toString());
@@ -88,13 +90,13 @@ export const SubscribeScreen = () => {
         }
     };
 
-    const loadLocalChannelList = () => {
+    const loadLocalChannelList = async () => {
         const stringifyChannelList = storage.getString('channelList');
         if (stringifyChannelList) {
-            setChannelList(injectChannelComponentFields(JSON.parse(stringifyChannelList) || DEFAULT_CHANNEL_LIST));
+            setChannelList(injectChannelComponentFields(JSON.parse(stringifyChannelList) || await fetchDefaultChannels()));
         } else {
-            setChannelList(injectChannelComponentFields(DEFAULT_CHANNEL_LIST));
-            saveChannelListToStorage(DEFAULT_CHANNEL_LIST);
+            setChannelList(injectChannelComponentFields(await fetchDefaultChannels()));
+            saveChannelListToStorage(await fetchDefaultChannels());
         }
     };
 
@@ -105,11 +107,11 @@ export const SubscribeScreen = () => {
     );
 
     const injectChannelComponentFields = (channelList) => {
-        return channelList.filter(channel => CHANNEL_COMPONENT_MAP[channel.id] || channel.isRss)
+        return channelList.filter(channel => CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id] || channel.isRss)
             .map((channel, index) => (
                 {
                     ...channel,
-                    renderIcon: CHANNEL_COMPONENT_MAP[channel.id]?.renderIcon
+                    renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon
                 }
             ));
     }

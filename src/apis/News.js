@@ -25,3 +25,9 @@ export const getRssResourceTitle = (rssUrl) => {
         method: 'GET'
     });
 };
+
+export const getDefaultChannel = () => {
+    return request('/news-channels/default', {
+        method: 'GET'
+    });
+};

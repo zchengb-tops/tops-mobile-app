@@ -23,7 +23,7 @@ const TabContent = memo(({ channel }) => {
             <View style={styles.loadingView}>
                 <ActivityIndicator/>
             </View>
-        ) : <Rss rssUrl={channel.rssUrl}/>;
+        ) : channel.component;
     }
     
     if (normalLoadError) {

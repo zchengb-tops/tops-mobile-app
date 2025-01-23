@@ -4,7 +4,7 @@ import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, Switch, Touchab
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Modal from "react-native-modal";
 import {FONT_SIZE, Text} from "../components/Text";
-import {DEFAULT_AVATAR, DEFAULT_CHANNEL_LIST} from "../constant";
+import {DEFAULT_AVATAR} from "../constant";
 import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
 import {storage} from "../storage";
 import {useDarkModeStore} from "../hooks/DarkModeStore";
@@ -19,6 +19,7 @@ import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/nat
 import * as Burnt from "burnt";
 import * as Application from 'expo-application';
 import {logEvent} from "../analytics";
+import useNewsStore from '../stores/useNewsStore';
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -46,6 +47,7 @@ export const ProfileScreen = () => {
         {value: 'dark', label: '深色模式'}
     ];
     const insets = useSafeAreaInsets();
+    const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -119,7 +121,7 @@ export const ProfileScreen = () => {
         const localVersion = storage.getString('newsChannelConfigVersion');
         const response = await getUserNewsChannelConfigCurrentVersion();
         const {version: serverVersion} = await response.json();
-        const channelSettings = JSON.parse(storage.getString('channelList')) || DEFAULT_CHANNEL_LIST;
+        const channelSettings = JSON.parse(storage.getString('channelList')) || await fetchDefaultChannels();
 
         if (!serverVersion) {
             console.log('no server version, update user news channel config');
@@ -199,7 +201,7 @@ export const ProfileScreen = () => {
         setIsSyncing(true);
         setLastSyncClickTime(now);
         
-        const channelSettings = JSON.parse(storage.getString('channelList')) || DEFAULT_CHANNEL_LIST;
+        const channelSettings = JSON.parse(storage.getString('channelList')) || await fetchDefaultChannels();
         try {
             const response = await updateUserNewsChannelConfig(channelSettings);
             const data = await response.json();

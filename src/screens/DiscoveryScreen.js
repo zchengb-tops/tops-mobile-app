@@ -6,9 +6,10 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {logEvent} from "../analytics";
 import {TabBar} from "../components/TabBar";
 import {TabView} from "../components/TabView";
-import {CHANNEL_COMPONENT_MAP, DEFAULT_CHANNEL_LIST} from "../constant";
+import {CHANNEL_COMPONENT_MAP} from "../constant";
 import {storage} from "../storage";
 import useNewsStore from '../stores/useNewsStore';
+import {Rss} from "../tabs/Rss";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
@@ -19,11 +20,12 @@ export const DiscoveryScreen = () => {
     const [pagerKey, setPagerKey] = useState(0);
     const fetchNormalNews = useNewsStore(state => state.fetchNormalNews);
     const fetchRssNews = useNewsStore(state => state.fetchRssNews);
+    const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
     const {top: topInset} = useSafeAreaInsets();
-
+    
     useEffect(() => {
         let lastFetchTime = 0;
-        const FIVE_MINUTES = 5 * 60 * 1000;
+        const FIVE_MINUTES = 10 * 60 * 1000;
 
         const subscription = AppState.addEventListener('change', nextAppState => {
             if (nextAppState === 'active') {
@@ -66,7 +68,7 @@ export const DiscoveryScreen = () => {
     }, [isFocused, tabIndex]);
 
 
-    const initialChannelList = () => {
+    const initialChannelList = async () => {
         const stringifyChannelList = storage.getString("channelList");
         let needUseDefaultChannelList = true;
         if (stringifyChannelList) {
@@ -86,9 +88,11 @@ export const DiscoveryScreen = () => {
         }
 
         if (needUseDefaultChannelList) {
-            const initialChannelList = DEFAULT_CHANNEL_LIST;
-            storage.set("channelList", JSON.stringify(initialChannelList));
-            setChannelList(injectChannelComponentFields(initialChannelList));
+            fetchDefaultChannels().then(defaultChannelList => { 
+                storage.set("channelList", JSON.stringify(defaultChannelList));
+                setChannelList(injectChannelComponentFields(defaultChannelList));
+                setPagerKey(prevKey => prevKey + 1);
+            });
         }
     }
 
@@ -120,8 +124,10 @@ export const DiscoveryScreen = () => {
         return channelList.map(channel => (
             {
                 ...channel,
-                renderIcon: CHANNEL_COMPONENT_MAP[channel.id]?.renderIcon,
-                component: CHANNEL_COMPONENT_MAP[channel.id]?.component
+                renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon,
+                component: channel.isRss 
+                ? <Rss rssUrl={channel.rssLink}/>
+                : CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.component
             }
         ));
     }
