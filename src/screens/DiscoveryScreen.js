@@ -74,19 +74,51 @@ export const DiscoveryScreen = () => {
         fetchRssNews().then(() => console.log('Successfully fetch rss news :)'));
     }
 
+    const alignChannelList = (currentChannelList, latestChannelList) => {
+        let currentChannelMap = new Map(currentChannelList.map(item => [item.id, item]));
+        let newChannelList = [...currentChannelList];
+
+        latestChannelList.filter(channel => !channel.isRss)
+            .forEach(channel => {
+                const currentChannel = currentChannelMap.get(channel.id);
+                if (currentChannel) {
+                    const index = newChannelList.findIndex(item => item.id === channel.id);
+                    newChannelList[index] = {
+                        ...newChannelList[index],
+                        title: channel.title,
+                        tabTitle: channel.tabTitle,
+                        desc: channel.desc
+                    };
+                } else {
+                    newChannelList.push({...channel});
+                }
+            });
+
+        const latestChannelMap = new Map(latestChannelList.map(item => [item.id, item]));
+
+        newChannelList = newChannelList.filter(channel => 
+            channel.isRss || latestChannelMap.get(channel.id)
+        );
+
+        return newChannelList;
+    }
+
     const initialChannelList = async () => {
         const stringifyChannelList = storage.getString("channelList");
         let needUseDefaultChannelList = true;
         if (stringifyChannelList) {
             const parsedChannelList = JSON.parse(stringifyChannelList);
 
-            const hasChanges = checkChannelListChanges(parsedChannelList, channelList);
-
             if (parsedChannelList?.length > 0) {
-                setChannelList(injectChannelComponentFields(parsedChannelList));
+                const defaultChannelList = await fetchDefaultChannels();
+                const alignedChannelList = alignChannelList(parsedChannelList, defaultChannelList);
+
+                const hasChanges = checkChannelListChanges(alignedChannelList, parsedChannelList);
+                setChannelList(injectChannelComponentFields(alignedChannelList));
                 needUseDefaultChannelList = false;
 
                 if (hasChanges) {
+                    storage.set("channelList", JSON.stringify(alignedChannelList));
                     setTabIndex(0);
                     setPagerKey(prevKey => prevKey + 1);
                 }
@@ -98,6 +130,7 @@ export const DiscoveryScreen = () => {
                 storage.set("channelList", JSON.stringify(defaultChannelList));
                 setChannelList(injectChannelComponentFields(defaultChannelList));
                 setPagerKey(prevKey => prevKey + 1);
+                setTabIndex(0);
             });
         }
     }
@@ -118,7 +151,17 @@ export const DiscoveryScreen = () => {
                 return true;
             }
 
-            if (oldChannel.isRss && oldChannel.rssUrl !== newChannel.rssUrl) {
+            const hasRssChannelChange = oldChannel.isRss && oldChannel.rssUrl !== newChannel.rssUrl;
+            const hasDefaultChannelChange = !oldChannel.isRss && (
+                oldChannel.tabTitle !== newChannel.tabTitle
+                || oldChannel.title !== newChannel.title
+                || oldChannel.desc !== newChannel.desc
+            );
+
+            console.log('newChannel', newChannel.title);
+            console.log('hasRssChannelChange', hasRssChannelChange);
+            console.log('hasDefaultChannelChange', hasDefaultChannelChange);
+            if (hasRssChannelChange || hasDefaultChannelChange) {
                 return true;
             }
         }

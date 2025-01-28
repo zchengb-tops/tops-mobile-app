@@ -1,7 +1,6 @@
 import {create} from 'zustand'
 import {getNormalNews, getRssNews, getDefaultChannel} from "../apis/News";
 import {storage} from '../storage';
-import {CHANNEL_COMPONENT_MAP} from "../constant";
 
 const useNewsStore = create((set, get) => ({
     defaultChannelList: [],
