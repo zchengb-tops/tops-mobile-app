@@ -11,7 +11,7 @@ import {storage} from "../storage";
 import useNewsStore from '../stores/useNewsStore';
 import {Rss} from "../tabs/Rss";
 import {ErrorScreen} from "./ErrorScreen";
-
+import {getUserNewsChannelConfig, getUserNewsChannelConfigCurrentVersion} from "../apis/User";
 
 export const DiscoveryScreen = () => {
     const [tabIndex, setTabIndex] = useState(0);
@@ -96,14 +96,38 @@ export const DiscoveryScreen = () => {
 
         const latestChannelMap = new Map(latestChannelList.map(item => [item.id, item]));
 
-        newChannelList = newChannelList.filter(channel => 
+        newChannelList = newChannelList.filter(channel =>
             channel.isRss || latestChannelMap.get(channel.id)
         );
 
         return newChannelList;
     }
 
+    const isSyncEnabled = () => {
+        return storage.getBoolean('isSyncEnabled') || false;
+    }
+
+    const syncChannelListFromServer = async () => {
+        if (!storage.getString("accessToken") || !isSyncEnabled()) {
+            console.log('skip');
+            return;
+        }
+
+        const localVersion = storage.getString("newsChannelConfigVersion");
+        const response = await getUserNewsChannelConfigCurrentVersion();
+        const {version: serverVersion} = await response.json();
+
+        if (!localVersion || (serverVersion && localVersion < serverVersion)) {
+            const {data: {version, content}} = await getUserNewsChannelConfig();
+            const channelList = injectChannelComponentFields(JSON.parse(content));
+            storage.set("channelList", JSON.stringify(channelList));
+            storage.set("newsChannelConfigVersion", version);
+            setChannelList(channelList);
+        }
+    }
+
     const initialChannelList = async () => {
+        await syncChannelListFromServer();
         const stringifyChannelList = storage.getString("channelList");
         let needUseDefaultChannelList = true;
         if (stringifyChannelList) {
@@ -158,9 +182,6 @@ export const DiscoveryScreen = () => {
                 || oldChannel.desc !== newChannel.desc
             );
 
-            console.log('newChannel', newChannel.title);
-            console.log('hasRssChannelChange', hasRssChannelChange);
-            console.log('hasDefaultChannelChange', hasDefaultChannelChange);
             if (hasRssChannelChange || hasDefaultChannelChange) {
                 return true;
             }
