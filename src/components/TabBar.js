@@ -104,7 +104,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
                 contentContainerStyle={[styles.tabBarContent]}
             >
                 {[1, 2, 3, 4].map((_, index) => (
-                    <>
+                    <View key={index} style={{flexDirection: 'row'}}>
                         <View style={[styles.tabBarIcon, {
                             backgroundColor: '#F5F5F5',
                             borderRadius: 26,
@@ -113,14 +113,14 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
                             marginLeft: 2,
                             marginRight: 2,
                         }]}/>
-                        <View key={index} style={[styles.tabBarItem, {
+                        <View style={[styles.tabBarItem, {
                             backgroundColor: '#F5F5F5',
                             width: 72,
                             height: 28,
                             borderRadius: 8,
                             marginRight: 10,
                         }]} />
-                    </>
+                    </View>
                 ))}
             </ScrollView>
         );
