@@ -1,6 +1,6 @@
 import TrackPlayer, {Event, State} from 'react-native-track-player';
-import {useTrackStateStore} from '../hooks/AudioTrackStore';
 import {storage} from "../storage";
+import {useTrackStateStore} from "../hooks/TrackHooks";
 
 const setProgress = useTrackStateStore.getState().setProgress;
 const setStatus = useTrackStateStore.getState().setStatus;

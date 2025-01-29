@@ -14,7 +14,6 @@ import {SubscribeScreen} from "./src/screens/SubscribeScreen";
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {Event, useTrackPlayerEvents} from "react-native-track-player";
 import {storage} from "./src/storage";
-import {useTrackStateStore} from "./src/hooks/AudioTrackStore";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {ProfileScreen} from "./src/screens/ProfileScreen";
 import {Text} from "./src/components/Text";
@@ -22,6 +21,7 @@ import {useDarkMode} from "./src/hooks/DarkModeHooks";
 import {ThemeContext, ThemeProvider, useTheme} from "@rneui/themed";
 import {UserPrivacyAgreementScreen} from "./src/screens/UserPrivacyAgreementScreen";
 import {UserServiceAgreementScreen} from "./src/screens/UserServiceAgreementScreen";
+import {useTrackStateStore} from "./src/hooks/TrackHooks";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);

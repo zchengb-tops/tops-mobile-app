@@ -3,8 +3,7 @@ import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import Modal from 'react-native-modal';
 import {Icon, useTheme} from '@rneui/themed';
 import {Text} from "./Text";
-import {useDarkModeValue} from "../hooks/DarkModeHooks";
-import {useDarkModeStore} from "../hooks/DarkModeStore";
+import {useDarkModeStore, useDarkModeValue} from "../hooks/DarkModeHooks";
 import {logEvent} from "../analytics";
 
 const DarkModeModal = ({

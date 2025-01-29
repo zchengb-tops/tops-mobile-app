@@ -1,16 +1,15 @@
 import React, {useEffect} from 'react';
 import {ActivityIndicator, Dimensions, Image, StyleSheet, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
-import {useTrack, useTrackShowing, useTrackShrink, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackShowing, useTrackShrink, useTrackStateStore, useTrackStatus} from "../hooks/TrackHooks";
 import {Icon, Slider, useTheme} from "@rneui/themed";
 import TrackPlayer, {Capability, State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useVisibility} from "../providers/VisibilityProvider";
 import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";
-import Animated, {runOnJS, runOnUI, useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
 import {BlurView} from "./BlurView";
 import {storage} from "../storage";
-import {useTrackStateStore} from "../hooks/AudioTrackStore";
 import {Text} from "./Text";
 import {useDarkMode} from "../hooks/DarkModeHooks";
 

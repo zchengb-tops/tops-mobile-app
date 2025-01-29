@@ -7,8 +7,7 @@ import TrackPlayer, {State, useProgress} from 'react-native-track-player';
 import AuthorIcon from "../../assets/icons/author.svg";
 import {Text} from "../components/Text";
 import {globalStyles} from "../globalStyle";
-import {useTrackStateStore} from "../hooks/AudioTrackStore";
-import {useTrack, useTrackShrink, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackShrink, useTrackStateStore, useTrackStatus} from "../hooks/TrackHooks";
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
 
