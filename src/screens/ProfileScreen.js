@@ -1,14 +1,13 @@
 import {Icon, useTheme} from "@rneui/themed";
 import React, {useCallback, useEffect, useState} from "react";
-import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, Switch, TouchableOpacity, View} from "react-native";
+import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import Modal from "react-native-modal";
 import {FONT_SIZE, Text} from "../components/Text";
 import {DEFAULT_AVATAR} from "../constant";
 import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
 import {storage} from "../storage";
-import {useDarkModeStore} from "../hooks/DarkModeStore";
 import LoginModal from "../components/LoginModal";
+import FontSizeModal from "../components/FontSizeModal";
 import {
     getUserInfo,
     getUserNewsChannelConfig,
@@ -20,6 +19,9 @@ import * as Burnt from "burnt";
 import * as Application from 'expo-application';
 import {logEvent} from "../analytics";
 import useNewsStore from '../stores/useNewsStore';
+import AboutModal from "../components/AboutModal";
+import DarkModeModal from "../components/DarkModeModal";
+import SyncModal from "../components/SyncModal";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -27,20 +29,15 @@ export const ProfileScreen = () => {
     const [loginModalVisible, setLoginModalVisible] = useState(false);
     const [aboutModalVisible, setAboutModalVisible] = useState(false);
     const [syncModalVisible, setSyncModalVisible] = useState(false);
-    const [selectedFontSize, setSelectedFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
+    const [fontSize, setFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
     const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
     const [userInfo, setUserInfo] = useState(JSON.parse(storage.getString('userInfo') || null));
     const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? false);
-    const [lastSyncTime, setLastSyncTime] = useState(storage.getString('lastSyncTime'));
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [lastSyncClickTime, setLastSyncClickTime] = useState(0);
-    const setDarkMode = useDarkModeStore.getState().setDarkMode;
     const isDarkMode = useDarkMode();
     const {theme} = useTheme();
     const darkMode = useDarkModeValue();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-    const fontSizes = [FONT_SIZE.SMALL, FONT_SIZE.MEDIUM, FONT_SIZE.LARGE];
     const darkModes = [
         {value: 'system', label: '跟随系统'},
         {value: 'light', label: '浅色模式'},
@@ -182,53 +179,6 @@ export const ProfileScreen = () => {
         }).catch(e => console.error('fetch user news channel config from server error', e));
     };
 
-    const handleManualSync = async () => {
-        const now = Date.now();
-        if (now - lastSyncClickTime < 5000) {
-            Burnt.toast({
-                title: '操作频繁，请稍后再试',
-                preset: 'error',
-                duration: 2,
-            });
-            return;
-        }
-        
-        if (!accessToken) {
-            promptLoginForSync();
-            return;
-        }
-
-        setIsSyncing(true);
-        setLastSyncClickTime(now);
-        
-        const channelSettings = JSON.parse(storage.getString('channelList')) || await fetchDefaultChannels();
-        try {
-            const response = await updateUserNewsChannelConfig(channelSettings);
-            const data = await response.json();
-            if (response.ok) {
-                const {newVersion} = data;
-                updateChannelConfigVersion(newVersion);
-                updateLastSyncTime();
-                Burnt.toast({
-                    title: '同步成功',
-                    preset: 'done',
-                    message: '已将本地配置同步至云端',
-                    duration: 2,
-                });
-            } else {
-                throw new Error(data?.message || '同步失败');
-            }
-        } catch (e) {
-            Burnt.toast({
-                title: '同步失败',
-                preset: 'error',
-                message: e.message
-            });
-        } finally {
-            setIsSyncing(false);
-        }
-    };
-
     const handleLogout = () => {
         Alert.alert(
             '确认退出',
@@ -255,17 +205,9 @@ export const ProfileScreen = () => {
     };
 
     const handleFontSizeChange = (size) => {
-        setSelectedFontSize(size);
+        setFontSize(size);
         storage.set('fontSize', size);
         closeFontSizeModal();
-    };
-
-    const handleDarkModeChange = async (mode) => {
-        setDarkMode(mode);
-        await logEvent('dark_mode_change', {
-            mode: mode
-        });
-        closeDarkModeModal();
     };
 
     const getDarkModeText = () => {
@@ -281,14 +223,6 @@ export const ProfileScreen = () => {
         setLoginModalVisible(false);
     }
 
-    const closeAboutModal = () => {
-        setAboutModalVisible(false);
-    }
-
-    const closeSyncModal = () => {
-        setSyncModalVisible(false);
-    }
-
     const onLoginSuccess = async (token) => {
         storage.set('accessToken', token);
         setAccessToken(token);
@@ -296,70 +230,6 @@ export const ProfileScreen = () => {
         fetchUserInfo();
         fetchUserNewsChannelConfig();
         await logEvent('user_login_success');
-    }
-
-    const handleSyncToggle = (syncToggleValue) => {
-        if (!accessToken) {
-            return;
-        }
-        setIsSyncEnabled(syncToggleValue);
-        if (syncToggleValue) {
-            fetchUserNewsChannelConfig();
-        }
-    };
-
-    const showSyncInfo = () => {
-        Alert.alert(
-            '同步说明',
-            '将手机端的资讯频道订阅配置备份到云端，以便在浏览器扩展程序或其他设备中查看和使用',
-            [{text: '知道了', style: 'cancel'}]
-        );
-    };
-
-    const renderFontSizeModal = () => (
-        <Modal
-            isVisible={fontSizeModalVisible}
-            style={{margin: 0}}
-            backdropOpacity={0.5}
-            onBackdropPress={() => closeFontSizeModal()}
-            onSwipeComplete={() => closeFontSizeModal()}
-            backdropTransitionOutTiming={0}
-            swipeDirection="down"
-        >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
-                    <View style={styles.modalHeader}>
-                        <Text
-                            style={[styles.modalTitle, {color: theme.colors.text}]}>选择字体大小</Text>
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => closeFontSizeModal()}
-                        >
-                            <Icon name="close-outline" type="ionicon" size={24}
-                                  color={theme.colors.text}/>
-                        </TouchableOpacity>
-                    </View>
-                    {fontSizes.map((size) => (
-                        <TouchableOpacity
-                            key={size}
-                            style={[styles.fontSizeOption, {borderBottomColor: theme.colors.border}]}
-                            onPress={() => handleFontSizeChange(size)}
-                        >
-                            <Text
-                                style={[styles.fontSizeText, {color: selectedFontSize === size ? theme.colors.primary : theme.colors.text}]}>{size}</Text>
-                            {selectedFontSize === size && (
-                                <Icon name="checkmark-outline" type="ionicon" size={20}
-                                      color={theme.colors.primary}/>
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-        </Modal>
-    );
-
-    const closeDarkModeModal = () => {
-        setDarkModeModalVisible(false);
     }
 
     const promptLoginForSync = () => {
@@ -391,180 +261,10 @@ export const ProfileScreen = () => {
         setSyncModalVisible(true);
     }
 
-    const renderDarkModeModal = () => (
-        <Modal
-            isVisible={darkModeModalVisible}
-            style={{margin: 0}}
-            backdropOpacity={0.5}
-            onBackdropPress={() => closeDarkModeModal()}
-            onSwipeComplete={() => closeDarkModeModal()}
-            backdropTransitionOutTiming={0}
-            swipeDirection="down"
-        >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
-                    <View style={styles.modalHeader}>
-                        <Text
-                            style={[styles.modalTitle, {color: theme.colors.text}]}>选择显示模式</Text>
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => closeDarkModeModal()}
-                        >
-                            <Icon name="close-outline" type="ionicon" size={24}
-                                  color={theme.colors.text}/>
-                        </TouchableOpacity>
-                    </View>
-                    {darkModes.map((mode) => (
-                        <TouchableOpacity
-                            key={mode.value}
-                            style={[styles.fontSizeOption, {borderBottomColor: theme.colors.border}]}
-                            onPress={() => handleDarkModeChange(mode.value)}
-                        >
-                            <Text
-                                style={[styles.fontSizeText, {color: darkMode === mode.value ? theme.colors.primary : theme.colors.text}]}>{mode.label}</Text>
-                            {darkMode === mode.value && (
-                                <Icon name="checkmark-outline" type="ionicon" size={20}
-                                      color={theme.colors.primary}/>
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-        </Modal>
-    );
-
-    const renderSyncModal = () => (
-        <Modal
-            isVisible={syncModalVisible}
-            style={{margin: 0}}
-            backdropOpacity={0.5}
-            onBackdropPress={() => closeSyncModal()}
-            onSwipeComplete={() => closeSyncModal()}
-            backdropTransitionOutTiming={0}
-            swipeDirection="down"
-        >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
-                    <View style={styles.modalHeader}>
-                        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                            <Text style={[styles.modalTitle, {color: theme.colors.text}]}>同步设置</Text>
-                            <TouchableOpacity onPress={showSyncInfo} style={styles.infoIcon}>
-                                <Icon name="help-circle-outline" type="ionicon" size={20}
-                                      color={theme.colors.secondaryText}/>
-                            </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => closeSyncModal()}
-                        >
-                            <Icon name="close-outline" type="ionicon" size={24}
-                                  color={theme.colors.text}/>
-                        </TouchableOpacity>
-                    </View>
-
-                    <TouchableOpacity
-                        activeOpacity={0.8}
-                        style={[styles.settingItem, {borderBottomColor: theme.colors.border, paddingVertical: 12}]}
-                        onPress={() => promptLoginForSync()}
-                    >
-                        <View style={styles.settingLeft}>
-                            <Icon name="sync-outline" type="ionicon" size={20} color={theme.colors.text}/>
-                            <Text style={[styles.settingText, {color: theme.colors.text}]}>与其他设备同步</Text>
-                        </View>
-                        <Switch
-                            value={isSyncEnabled}
-                            onValueChange={handleSyncToggle}
-                            trackColor={{false: theme.colors.border, true: theme.colors.indicator}}
-                            style={{transform: [{scale: 0.8}], opacity: accessToken ? 1 : 0.3}}
-                            disabled={!accessToken}
-                        />
-                    </TouchableOpacity>
-                    <View
-                        style={[styles.settingItem, {
-                            borderBottomColor: theme.colors.border,
-                            paddingVertical: 12,
-                            marginBottom: !lastSyncTime ? 56 : 0
-                        }]}
-                    >
-                        <View style={styles.settingLeft}>
-                            <Icon name="cloud-upload-outline" type="ionicon" size={20} color={theme.colors.text}/>
-                            <Text style={[styles.settingText, {color: theme.colors.text}]}>同步数据到云端</Text>
-                        </View>
-                        <TouchableOpacity
-                            onPress={handleManualSync}
-                            disabled={!accessToken || isSyncing}
-                        >
-                            <Text
-                                style={[styles.actionText, {
-                                    color: theme.colors.primary,
-                                    opacity: (accessToken && !isSyncing) ? 1 : 0.3
-                                }]}
-                            >
-                                {isSyncing ? '同步中...' : '立即同步'}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                    {lastSyncTime && (
-                        <Text style={[styles.lastSyncTime, {color: theme.colors.secondaryText}]}>
-                            上次同步时间: {lastSyncTime}
-                        </Text>
-                    )}
-                </View>
-            </View>
-        </Modal>
-    );
-
-    const renderAboutModal = () => (
-        <Modal
-            isVisible={aboutModalVisible}
-            style={{margin: 0}}
-            backdropOpacity={0.5}
-            onBackdropPress={() => closeAboutModal()}
-            onSwipeComplete={() => closeAboutModal()}
-            backdropTransitionOutTiming={0}
-            swipeDirection="down"
-        >
-            <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, {backgroundColor: theme.colors.background}]}>
-                    <View style={styles.modalHeader}>
-                        <Text style={[styles.modalTitle, {color: theme.colors.text}]}>关于</Text>
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => closeAboutModal()}
-                        >
-                            <Icon name="close-outline" type="ionicon" size={24}
-                                  color={theme.colors.text}/>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.aboutContent}>
-                        <Image
-                            source={require('../../assets/images/logo-468.png')}
-                            style={styles.appIcon}
-                        />
-                        <Text style={[styles.appName, {color: theme.colors.text}]}>InfoHub</Text>
-                        <Text
-                            style={[styles.appVersion, {color: theme.colors.secondaryText}]}>版本 {Application.nativeApplicationVersion || '未知'}{Platform.OS === 'ios' ? ` (${Application.nativeBuildVersion})` : ''}</Text>
-                        <Text style={[styles.appDesc, {color: theme.colors.text}]}>
-                            InfoHub是一款支持自定义订阅RSS源的资讯聚合阅读应用，也是我用爱发电的产品，如果 InfoHub
-                            对您有起到帮助，欢迎您给我支持或反馈，让 InfoHub 走得更远 :)
-                        </Text>
-                        <TouchableOpacity
-                            style={[styles.aboutButton, {backgroundColor: theme.colors.indicator}]}
-                            onPress={() => Linking.openURL('https://infohub.net.cn/')}
-                        >
-                            <Icon name="globe-outline" type="ionicon" size={20} color="#fff"/>
-                            <Text style={styles.aboutButtonText}>InfoHub 官网</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </View>
-        </Modal>
-    );
-
-    return <View 
+    return <View
         style={[
-            styles.container, 
-            { 
+            styles.container,
+            {
                 backgroundColor: theme.colors.background,
                 paddingTop: insets.top
             }
@@ -642,7 +342,7 @@ export const ProfileScreen = () => {
                     </View>
                     <View style={styles.settingRight}>
                         <Text
-                            style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{selectedFontSize}</Text>
+                            style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{fontSize}</Text>
                         <Icon name="chevron-forward-outline" type="ionicon" size={20}
                               color={theme.colors.secondaryText}/>
                     </View>
@@ -696,28 +396,28 @@ export const ProfileScreen = () => {
 
                 <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={() => navigation.navigate('UserServiceAgreementScreen')}
                 >
                     <View style={styles.settingLeft}>
-                        <Icon name="document-text-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>用户协议</Text>
+                        <Icon name="document-text-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>用户协议</Text>
                     </View>
                     <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                          color={theme.colors.secondaryText} />
+                          color={theme.colors.secondaryText}/>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[styles.settingItem, { borderBottomColor: theme.colors.border }]}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
                     onPress={() => navigation.navigate('UserPrivacyAgreementScreen')}
                 >
                     <View style={styles.settingLeft}>
-                        <Icon name="shield-checkmark-outline" type="ionicon" size={20} color={theme.colors.text} />
-                        <Text style={[styles.settingText, { color: theme.colors.text }]}>隐私政策</Text>
+                        <Icon name="shield-checkmark-outline" type="ionicon" size={20} color={theme.colors.text}/>
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>隐私政策</Text>
                     </View>
                     <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                          color={theme.colors.secondaryText} />
+                          color={theme.colors.secondaryText}/>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -736,10 +436,24 @@ export const ProfileScreen = () => {
             </View>
         </ScrollView>
 
-        {renderFontSizeModal()}
-        {renderDarkModeModal()}
-        {renderSyncModal()}
-        {renderAboutModal()}
+        <FontSizeModal
+            isVisible={fontSizeModalVisible}
+            onClose={() => setFontSizeModalVisible(false)}
+            fontSize={fontSize}
+            onFontSizeChange={handleFontSizeChange}
+        />
+        <DarkModeModal
+            isVisible={darkModeModalVisible}
+            onClose={() => setDarkModeModalVisible(false)}
+        />
+        <SyncModal isVisible={syncModalVisible}
+                   onClose={() => setSyncModalVisible(false)}
+                   toLogin={() => setLoginModalVisible(true)}
+        />
+        <AboutModal
+            isVisible={aboutModalVisible}
+            onClose={() => setAboutModalVisible(false)}
+        />
         <LoginModal
             isVisible={loginModalVisible}
             setIsVisible={setLoginModalVisible}
@@ -898,10 +612,7 @@ const styles = StyleSheet.create({
         marginTop: 12,
         marginBottom: 24,
     },
-    infoIcon: {
-        marginLeft: 4,
-        padding: 4
-    }
+
 });
 
 export default ProfileScreen;
