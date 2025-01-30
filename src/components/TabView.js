@@ -26,7 +26,7 @@ const TabContent = memo(({channel}) => {
     }
 
     if (normalLoadError || !channel.component) {
-        return <ErrorScreen retry={fetchNormalNews}
+        return <ErrorScreen retry={normalLoadError ? fetchNormalNews : undefined}
                             message={normalLoadError ? '' : '暂不支持该资讯频道，请等待后续版本升级 :)'}/>;
     }
     return normalLoading && !normalRefreshing ? (
