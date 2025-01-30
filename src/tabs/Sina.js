@@ -44,6 +44,7 @@ export const Sina = () => {
         renderItem={({item, index}) => {
             return (
                 <TouchableOpacity
+                    delayPressIn={200}
                     activeOpacity={0.8}
                     style={styles.newsItem}
                     onPress={() =>

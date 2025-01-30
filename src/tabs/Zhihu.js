@@ -36,6 +36,7 @@ export const Zhihu = () => {
         }
         renderItem={({item, index}) => (
             <TouchableOpacity
+                delayPressIn={200}
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('NewsDetailScreen', {
                     url: item.link,
