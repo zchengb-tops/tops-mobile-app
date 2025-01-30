@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Alert, StyleSheet, Switch, TouchableOpacity, View} from 'react-native';
 import Modal from 'react-native-modal';
 import {Icon, useTheme} from '@rneui/themed';
@@ -12,6 +12,7 @@ import {
     updateUserNewsChannelConfig
 } from "../apis/User";
 import useNewsStore from "../stores/useNewsStore";
+import { useAuth } from '../hooks/AuthHooks';
 
 const SyncModal = ({
                        isVisible,
@@ -21,10 +22,25 @@ const SyncModal = ({
     const {theme} = useTheme();
     const [lastSyncTime, setLastSyncTime] = useState(storage.getString('lastSyncTime'));
     const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? false);
-    const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
     const [lastSyncClickTime, setLastSyncClickTime] = useState(0);
     const [isSyncing, setIsSyncing] = useState(false);
+    const { isLoggedIn } = useAuth();
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
+
+    useEffect(() => {
+        const subscription = storage.addOnValueChangedListener((key) => {
+            if (key === 'lastSyncTime') {
+                setLastSyncTime(storage.getString('lastSyncTime'));
+            } else if (key === 'isSyncEnabled') {
+                console.log('isSyncEnabled changed', storage.getBoolean('isSyncEnabled'));
+                setIsSyncEnabled(storage.getBoolean('isSyncEnabled') ?? false);
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     const showSyncInfo = () => {
         Alert.alert(
@@ -45,7 +61,7 @@ const SyncModal = ({
     }
 
     const fetchUserNewsChannelConfig = async () => {
-        if (!accessToken) {
+        if (!isLoggedIn) {
             console.log('no access token, skip fetch user news channel config');
             return;
         }
@@ -104,17 +120,20 @@ const SyncModal = ({
     };
 
     const handleSyncToggle = (syncToggleValue) => {
-        if (!accessToken) {
+        if (!isLoggedIn) {
             return;
         }
         setIsSyncEnabled(syncToggleValue);
+        storage.set('isSyncEnabled', syncToggleValue);
         if (syncToggleValue) {
             fetchUserNewsChannelConfig();
+        } else {
+            storage.delete('newsChannelConfigVersion');
         }
     };
 
     const promptLoginForSync = () => {
-        if (!accessToken) {
+        if (!isLoggedIn) {
             Alert.alert('请先登录', '登录后即可开启同步功能', [
                 {
                     text: '取消',
@@ -145,7 +164,7 @@ const SyncModal = ({
             return;
         }
 
-        if (!accessToken) {
+        if (!isLoggedIn) {
             promptLoginForSync();
             return;
         }
@@ -223,8 +242,8 @@ const SyncModal = ({
                             value={isSyncEnabled}
                             onValueChange={handleSyncToggle}
                             trackColor={{false: theme.colors.border, true: theme.colors.indicator}}
-                            style={{transform: [{scale: 0.8}], opacity: accessToken ? 1 : 0.3}}
-                            disabled={!accessToken}
+                            style={{transform: [{scale: 0.8}], opacity: isLoggedIn ? 1 : 0.3}}
+                            disabled={!isLoggedIn}
                         />
                     </TouchableOpacity>
                     <View
@@ -240,12 +259,12 @@ const SyncModal = ({
                         </View>
                         <TouchableOpacity
                             onPress={handleManualSync}
-                            disabled={!accessToken || isSyncing}
+                            disabled={!isLoggedIn || isSyncing}
                         >
                             <Text
                                 style={[styles.actionText, {
                                     color: theme.colors.primary,
-                                    opacity: (accessToken && !isSyncing) ? 1 : 0.3
+                                    opacity: (isLoggedIn && !isSyncing) ? 1 : 0.3
                                 }]}
                             >
                                 {isSyncing ? '同步中...' : '立即同步'}

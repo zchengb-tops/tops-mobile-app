@@ -41,7 +41,6 @@ const useNewsStore = create((set, get) => ({
                           ...rest
                       }) => rest);
             set({defaultChannelList: channelList});
-            console.log('Default channels fetched:', channelList);
             return channelList;
         } catch (error) {
             set({defaultChannelLoadError: true});

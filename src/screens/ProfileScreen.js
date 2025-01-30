@@ -1,27 +1,26 @@
-import {Icon, useTheme} from "@rneui/themed";
-import React, {useCallback, useEffect, useState} from "react";
-import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {FONT_SIZE, Text} from "../components/Text";
-import {DEFAULT_AVATAR} from "../constant";
-import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
-import {storage} from "../storage";
-import LoginModal from "../components/LoginModal";
-import FontSizeModal from "../components/FontSizeModal";
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { Icon, useTheme } from "@rneui/themed";
+import * as Application from 'expo-application';
+import React, { useEffect, useState } from "react";
+import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { logEvent } from "../analytics";
 import {
-    getUserInfo,
     getUserNewsChannelConfig,
     getUserNewsChannelConfigCurrentVersion,
     updateUserNewsChannelConfig
 } from "../apis/User";
-import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import * as Burnt from "burnt";
-import * as Application from 'expo-application';
-import {logEvent} from "../analytics";
-import useNewsStore from '../stores/useNewsStore';
 import AboutModal from "../components/AboutModal";
 import DarkModeModal from "../components/DarkModeModal";
+import FontSizeModal from "../components/FontSizeModal";
+import LoginModal from "../components/LoginModal";
 import SyncModal from "../components/SyncModal";
+import { FONT_SIZE, Text } from "../components/Text";
+import { DEFAULT_AVATAR } from "../constant";
+import { useAuth } from '../hooks/AuthHooks';
+import { useDarkMode, useDarkModeValue } from '../hooks/DarkModeHooks';
+import { storage } from "../storage";
+import useNewsStore from '../stores/useNewsStore';
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -30,14 +29,13 @@ export const ProfileScreen = () => {
     const [aboutModalVisible, setAboutModalVisible] = useState(false);
     const [syncModalVisible, setSyncModalVisible] = useState(false);
     const [fontSize, setFontSize] = useState(storage.getString('fontSize') || FONT_SIZE.MEDIUM);
-    const [accessToken, setAccessToken] = useState(storage.getString('accessToken'));
-    const [userInfo, setUserInfo] = useState(JSON.parse(storage.getString('userInfo') || null));
     const [isSyncEnabled, setIsSyncEnabled] = useState(storage.getBoolean('isSyncEnabled') ?? false);
     const isDarkMode = useDarkMode();
     const {theme} = useTheme();
     const darkMode = useDarkModeValue();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
+    const {isLoggedIn, userInfo, loadUserInfo, logout} = useAuth();
     const darkModes = [
         {value: 'system', label: '跟随系统'},
         {value: 'light', label: '浅色模式'},
@@ -51,67 +49,24 @@ export const ProfileScreen = () => {
             screen_name: 'ProfileScreen',
             page_title: 'ProfileScreen'
         });
+        console.log('isLoggedIn', isLoggedIn, userInfo);
     }, [isFocused]);
 
-    useEffect(() => {
-        const accessTokenListener = storage.addOnValueChangedListener((key) => {
-            if (key === 'accessToken') {
-                const newAccessToken = storage.getString('accessToken');
-                setAccessToken(newAccessToken);
-            }
-        });
 
-        const lastSyncTimeListener = storage.addOnValueChangedListener((key) => {
-            if (key === 'lastSyncTime') {
-                const newLastSyncTime = storage.getString('lastSyncTime');
-                setLastSyncTime(newLastSyncTime);
+    useEffect(() => {
+        const subscription = storage.addOnValueChangedListener((key) => {
+            if (key === 'isSyncEnabled') {
+                setIsSyncEnabled(storage.getBoolean('isSyncEnabled') ?? false);
             }
         });
 
         return () => {
-            accessTokenListener.remove();
-            lastSyncTimeListener.remove();
+            subscription.remove();
         };
     }, []);
 
-    useEffect(() => {
-        if (accessToken) {
-            fetchUserInfo();
-        }
-    }, [accessToken]);
-
-    useEffect(() => {
-        storage.set('isSyncEnabled', isSyncEnabled);
-        if (!isSyncEnabled) {
-            storage.delete('newsChannelConfigVersion');
-        }
-    }, [isSyncEnabled]);
-
-    useFocusEffect(
-        useCallback(() => {
-            if (accessToken) {
-                fetchUserInfo().then(r => console.log('fetch user info success'));
-            }
-        }, [accessToken])
-    );
-
-    const fetchUserInfo = async () => {
-        getUserInfo(accessToken).then(async response => {
-            if (response.ok) {
-                const data = await response.json();
-                setUserInfo(data);
-                storage.set('userInfo', JSON.stringify(data));
-            } else {
-                Burnt.toast({
-                    title: '获取用户信息失败',
-                    preset: 'error',
-                });
-            }
-        });
-    };
-
     const fetchUserNewsChannelConfig = async () => {
-        if (!accessToken) {
+        if (!isLoggedIn) {
             console.log('no access token, skip fetch user news channel config');
             return;
         }
@@ -160,7 +115,6 @@ export const ProfileScreen = () => {
     const updateLastSyncTime = () => {
         const now = new Date().toLocaleString();
         storage.set('lastSyncTime', now);
-        setLastSyncTime(now);
     }
 
     const fetchUserNewsChannelConfigFromServer = async () => {
@@ -191,12 +145,7 @@ export const ProfileScreen = () => {
                 {
                     text: '确定',
                     onPress: async () => {
-                        storage.delete('accessToken');
-                        storage.delete('userInfo');
-                        storage.delete('lastSyncTime');
-                        setIsSyncEnabled(false);
-                        setAccessToken(null);
-                        setUserInfo(null);
+                        await logout();
                         await logEvent('user_logout');
                     }
                 }
@@ -225,15 +174,14 @@ export const ProfileScreen = () => {
 
     const onLoginSuccess = async (token) => {
         storage.set('accessToken', token);
-        setAccessToken(token);
+        await loadUserInfo();
         closeLoginModal();
-        fetchUserInfo();
         fetchUserNewsChannelConfig();
         await logEvent('user_login_success');
     }
 
     const promptLoginForSync = () => {
-        if (!accessToken) {
+        if (!isLoggedIn) {
             Alert.alert('请先登录', '登录后即可开启同步功能', [
                 {
                     text: '取消',
@@ -254,7 +202,7 @@ export const ProfileScreen = () => {
     }
 
     const openSyncModal = () => {
-        if (!accessToken) {
+        if (!isLoggedIn) {
             promptLoginForSync();
             return;
         }
@@ -282,7 +230,7 @@ export const ProfileScreen = () => {
                 }}
             >
                 {
-                    accessToken ? (
+                    isLoggedIn ? (
                         <Image style={styles.avatar} source={{uri: userInfo?.avatar || DEFAULT_AVATAR}}/>
                     ) : (
                         <Image source={require('../../assets/images/default-avatar.png')} style={styles.avatar}/>
