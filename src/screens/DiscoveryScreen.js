@@ -109,7 +109,6 @@ export const DiscoveryScreen = () => {
 
     const syncChannelListFromServer = async () => {
         if (!storage.getString("accessToken") || !isSyncEnabled()) {
-            console.log('skip');
             return;
         }
 
