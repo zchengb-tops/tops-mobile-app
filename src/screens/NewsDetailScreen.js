@@ -1,7 +1,7 @@
-import React, {useEffect, useLayoutEffect, useState} from "react";
+import React, {useEffect, useLayoutEffect, useState, useCallback} from "react";
 import {WebView} from "react-native-webview";
 import {ActivityIndicator, Platform, StyleSheet, TouchableOpacity, View} from "react-native";
-import {useIsFocused, useNavigation} from "@react-navigation/native";
+import {useIsFocused, useNavigation, useFocusEffect} from "@react-navigation/native";
 import {useVisibility} from "../providers/VisibilityProvider";
 import Share from "react-native-share";
 import {Icon} from "@rneui/themed";
@@ -17,6 +17,7 @@ export const NewsDetailScreen = ({route}) => {
     const isFocused = useIsFocused();
     const {setIsNavBarVisible, setIsPlayBarVisible} = useVisibility();
     const navigation = useNavigation();
+    const [key, setKey] = useState(0);
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -49,6 +50,12 @@ export const NewsDetailScreen = ({route}) => {
             setIsPlayBarVisible(true);
         };
     }, [isFocused]);
+
+    useFocusEffect(
+        useCallback(() => {
+            setKey(prev => prev + 1);
+        }, [])
+    );
 
     const handleShouldStartLoadWithRequest = (request) => {
         const url = request.url;
@@ -98,7 +105,7 @@ export const NewsDetailScreen = ({route}) => {
         }
 
         <WebView
-            key={webviewKey}
+            key={key}
             source={{uri: url}}
             originWhitelist={['*']}
             allowsFullscreenVideo={false}
