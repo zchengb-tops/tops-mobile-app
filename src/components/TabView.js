@@ -3,6 +3,7 @@ import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
 import PagerView from 'react-native-pager-view';
 import useNewsStore from '../stores/useNewsStore';
+import {useTab} from "../hooks/TabHooks";
 
 const TabContent = memo(({channel}) => {
     const rssLoadError = useNewsStore(state => state.rssLoadError);
@@ -36,11 +37,12 @@ const TabContent = memo(({channel}) => {
     ) : channel.component;
 });
 
-export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateChanged}) => {
+export const TabView = ({channelList}) => {
     const pagerRef = useRef(null);
+    const { tabIndex, setTabIndex, triggerByTabBar } = useTab();
 
     useEffect(() => {
-        if (pagerRef.current) {
+        if (pagerRef.current && triggerByTabBar) {
             pagerRef.current.setPage(tabIndex);
         }
     }, [tabIndex]);
@@ -61,9 +63,10 @@ export const TabView = ({channelList, tabIndex, setTabIndex, onPageScrollStateCh
             style={styles.pagerView}
             initialPage={tabIndex}
             onPageSelected={(e) => {
-                setTabIndex(e.nativeEvent.position);
+                if (e.nativeEvent.position !== tabIndex) {
+                    setTabIndex(e.nativeEvent.position);
+                }
             }}
-            onPageScrollStateChanged={onPageScrollStateChanged}
             pageMargin={10}
             offscreenPageLimit={2}
         >

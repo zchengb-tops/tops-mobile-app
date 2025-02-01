@@ -12,10 +12,10 @@ import useNewsStore from '../stores/useNewsStore';
 import {Rss} from "../tabs/Rss";
 import {ErrorScreen} from "./ErrorScreen";
 import {getUserNewsChannelConfig, getUserNewsChannelConfigCurrentVersion} from "../apis/User";
+import {useTab} from "../hooks/TabHooks";
 
 export const DiscoveryScreen = () => {
-    const [tabIndex, setTabIndex] = useState(0);
-    const [isScrolling, setIsScrolling] = useState(false);
+    const { tabIndex, setTabIndex } = useTab();
     const [channelList, setChannelList] = useState([]);
     const isFocused = useIsFocused();
     const {theme} = useTheme();
@@ -201,10 +201,6 @@ export const DiscoveryScreen = () => {
         ));
     }
 
-    const handlePageScrollStateChanged = (state) => {
-        setIsScrolling(state === 'dragging' || state === 'settling');
-    };
-
     return <View
         style={[
             styles.container,
@@ -214,7 +210,7 @@ export const DiscoveryScreen = () => {
             }
         ]}
     >
-        <TabBar channelList={channelList} tabIndex={tabIndex} setTabIndex={setTabIndex} isScrolling={isScrolling}/>
+        <TabBar channelList={channelList}/>
         {
             defaultChannelLoadError
                 ? <ErrorScreen retry={() => {
@@ -224,9 +220,6 @@ export const DiscoveryScreen = () => {
                 : <TabView
                     key={pagerKey}
                     channelList={channelList}
-                    tabIndex={tabIndex}
-                    setTabIndex={setTabIndex}
-                    onPageScrollStateChanged={handlePageScrollStateChanged}
                 />
         }
     </View>

@@ -3,8 +3,9 @@ import {Animated, Dimensions, Image, Platform, ScrollView, StyleSheet, Touchable
 import {Text} from "./Text";
 import {useTheme} from "@rneui/themed";
 import {SvgUri} from "react-native-svg";
+import {useTab} from "../hooks/TabHooks";
 
-export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
+export const TabBar = ({channelList}) => {
     const tabWidths = useRef([]);
     const animatedPosition = useRef(new Animated.Value(0)).current;
     const animatedWidth = useRef(new Animated.Value(0)).current;
@@ -14,11 +15,14 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
     const [isAnimating, setIsAnimating] = useState(false);
     const {theme} = useTheme();
 
+    const { tabIndex, setTabIndex, triggerByTabBar } = useTab();
+
+
     useEffect(() => {
-        if (tabWidths.current.length > 0 && !isScrolling) {
+        if (tabWidths.current.length > 0) {
             scrollToTab(tabIndex);
         }
-    }, [tabIndex, channelList, isScrolling]);
+    }, [tabIndex, channelList]);
 
     useEffect(() => {
         console.log('render tab bar')
@@ -29,20 +33,10 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
             const tabItemEndPosition = tabWidths.current.slice(0, index + 1).reduce((total, width) => total + width, 10 * (index + 1));
             const tabItemStartPosition = tabItemEndPosition - 10 - tabWidths.current[index];
 
-            Animated.parallel([
-                Animated.spring(animatedPosition, {
-                    toValue: tabItemStartPosition,
-                    useNativeDriver: true,
-                    tension: 50,
-                    friction: 7
-                }),
-                Animated.spring(animatedWidth, {
-                    toValue: tabWidths.current[index],
-                    useNativeDriver: false,
-                    tension: 50,
-                    friction: 7
-                })
-            ]).start();
+            Animated.spring(animatedWidth, {
+                toValue: tabWidths.current[index],
+                useNativeDriver: true,
+            })
 
             const currentScreenEndPosition = scrollX + screenWidth;
             const currentScreenStartPosition = currentScreenEndPosition - screenWidth;
@@ -155,7 +149,7 @@ export const TabBar = ({channelList, tabIndex, setTabIndex, isScrolling}) => {
                                 style={[styles.tabBarItem]}
                                 key={index}
                                 disabled={isAnimating}
-                                onPress={() => setTabIndex(index)}
+                                onPress={() => setTabIndex(index, true)}
                                 onLayout={(event) => {
                                     const width = event.nativeEvent.layout.width;
                                     if (index === 0) {
