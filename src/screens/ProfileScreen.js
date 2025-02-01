@@ -1,10 +1,9 @@
-import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { Icon, useTheme } from "@rneui/themed";
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {Icon, useTheme} from "@rneui/themed";
 import * as Application from 'expo-application';
-import React, { useEffect, useState } from "react";
-import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { logEvent } from "../analytics";
+import React, {useEffect, useState} from "react";
+import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
+import {logEvent} from "../analytics";
 import {
     getUserNewsChannelConfig,
     getUserNewsChannelConfigCurrentVersion,
@@ -15,12 +14,13 @@ import DarkModeModal from "../components/DarkModeModal";
 import FontSizeModal from "../components/FontSizeModal";
 import LoginModal from "../components/LoginModal";
 import SyncModal from "../components/SyncModal";
-import { FONT_SIZE, Text } from "../components/Text";
-import { DEFAULT_AVATAR } from "../constant";
-import { useAuth } from '../hooks/AuthHooks';
-import { useDarkMode, useDarkModeValue } from '../hooks/DarkModeHooks';
-import { storage } from "../storage";
+import {FONT_SIZE, Text} from "../components/Text";
+import {DEFAULT_AVATAR} from "../constant";
+import {useAuth} from '../hooks/AuthHooks';
+import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
+import {storage} from "../storage";
 import useNewsStore from '../stores/useNewsStore';
+import {useTopInset} from "../hooks/useTopInset";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -41,7 +41,7 @@ export const ProfileScreen = () => {
         {value: 'light', label: '浅色模式'},
         {value: 'dark', label: '深色模式'}
     ];
-    const insets = useSafeAreaInsets();
+    const topInset = useTopInset();
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
 
     useEffect(() => {
@@ -213,7 +213,7 @@ export const ProfileScreen = () => {
             styles.container,
             {
                 backgroundColor: theme.colors.background,
-                paddingTop: insets.top
+                paddingTop: topInset
             }
         ]}
     >
