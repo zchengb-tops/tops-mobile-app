@@ -19,15 +19,15 @@ export const NavBar = () => {
     const translateAnim = useRef(new Animated.Value(0)).current;
     const positionAnim = useRef(new Animated.Value(100)).current;
     const tabRefs = useRef({});
-    const { isNavBarVisible } = useVisibility();
-    const { theme } = useTheme();
+    const {isNavBarVisible} = useVisibility();
+    const {theme} = useTheme();
     const isDarkMode = useDarkMode();
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => {
             if (tabRefs.current[routeMapping.DISCOVERY]) {
-                const { x } = tabRefs.current[routeMapping.DISCOVERY];
+                const {x} = tabRefs.current[routeMapping.DISCOVERY];
                 translateAnim.setValue(x - 16);
                 setIsInitialized(true);
             }
@@ -63,7 +63,8 @@ export const NavBar = () => {
     };
 
     const renderLabel = (screenName, label) => {
-        return <Text style={[styles.navText, { color: theme.colors.text }, currentRoute === screenName && styles.selectedNavText]}>{label}</Text>;
+        return <Text
+            style={[styles.navText, {color: theme.colors.text}, currentRoute === screenName && styles.selectedNavText]}>{label}</Text>;
     };
 
     const renderIcon = (screenName) => {
@@ -125,7 +126,7 @@ export const NavBar = () => {
     const goto = (routeName) => {
         if (!tabRefs.current[routeName]) return;
 
-        const { x } = tabRefs.current[routeName];
+        const {x} = tabRefs.current[routeName];
         Animated.spring(translateAnim, {
             toValue: x - 16,
             useNativeDriver: true,
@@ -142,21 +143,28 @@ export const NavBar = () => {
     }
 
     return (
-        <SafeAreaView edges={['bottom']} style={{backgroundColor: isDarkMode ? '#000000' : '#F5F5F5',}}>
+        <SafeAreaView edges={['bottom']} style={{
+            backgroundColor: isDarkMode ? '#000000' : Platform.select({
+                ios: '#F5F5F5',
+                android: '#FFF'
+            }),
+            borderTopWidth: 0.5,
+            borderTopColor: theme.colors.border,
+        }}>
             <Animated.View
                 style={[
                     styles.navBarWrapper,
                     {
-                        transform: [{ translateY: positionAnim }],
+                        transform: [{translateY: positionAnim}],
                     }
                 ]}
             >
                 <View style={[styles.navBar]}>
                     <Animated.View style={[styles.navButtonSelected, {
                         backgroundColor: theme.colors.indicator,
-                        transform: [{ translateX: translateAnim }],
+                        transform: [{translateX: translateAnim}],
                         opacity: isInitialized ? 1 : 0,
-                    }]} />
+                    }]}/>
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={styles.navButton}

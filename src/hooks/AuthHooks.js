@@ -38,7 +38,6 @@ export const useAuth = () => {
     const { isLoggedIn, userInfo, loadUserInfo } = useAuthStore();
     
     useEffect(() => {
-        console.log('loadUserInfo');
         loadUserInfo();
     }, []);
     

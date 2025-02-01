@@ -49,7 +49,6 @@ export const ProfileScreen = () => {
             screen_name: 'ProfileScreen',
             page_title: 'ProfileScreen'
         });
-        console.log('isLoggedIn', isLoggedIn, userInfo);
     }, [isFocused]);
 
 
