@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Dimensions, RefreshControl, ScrollView, StyleSheet, View} from 'react-native';
+import {Dimensions, Platform, RefreshControl, ScrollView, StyleSheet, View} from 'react-native';
 import * as echarts from 'echarts/core';
 import {GridComponent, TooltipComponent, VisualMapComponent} from 'echarts/components';
 import {SvgChart, SVGRenderer} from '@wuba/react-native-echarts';
@@ -135,7 +135,10 @@ export const Stock = () => {
             chart = echarts.init(chartRef.current, 'light', {
                 renderer: 'svg',
                 width: screenWidth,
-                height: screenHeight - insets.top - 18 - 100 - insets.bottom
+                height: Platform.select({
+                    ios: screenHeight - insets.top - 18 - 100 - insets.bottom,
+                    android: screenHeight - 124
+                })
             });
             chart.setOption(chartOption);
 
