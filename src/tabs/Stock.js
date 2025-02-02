@@ -136,7 +136,7 @@ export const Stock = () => {
                 renderer: 'svg',
                 width: screenWidth,
                 height: Platform.select({
-                    ios: screenHeight - insets.top - 18 - 100 - insets.bottom,
+                    ios: screenHeight - insets.top - 22 - 100 - insets.bottom,
                     android: screenHeight - 124
                 })
             });
