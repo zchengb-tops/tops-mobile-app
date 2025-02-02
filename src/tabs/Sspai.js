@@ -13,7 +13,7 @@ export const Sspai = () => {
     const normalNews = useNewsStore(state => state.normalNews);
     const normalRefreshing = useNewsStore(state => state.normalRefreshing);
     const refreshNews = useNewsStore(state => state.refreshNews);
-    
+
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const {theme} = useTheme();
@@ -29,12 +29,14 @@ export const Sspai = () => {
             let title = article.title.replace(morningPaperPrefix + "：", "");
             title = title.replace(morningPaperPrefix + ":", "");
 
-            return <Text style={[styles.morningTitle, { color: theme.colors.text }]} numberOfLines={3} ellipsizeMode='tail'>
+            return <Text style={[styles.morningTitle, {color: theme.colors.text}]} numberOfLines={3}
+                         ellipsizeMode='tail'>
                 <Text style={styles.morningTitlePrefix}>派早报：</Text>
                 {title}
             </Text>
         }
-        return <Text style={[styles.normalTitle, { color: theme.colors.text }]} numberOfLines={3} ellipsizeMode='tail'>{article.title}</Text>
+        return <Text style={[styles.normalTitle, {color: theme.colors.text}]} numberOfLines={3}
+                     ellipsizeMode='tail'>{article.title}</Text>
     }
 
     useEffect(() => console.log('start to render sspai'), []);
@@ -42,12 +44,14 @@ export const Sspai = () => {
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}
+                            tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (
             <TouchableOpacity
+                delayPressIn={200}
                 activeOpacity={0.8}
                 onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
@@ -67,15 +71,18 @@ export const Sspai = () => {
                         <View style={styles.textContainer}>
                             {getArticleTitle(item)}
                             <View style={styles.infoWrapper}>
-                                <Text style={[styles.publishDate, { color: theme.colors.secondaryText }]}>{item.publishDate}</Text>
+                                <Text
+                                    style={[styles.publishDate, {color: theme.colors.secondaryText}]}>{item.publishDate}</Text>
                                 <View style={styles.countWrapper}>
                                     <View style={styles.likeWrapper}>
                                         <FlashlightIcon/>
-                                        <Text style={[styles.likeCount, { color: theme.colors.secondaryText }]}>{item.likeCount}</Text>
+                                        <Text
+                                            style={[styles.likeCount, {color: theme.colors.secondaryText}]}>{item.likeCount}</Text>
                                     </View>
                                     <View style={styles.commentWrapper}>
                                         <CommentIcon/>
-                                        <Text style={[styles.commentCount, { color: theme.colors.secondaryText }]}>{item.commentCount}</Text>
+                                        <Text
+                                            style={[styles.commentCount, {color: theme.colors.secondaryText}]}>{item.commentCount}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -89,8 +96,7 @@ export const Sspai = () => {
 }
 
 const styles = StyleSheet.create({
-    contentContainer: {
-    },
+    contentContainer: {},
     newsItemWrapper: {
         justifyContent: 'center',
         alignItems: 'center',

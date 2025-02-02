@@ -12,7 +12,7 @@ export const NnGroup = () => {
     const normalNews = useNewsStore(state => state.normalNews);
     const normalRefreshing = useNewsStore(state => state.normalRefreshing);
     const refreshNews = useNewsStore(state => state.refreshNews);
-    
+
     const [news, setNews] = useState([]);
     const navigation = useNavigation();
     const {theme} = useTheme();
@@ -27,12 +27,14 @@ export const NnGroup = () => {
     return <FlatList
         data={news}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}
+                            tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (
             <TouchableOpacity
+                delayPressIn={200}
                 style={styles.newsItemWrapper}
                 onPress={() =>
                     navigation.navigate('NewsDetailScreen', {
@@ -44,18 +46,20 @@ export const NnGroup = () => {
             >
                 <View style={styles.newItemContainer}>
                     <View style={styles.infoContainer}>
-                        <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={2}>{item.title}</Text>
+                        <Text style={[styles.title, {color: theme.colors.text}]} numberOfLines={2}>{item.title}</Text>
                         <View style={styles.additionalInfoContainer}>
-                            <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}>{item.publishDate}</Text>
+                            <Text
+                                style={[styles.additionalText, {color: theme.colors.secondaryText}]}>{item.publishDate}</Text>
                             {
                                 item.consumingTime
                                     ?
-                                    <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}> | {item.consumingTime}</Text>
+                                    <Text
+                                        style={[styles.additionalText, {color: theme.colors.secondaryText}]}> | {item.consumingTime}</Text>
                                     :
                                     <></>
                             }
                         </View>
-                        <Text style={[styles.brief, { color: theme.colors.secondaryText }]} numberOfLines={3}>
+                        <Text style={[styles.brief, {color: theme.colors.secondaryText}]} numberOfLines={3}>
                             {item.brief}
                         </Text>
                     </View>
@@ -75,15 +79,14 @@ export const NnGroup = () => {
                             <></>
                     }
                 </View>
-                <View style={[styles.borderBottom, { borderBottomColor: theme.colors.border }]}/>
+                <View style={[styles.borderBottom, {borderBottomColor: theme.colors.border}]}/>
             </TouchableOpacity>
         )}
     />
 }
 
 const styles = StyleSheet.create({
-    contentContainer: {
-    },
+    contentContainer: {},
     newsItemWrapper: {
         justifyContent: 'center',
         alignItems: 'center',
@@ -137,9 +140,9 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: '50%',
         left: '50%',
-        transform:  [
-            { translateX: -18 },
-            { translateY: -18 },
+        transform: [
+            {translateX: -18},
+            {translateY: -18},
         ],
     },
 })

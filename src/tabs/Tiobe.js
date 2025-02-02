@@ -50,6 +50,7 @@ export const Tiobe = () => {
     const renderItem = (item, index) => {
         return (
             <TouchableOpacity style={[styles.itemWrapper, {borderBottomColor: theme.colors.border}]}
+                              delayPressIn={200}
                               activeOpacity={0.8}
                               onPress={() => navigation.navigate('NewsDetailScreen', {
                                   url: item.link,

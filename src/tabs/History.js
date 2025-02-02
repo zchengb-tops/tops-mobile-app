@@ -26,6 +26,7 @@ export const History = () => {
     const renderItem = (item, index) => {
         return (
             <TouchableOpacity style={[styles.itemWrapper]}
+                delayPressIn={200}
                 key={index}
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('NewsDetailScreen', {

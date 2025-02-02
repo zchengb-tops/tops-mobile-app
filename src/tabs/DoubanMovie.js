@@ -14,7 +14,7 @@ export const DoubanMovie = () => {
     const normalRefreshing = useNewsStore(state => state.normalRefreshing);
     const refreshNews = useNewsStore(state => state.refreshNews);
     const navigation = useNavigation();
-    const { theme } = useTheme();
+    const {theme} = useTheme();
     const darkMode = useDarkMode();
 
     useEffect(() => {
@@ -26,7 +26,8 @@ export const DoubanMovie = () => {
     return <FlatList
         style={styles.container}
         refreshControl={
-            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={darkMode ? '#d77f31' : ''}/>
+            <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}
+                            tintColor={darkMode ? '#d77f31' : ''}/>
         }
         data={movies}
         contentContainerStyle={styles.contentContainer}
@@ -38,6 +39,7 @@ export const DoubanMovie = () => {
             return (
                 <TouchableOpacity
                     style={styles.movieItem}
+                    delayPressIn={200}
                     activeOpacity={0.8}
                     onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
@@ -58,12 +60,14 @@ export const DoubanMovie = () => {
                     </View>
                     <Image style={styles.cover} source={{uri: item.coverUrl}}/>
                     <View style={styles.movieInfoWrapper}>
-                        <Text style={[styles.movieName, { color: theme.colors.text }]}>{item.name}</Text>
+                        <Text style={[styles.movieName, {color: theme.colors.text}]}>{item.name}</Text>
                         <View style={styles.additionalInfoWrapper}>
-                            <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}>{item.publishDate} / </Text>
-                            <Text style={[styles.additionalText, { color: theme.colors.secondaryText }]}>{item.region} / </Text>
                             <Text
-                                style={[styles.additionalText, styles.movieTypeText, { color: theme.colors.secondaryText }]}
+                                style={[styles.additionalText, {color: theme.colors.secondaryText}]}>{item.publishDate} / </Text>
+                            <Text
+                                style={[styles.additionalText, {color: theme.colors.secondaryText}]}>{item.region} / </Text>
+                            <Text
+                                style={[styles.additionalText, styles.movieTypeText, {color: theme.colors.secondaryText}]}
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                             >
@@ -91,8 +95,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    contentContainer: {
-    },
+    contentContainer: {},
     cover: {
         borderRadius: 8,
         width: 80,

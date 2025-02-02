@@ -20,7 +20,7 @@ export const Xiaoyuzhou = () => {
     const playStatus = useTrackStatus();
     const playingTrack = useTrack();
     const navigation = useNavigation();
-    const { theme } = useTheme();
+    const {theme} = useTheme();
     const isDarkMode = useDarkMode();
     const playBarShrink = useTrackShrink();
 
@@ -99,7 +99,7 @@ export const Xiaoyuzhou = () => {
                 await TrackPlayer.skip(trackIndex, isCurrentMediaItemPlayedComplete(mediaItem) ? 0 : mediaItem.position);
             } else {
                 await TrackPlayer.add(track);
-                
+
                 markHasBeenActive(mediaItem);
                 const queue = await TrackPlayer.getQueue();
                 await TrackPlayer.skip(queue.length - 1, mediaItem.position);
@@ -155,29 +155,34 @@ export const Xiaoyuzhou = () => {
             data={news}
             refreshControl={
                 <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing}
-                    onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
+                                onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
             }
             contentContainerStyle={styles.contentContainer}
             keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item, index }) => (
-                <TouchableOpacity style={styles.newsItemWrapper} activeOpacity={0.8} onPress={() =>
-                    navigation.navigate('NewsDetailScreen', {
-                        url: item.url,
-                        title: item.title
-                    })
-                }>
+            renderItem={({item, index}) => (
+                <TouchableOpacity style={styles.newsItemWrapper}
+                                  delayPressIn={200}
+                                  activeOpacity={0.8}
+                                  onPress={() =>
+                                      navigation.navigate('NewsDetailScreen', {
+                                          url: item.url,
+                                          title: item.title
+                                      })
+                                  }>
                     <View style={styles.newItemContainer}>
                         <Image
                             style={styles.image}
                             resizeMode="cover"
-                            source={{ uri: item.coverUrl }}
+                            source={{uri: item.coverUrl}}
                         />
 
                         <View style={styles.infoContainer}>
-                            <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={2} ellipsizeMode='tail'>{item.title}</Text>
+                            <Text style={[styles.title, {color: theme.colors.text}]} numberOfLines={2}
+                                  ellipsizeMode='tail'>{item.title}</Text>
                             <View style={styles.extraInfoWrapper}>
-                                <AuthorIcon />
-                                <Text style={[styles.author, { color: theme.colors.secondaryText }]} numberOfLines={1} ellipsizeMode='tail'>{item.author}</Text>
+                                <AuthorIcon/>
+                                <Text style={[styles.author, {color: theme.colors.secondaryText}]} numberOfLines={1}
+                                      ellipsizeMode='tail'>{item.author}</Text>
                             </View>
                             <View style={styles.extraInfoWrapper}>
                                 <Icon
@@ -186,7 +191,8 @@ export const Xiaoyuzhou = () => {
                                     type='ionicon'
                                     color={theme.colors.secondaryText}
                                 />
-                                <Text style={[styles.duration, { color: theme.colors.secondaryText }]} numberOfLines={1} ellipsizeMode='tail'>
+                                <Text style={[styles.duration, {color: theme.colors.secondaryText}]} numberOfLines={1}
+                                      ellipsizeMode='tail'>
                                     {formatDuration(item.duration)}
                                 </Text>
                             </View>
@@ -205,7 +211,7 @@ export const Xiaoyuzhou = () => {
                                         onPress={() => handlePlayButtonClick(index)}
                                         style={[
                                             styles.playButton,
-                                            { backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1' },
+                                            {backgroundColor: isCurrentItemPlaying(item) ? '#FBF0E7' : '#F1F1F1'},
                                         ]}
                                     >
                                         {isCurrentItemLoading(item) ? (
@@ -215,14 +221,14 @@ export const Xiaoyuzhou = () => {
                                                 style={styles.playLoadingIndicator}
                                             />
                                         ) : isCurrentItemPlaying(item) ? (
-                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00" />
+                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00"/>
                                         ) : (
                                             <Icon
                                                 size={18}
                                                 name="play-sharp"
                                                 type="ionicon"
                                                 color="#464646"
-                                                style={{ marginLeft: 2 }}
+                                                style={{marginLeft: 2}}
                                             />
                                         )}
                                     </TouchableOpacity>
@@ -240,8 +246,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    contentContainer: {
-    },
+    contentContainer: {},
     newsItemWrapper: {
         justifyContent: 'center',
         alignItems: 'center',
@@ -292,6 +297,6 @@ const styles = StyleSheet.create({
         borderRadius: 4
     },
     playLoadingIndicator: {
-        transform: [{ scale: 0.75 }]
+        transform: [{scale: 0.75}]
     }
 });
