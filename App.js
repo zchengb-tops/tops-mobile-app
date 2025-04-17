@@ -22,6 +22,7 @@ import {ThemeContext, ThemeProvider, useTheme} from "@rneui/themed";
 import {UserPrivacyAgreementScreen} from "./src/screens/UserPrivacyAgreementScreen";
 import {UserServiceAgreementScreen} from "./src/screens/UserServiceAgreementScreen";
 import {useTrackStateStore} from "./src/hooks/TrackHooks";
+import {enableLayoutAnimations} from "react-native-reanimated";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -33,7 +34,7 @@ Text.defaultProps.style = Text.defaultProps.style || {};
 TextInput.defaultProps = TextInput.defaultProps || {};
 TextInput.defaultProps.allowFontScaling = false;
 TextInput.defaultProps.style = TextInput.defaultProps.style || {};
-
+enableLayoutAnimations(true);
 LogBox.ignoreAllLogs();
 
 const error = console.error;

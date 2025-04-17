@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {ActivityIndicator, Dimensions, Image, StyleSheet, TouchableOpacity, View} from 'react-native';
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useTrack, useTrackShowing, useTrackShrink, useTrackStateStore, useTrackStatus} from "../hooks/TrackHooks";
@@ -6,8 +6,8 @@ import {Icon, Slider, useTheme} from "@rneui/themed";
 import TrackPlayer, {Capability, State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useVisibility} from "../providers/VisibilityProvider";
-import {Directions, Gesture, GestureDetector} from "react-native-gesture-handler";
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from "react-native-reanimated";
+import {Gesture, GestureDetector} from "react-native-gesture-handler";
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming, Easing} from "react-native-reanimated";
 import {BlurView} from "./BlurView";
 import {storage} from "../storage";
 import {Text} from "./Text";
@@ -64,24 +64,9 @@ export const PlayerBar = () => {
     const isShrink = useTrackShrink();
     const position = useSharedValue(isShrink ? screenWidth - 24 : 0);
     const isDarkMode = useDarkMode();
-    const { theme } = useTheme();
-    const animatedPlayBarStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: position.value}],
-    }));
+    const {theme} = useTheme();
     const blurOpacity = useSharedValue(isShrink ? 1 : 0);
     const isGestureAnimating = useSharedValue(false);
-
-    useEffect(() => {
-        if (!isPlayBarVisible) return;
-        
-        if (isGestureAnimating.value) {
-            isGestureAnimating.value = false;
-            return;
-        }
-        
-        position.value = withTiming(isShrink ? screenWidth - 24 : 0, {duration: 300});
-        blurOpacity.value = withTiming(isShrink ? 1 : 0, {duration: 200});
-    }, [isShrink, isPlayBarVisible]);
 
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
@@ -103,30 +88,12 @@ export const PlayerBar = () => {
         return progress.position >= progress.duration
     }
 
-    const flingRightGesture = Gesture.Fling()
-        .direction(Directions.RIGHT)
-        .onStart((e) => {
-            isGestureAnimating.value = true;
-            position.value = withTiming(screenWidth - 24, {duration: 300});
-            blurOpacity.value = withTiming(1, {duration: 200});
-            runOnJS(setShrink)(true);
-        });
-
     const handleFlingLeft = () => {
         isGestureAnimating.value = true;
         position.value = withTiming(0, {duration: 300});
-        blurOpacity.value = withTiming(0, {duration: 200});
+        blurOpacity.value = withTiming(0, {duration: 0});
         runOnJS(setShrink)(false);
     }
-
-    const flingLeftGesture = Gesture.Fling()
-        .direction(Directions.LEFT)
-        .onStart(() => {
-            isGestureAnimating.value = true;
-            position.value = withTiming(0, {duration: 300});
-            blurOpacity.value = withTiming(0, {duration: 200});
-            runOnJS(setShrink)(false);
-        });
 
     const cleanTrackPlay = async () => {
         setPlayerBarShowing(false);
@@ -140,33 +107,65 @@ export const PlayerBar = () => {
         opacity: blurOpacity.value,
     }));
 
+    const startPosition = useSharedValue(0);
+
+
+    const panGesture = Gesture.Pan()
+        .onStart(() => {
+            startPosition.value = position.value;
+            isGestureAnimating.value = true;
+            blurOpacity.value = withTiming(0, {duration: 100});
+        })
+        .onUpdate((e) => {
+            position.value = startPosition.value + e.translationX;
+        })
+        .onEnd((e) => {
+            const shouldShrink =
+                e.translationX > 100 ||
+                (e.velocityX > 500 && e.translationX > 0);
+
+            position.value = withTiming(
+                shouldShrink ? screenWidth - 24 : 0,
+                {
+                    duration: 250,
+                    easing: Easing.out(Easing.exp)
+                }
+            );
+            blurOpacity.value = withTiming(shouldShrink ? 1 : 0, {duration: 200});
+            runOnJS(setShrink)(shouldShrink);
+            isGestureAnimating.value = false;
+        });
+
+    const animatedPlayBarStyle = useAnimatedStyle(() => ({
+        transform: [
+            {translateX: position.value},
+        ],
+    }));
+
+
     if (!isPlayBarVisible) return null;
 
     return (
         showing && isPlayBarVisible ? (
-            <GestureDetector gesture={Gesture.Exclusive(flingRightGesture, flingLeftGesture)}>
+            <GestureDetector gesture={panGesture}>
                 <Animated.View
                     style={[styles.playerBarExternalWrapper, {bottom: 48 + insets.bottom}, animatedPlayBarStyle]}>
                     {
-                        isShrink
-                            ?
-                            <Animated.View style={[styles.blurViewWrapper, animatedBlurStyle]}>
-                                <TouchableOpacity onPress={handleFlingLeft} activeOpacity={0.9}>
-                                    <BlurView
-                                        style={[styles.blurView]}
-                                        blurType={isDarkMode ? "light" : "dark"}
-                                        blurAmount={3}
-                                    >
-                                        <Icon size={16}
-                                              name='chevron-back-outline'
-                                              type='ionicon'
-                                              style={styles.shrinkIcon}
-                                              color={'#fff'}/>
-                                    </BlurView>
-                                </TouchableOpacity>
-                            </Animated.View>
-                            :
-                            <></>
+                    <Animated.View style={[styles.blurViewWrapper, animatedBlurStyle]}>
+                        <TouchableOpacity onPress={handleFlingLeft} activeOpacity={0.9}>
+                            <BlurView
+                                style={[styles.blurView]}
+                                blurType={isDarkMode ? "light" : "dark"}
+                                blurAmount={3}
+                            >
+                                <Icon size={16}
+                                      name='chevron-back-outline'
+                                      type='ionicon'
+                                      style={styles.shrinkIcon}
+                                      color={'#fff'}/>
+                            </BlurView>
+                        </TouchableOpacity>
+                    </Animated.View>
                     }
                     <View
                         activeOpacity={1}
@@ -181,9 +180,11 @@ export const PlayerBar = () => {
                             }
 
                             <View style={styles.trackTextInfo}>
-                                <Text style={[styles.title, {color: isDarkMode ? '#FFFFFF' : '#464646'}]} numberOfLines={1}
+                                <Text style={[styles.title, {color: isDarkMode ? '#FFFFFF' : '#464646'}]}
+                                      numberOfLines={1}
                                       ellipsizeMode='tail'>{currentTrack?.title}</Text>
-                                <Text style={[styles.author, {color: isDarkMode ? '#999999' : '#888888'}]} numberOfLines={1}
+                                <Text style={[styles.author, {color: isDarkMode ? '#999999' : '#888888'}]}
+                                      numberOfLines={1}
                                       ellipsizeMode='tail'>{currentTrack?.artist}</Text>
                             </View>
                         </View>
@@ -225,7 +226,8 @@ export const PlayerBar = () => {
                                         ) : (
                                             status === State.Loading
                                                 ?
-                                                <ActivityIndicator size="small" color={isDarkMode ? '#FFFFFF' : '#464646'}/>
+                                                <ActivityIndicator size="small"
+                                                                   color={isDarkMode ? '#FFFFFF' : '#464646'}/>
                                                 :
                                                 <TouchableOpacity
                                                     onPress={() => {
@@ -330,7 +332,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         width: 24,
         height: '100%',
-        left: 8,
+        left: 8
     },
     blurView: {
         height: '100%',
