@@ -59,15 +59,19 @@ export const DiscoveryScreen = () => {
     }, []);
 
     useEffect(() => {
-        if (isFocused && channelList) {
-            logEvent('screen_view', {
-                screen_name: 'DiscoveryScreen',
-                page_title: channelList[tabIndex]?.tabTitle || 'unknown',
-            }).catch(error => {
-                console.error('record screen view event failed:', error);
-            });
+        if (isFocused && channelList && channelList[tabIndex]) {
+            const timer = setTimeout(() => {
+                logEvent('screen_view', {
+                    screen_name: 'DiscoveryScreen',
+                    page_title: channelList[tabIndex]?.tabTitle || 'unknown',
+                }).catch(error => {
+                    console.error('record screen view event failed:', error);
+                });
+            }, 300);
+            
+            return () => clearTimeout(timer);
         }
-    }, [isFocused, tabIndex]);
+    }, [isFocused, tabIndex, channelList]);
 
     const initNews = async () => {
         fetchNormalNews().then(() => console.log('Successfully fetch normal news :)'));

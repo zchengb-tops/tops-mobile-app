@@ -1,4 +1,6 @@
-const isDevelopment = process.env.EXPO_PUBLIC_IS_DEV;
+import analytics from '@react-native-firebase/analytics';
+
+const isDevelopment = __DEV__ || process.env.EXPO_PUBLIC_IS_DEV === 'true';
 
 export const logEvent = async (eventName, params = {}) => {
     if (isDevelopment) {
@@ -7,10 +9,9 @@ export const logEvent = async (eventName, params = {}) => {
     }
 
     try {
-        await logEvent(eventName, params);
+        await analytics().logEvent(eventName, params);
         console.log('Analytics event logged successfully:', { eventName, params });
     } catch (error) {
-        console.error('Failed to log analytics event:', error);
+        console.warn('Analytics event failed (this is normal in development):', error.message);
     }
 };
-

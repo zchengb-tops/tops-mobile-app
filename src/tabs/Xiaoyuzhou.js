@@ -7,7 +7,7 @@ import TrackPlayer, {State, useProgress} from 'react-native-track-player';
 import AuthorIcon from "../../assets/icons/author.svg";
 import {Text} from "../components/Text";
 import {globalStyles} from "../globalStyle";
-import {useTrack, useTrackShrink, useTrackStateStore, useTrackStatus} from "../hooks/TrackHooks";
+import {useTrack, useTrackStateStore, useTrackStatus} from "../hooks/TrackHooks";
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
 
@@ -22,14 +22,11 @@ export const Xiaoyuzhou = () => {
     const navigation = useNavigation();
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
-    const playBarShrink = useTrackShrink();
-
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
-    const setShrink = useTrackStateStore.getState().setShrink;
 
     useEffect(() => {
-        if (playingTrack) {
+        if (playingTrack && news.length > 0) {
             const newsItems = [...news];
 
             let targetIndex = -1;
@@ -53,7 +50,7 @@ export const Xiaoyuzhou = () => {
                 setNews(newsItems);
             }
         }
-    }, [progress]);
+    }, [progress.position, progress.duration, playingTrack]);
 
     useEffect(() => {
         const newsItem = normalNews['xiaoyuzhou'];
@@ -108,9 +105,7 @@ export const Xiaoyuzhou = () => {
         }
 
 
-        if (playBarShrink) {
-            setShrink(false);
-        }
+
         await TrackPlayer.play();
     }
 
@@ -140,11 +135,19 @@ export const Xiaoyuzhou = () => {
     }
 
     const handlePlayButtonClick = async (newsItemIndex) => {
-        const newsItem = news[newsItemIndex];
-        await TrackPlayer.pause();
-
-        if (!isCurrentItemPlaying(newsItem)) {
-            triggerTrackPlayerToPlay(newsItem);
+        try {
+            const newsItem = news[newsItemIndex];
+            
+            if (isCurrentItemPlaying(newsItem)) {
+                // If currently playing this item, just pause
+                await TrackPlayer.pause();
+            } else {
+                // If not playing this item, pause current and play new
+                await TrackPlayer.pause();
+                await triggerTrackPlayerToPlay(newsItem);
+            }
+        } catch (error) {
+            console.warn('Play button click error:', error);
         }
     }
 
@@ -158,7 +161,7 @@ export const Xiaoyuzhou = () => {
                                 onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
             }
             contentContainerStyle={styles.contentContainer}
-            keyExtractor={(item, index) => index.toString()}
+            keyExtractor={(item, index) => `${item.id || index}-${item.title || 'unknown'}`}
             renderItem={({item, index}) => (
                 <TouchableOpacity style={styles.newsItemWrapper}
                                   delayPressIn={200}
@@ -201,7 +204,7 @@ export const Xiaoyuzhou = () => {
                             <AnimatedCircularProgress
                                 size={36}
                                 width={2}
-                                fill={(item.position / item.duration) * 100}
+                                fill={Math.min(100, Math.max(0, (item.position && item.duration) ? (item.position / item.duration) * 100 : 0))}
                                 tintColor="#F66F00"
                                 backgroundColor="transparent"
                                 rotation={0}
@@ -221,11 +224,11 @@ export const Xiaoyuzhou = () => {
                                                 style={styles.playLoadingIndicator}
                                             />
                                         ) : isCurrentItemPlaying(item) ? (
-                                            <Icon size={18} name="pause" type="ionicon" color="#F76F00"/>
+                                            <Icon size={16} name="pause" type="ionicon" color="#F76F00"/>
                                         ) : (
                                             <Icon
-                                                size={18}
-                                                name="play-sharp"
+                                                size={16}
+                                                name="play"
                                                 type="ionicon"
                                                 color="#464646"
                                                 style={{marginLeft: 2}}

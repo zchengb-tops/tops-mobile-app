@@ -53,7 +53,6 @@ const loadCacheTrackPlay = async () => {
     if (currentTrack) {
         const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
         const setTrack = useTrackStateStore.getState().setTrack;
-        const setShrink = useTrackStateStore.getState().setShrink;
 
         const track = JSON.parse(currentTrack);
 
@@ -66,7 +65,6 @@ const loadCacheTrackPlay = async () => {
         await TrackPlayer.pause();
         setPlayerBarShowing();
         setTrack(track);
-        setShrink(true);
         console.log('load exist track from mmkv:', track);
     }
 }

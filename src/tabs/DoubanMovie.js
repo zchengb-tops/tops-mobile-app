@@ -1,7 +1,7 @@
 import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
 import React, {useEffect, useState} from "react";
 import {useNavigation} from "@react-navigation/native";
-import {Rating} from "react-native-ratings";
+import {Rating} from "../components/Rating";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
