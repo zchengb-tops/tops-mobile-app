@@ -1,10 +1,11 @@
 import React, {useEffect, useRef} from 'react';
-import {TouchableOpacity, StyleSheet, Image, ActivityIndicator, Animated, Easing, View, PanResponder, Dimensions, Platform} from 'react-native';
+import {StyleSheet, Image, ActivityIndicator, Animated, Easing, View, Dimensions, Platform} from 'react-native';
 import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
 import {State, useProgress} from "react-native-track-player";
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {AnimatedCircularProgress} from 'react-native-circular-progress';
+import {PanGestureHandler, State as GestureState, TapGestureHandler} from 'react-native-gesture-handler';
 
 export const MiniPlayer = ({onPress}) => {
     const currentTrack = useTrack();
@@ -16,8 +17,8 @@ export const MiniPlayer = ({onPress}) => {
     const screenHeight = Dimensions.get('window').height;
     
     const pan = useRef(new Animated.ValueXY({
-        x: screenWidth - 80, // Start from right edge with symmetric margin
-        y: screenHeight - 160 - insets.bottom // Start above tab bar
+        x: screenWidth - 80,
+        y: screenHeight - 160 - insets.bottom
     })).current;
     
     if (!currentTrack?.title) return null;
@@ -31,7 +32,7 @@ export const MiniPlayer = ({onPress}) => {
             Animated.loop(
                 Animated.timing(rotationValue, {
                     toValue: 1,
-                    duration: 8000, // Slower rotation - 8 seconds instead of 3
+                    duration: 8000,
                     easing: Easing.linear,
                     useNativeDriver: true,
                 })
@@ -48,132 +49,132 @@ export const MiniPlayer = ({onPress}) => {
     
     const dragOffset = useRef({x: 0, y: 0});
     
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onStartShouldSetPanResponderCapture: () => false,
-            onMoveShouldSetPanResponder: (_, gestureState) => {
-                return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
-            },
-            onMoveShouldSetPanResponderCapture: (_, gestureState) => {
-                // Capture gesture to prevent parent scroll
-                return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
-            },
-            onShouldBlockNativeResponder: () => true,
-            onPanResponderGrant: (evt) => {
-                dragOffset.current = {
-                    x: pan.x._value - evt.nativeEvent.pageX,
-                    y: pan.y._value - evt.nativeEvent.pageY,
-                };
-            },
-            onPanResponderMove: (evt) => {
-                var newX = evt.nativeEvent.pageX + dragOffset.current.x;
-                var newY = evt.nativeEvent.pageY + dragOffset.current.y;
-                
-                // Apply boundaries during drag - symmetric margins
-                var minMarginLeft = 0; // Narrower to match right margin
-                var minMarginRight = 80; // Reduced to match user's preference
-                var minHeight = insets.top + 80; // Adjustable minimal height
-                var maxHeight = screenHeight - 150 - insets.bottom; // More space from bottom
-                
-                newX = Math.max(minMarginLeft, Math.min(screenWidth - minMarginRight, newX));
-                newY = Math.max(minHeight, Math.min(maxHeight, newY));
-                
-                pan.setValue({x: newX, y: newY});
-            },
-            onPanResponderRelease: (_, gestureState) => {
-                // Get current position
-                var currentX = pan.x._value;
-                var currentY = pan.y._value;
-                
-                // Snap to edges with symmetric margins
-                var newX = currentX < screenWidth / 2 ? 0 : screenWidth - 80;
-                
-                Animated.spring(pan, {
-                    toValue: {x: newX, y: currentY},
-                    useNativeDriver: false,
-                    tension: 100,
-                    friction: 8,
-                }).start();
-                
-                // Handle tap if didn't move much
-                if (Math.abs(gestureState.dx) < 10 && Math.abs(gestureState.dy) < 10) {
-                    onPress && onPress();
-                }
-            },
-        })
-    ).current;
+    const panRef = useRef();
+    const tapRef = useRef();
+
+    const onPanGestureEvent = (event) => {
+        var newX = event.nativeEvent.absoluteX + dragOffset.current.x;
+        var newY = event.nativeEvent.absoluteY + dragOffset.current.y;
+
+        // Apply boundaries during drag - symmetric margins
+        var minMarginLeft = 0;
+        var minMarginRight = 80;
+        var minHeight = insets.top + 80;
+        var maxHeight = screenHeight - 150 - insets.bottom;
+
+        newX = Math.max(minMarginLeft, Math.min(screenWidth - minMarginRight, newX));
+        newY = Math.max(minHeight, Math.min(maxHeight, newY));
+
+        pan.x.setValue(newX);
+        pan.y.setValue(newY);
+    };
+
+    const onPanHandlerStateChange = (event) => {
+        if (event.nativeEvent.state === GestureState.BEGAN) {
+            dragOffset.current = {
+                x: pan.x._value - event.nativeEvent.absoluteX,
+                y: pan.y._value - event.nativeEvent.absoluteY,
+            };
+        } else if (event.nativeEvent.state === GestureState.END) {
+            var currentX = pan.x._value;
+            var currentY = pan.y._value;
+            
+            var newX = currentX < screenWidth / 2 ? 0 : screenWidth - 80;
+            
+            Animated.spring(pan, {
+                toValue: {x: newX, y: currentY},
+                useNativeDriver: false,
+                tension: 100,
+                friction: 8,
+            }).start();
+        }
+    };
+
+    const onTapHandlerStateChange = (event) => {
+        if (event.nativeEvent.state === GestureState.END) {
+            onPress && onPress();
+        }
+    };
     
     return (
-        <Animated.View 
-            style={[
-                styles.container,
-                {
-                    transform: pan.getTranslateTransform(),
-                }
-            ]}
+        <PanGestureHandler
+            ref={panRef}
+            onGestureEvent={onPanGestureEvent}
+            onHandlerStateChange={onPanHandlerStateChange}
+            minDist={5}
+            simultaneousHandlers={tapRef}
         >
-            <View 
-                style={styles.touchableArea}
-                {...panResponder.panHandlers}
+            <Animated.View
+                style={[
+                    styles.container,
+                    {
+                        transform: pan.getTranslateTransform(),
+                    }
+                ]}
             >
-                <View style={styles.progressContainer}>
-                <AnimatedCircularProgress
-                    size={64}
-                    width={2}
-                    fill={Math.min(100, Math.max(0, progressPercent))}
-                    tintColor="#F76F00"
-                    backgroundColor="rgba(255, 255, 255, 0.4)"
-                    rotation={0}
-                    lineCap="round"
-                    style={styles.progressRing}
+                <TapGestureHandler
+                    ref={tapRef}
+                    onHandlerStateChange={onTapHandlerStateChange}
+                    simultaneousHandlers={panRef}
                 >
-                    {() => (
-                        <Animated.View 
-                            style={[
-                                styles.avatarContainer,
-                                { transform: [{ rotate: isPlaying ? rotation : '0deg' }] }
-                            ]}
-                        >
-                            {currentTrack?.artwork ? (
-                                <Image style={styles.avatar} source={{uri: currentTrack.artwork}}/>
-                            ) : (
-                                <TopsIcon width={36} height={36}/>
-                            )}
-                            {isLoading && (
-                                <ActivityIndicator 
-                                    style={styles.loadingIndicator}
-                                    size="small" 
-                                    color="#FFFFFF"
-                                />
-                            )}
-                        </Animated.View>
-                    )}
-                </AnimatedCircularProgress>
-                </View>
-            </View>
-        </Animated.View>
+                    <View style={styles.touchableArea}>
+                        <View style={styles.progressContainer}>
+                            <AnimatedCircularProgress
+                                size={64}
+                                width={2}
+                                fill={Math.min(100, Math.max(0, progressPercent))}
+                                tintColor="#F76F00"
+                                backgroundColor="rgba(255, 255, 255, 0.4)"
+                                rotation={0}
+                                lineCap="round"
+                                style={styles.progressRing}
+                            >
+                                {() => (
+                                    <Animated.View 
+                                        style={[
+                                            styles.avatarContainer,
+                                            { transform: [{ rotate: isPlaying ? rotation : '0deg' }] }
+                                        ]}
+                                    >
+                                        {currentTrack?.artwork ? (
+                                            <Image style={styles.avatar} source={{uri: currentTrack.artwork}}/>
+                                        ) : (
+                                            <TopsIcon width={36} height={36}/>
+                                        )}
+                                        {isLoading && (
+                                            <ActivityIndicator 
+                                                style={styles.loadingIndicator}
+                                                size="small" 
+                                                color="#FFFFFF"
+                                            />
+                                        )}
+                                    </Animated.View>
+                                )}
+                            </AnimatedCircularProgress>
+                        </View>
+                    </View>
+                </TapGestureHandler>
+            </Animated.View>
+        </PanGestureHandler>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        zIndex: 1000,
+        zIndex: 9999,
+        elevation: 9999,
     },
     touchableArea: {
         padding: 8,
         borderRadius: 40,
-        // Android-specific shadow fix
+        opacity: 0.8,
         ...Platform.select({
             ios: {
                 shadowColor: '#000',
                 shadowOffset: {width: 0, height: 4},
                 shadowOpacity: 0.3,
                 shadowRadius: 8,
-            },
-            android: {
-                elevation: 8,
             },
         }),
     },

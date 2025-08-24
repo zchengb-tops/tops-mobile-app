@@ -32,10 +32,11 @@ export const FullPlayer = ({isVisible, onClose}) => {
     const {setShowing, setTrack} = useTrackStateStore.getState();
     
     const formatTime = (time) => {
-        if (!time || isNaN(time)) return '00:00';
-        var minutes = Math.floor(time / 60);
+        if (!time || isNaN(time)) return '00:00:00';
+        var hours = Math.floor(time / 3600);
+        var minutes = Math.floor((time % 3600) / 60);
         var seconds = Math.floor(time % 60);
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     };
     
     var isPlaying = status === State.Playing;
@@ -98,6 +99,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
             swipeDirection="down"
             propagateSwipe
             statusBarTranslucent
+            onBackButtonPress={onClose}
         >
             <View style={[styles.container, {backgroundColor: isDarkMode ? '#1C1C1E' : '#FFFFFF', paddingTop: insets.top}]}>
                 <View style={styles.header}>
@@ -110,7 +112,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
                         />
                     </TouchableOpacity>
                     <View style={styles.spacer} />
-                    <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                    <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <Icon 
                             name="close" 
                             type="ionicon" 
