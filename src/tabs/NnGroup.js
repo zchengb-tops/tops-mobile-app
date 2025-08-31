@@ -7,6 +7,7 @@ import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {useSwipeDetection} from "../hooks/useSwipeDetection";
 
 export const NnGroup = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -17,6 +18,7 @@ export const NnGroup = () => {
     const navigation = useNavigation();
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
+    const { handleTouchStart, handlePress } = useSwipeDetection();
 
     useEffect(() => {
         setNews(normalNews['nnGroup'])
@@ -36,12 +38,13 @@ export const NnGroup = () => {
             <TouchableOpacity
                 delayPressIn={200}
                 style={styles.newsItemWrapper}
-                onPress={() =>
+                onPressIn={handleTouchStart}
+                onPress={handlePress(() =>
                     navigation.navigate('NewsDetailScreen', {
                         url: item.link,
                         title: item.title
                     })
-                }
+                )}
                 activeOpacity={0.8}
             >
                 <View style={styles.newItemContainer}>

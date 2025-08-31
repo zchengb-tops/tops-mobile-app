@@ -4,7 +4,7 @@ import {createStackNavigator} from "@react-navigation/stack";
 import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
-import {AppRegistry, LogBox, TextInput, View} from "react-native";
+import {AppRegistry, LogBox, TextInput, View, StatusBar, Platform} from "react-native";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {initializeTrackPlayer, PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
@@ -177,13 +177,23 @@ export default function App() {
         };
     }, []);
 
+
+
     return (
         <SafeAreaProvider>
             <ThemeProvider theme={theme}>
                 <VisibilityProvider>
                     <NavigationContainer>
                         <GestureHandlerRootView style={{flex: 1}}>
-                            <View style={{flex: 1}}>
+                            <StatusBar 
+                                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+                                backgroundColor={isDarkMode ? '#000000' : '#FFFFFF'}
+                                translucent={Platform.OS === 'android'}
+                            />
+                            <View style={{
+                                flex: 1,
+                                backgroundColor: isDarkMode ? '#000000' : '#FFFFFF'
+                            }}>
                                 <Stack.Navigator 
                                     screenOptions={{
                                         headerShown: false,

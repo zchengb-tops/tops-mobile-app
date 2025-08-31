@@ -55,7 +55,7 @@ export const PlayerBar = () => {
     if (!isPlayBarVisible || !showing || !currentTrack?.title) {
         return null;
     }
-    
+
     return (
         <>
             <MiniPlayer onPress={showFullPlayer} />

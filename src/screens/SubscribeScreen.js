@@ -19,6 +19,7 @@ import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {Text} from "../components/Text";
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {BlurView} from "../components/BlurView";
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {
     getUserNewsChannelConfig,
@@ -599,25 +600,13 @@ export const SubscribeScreen = () => {
             styles.container, 
             {
                 backgroundColor: theme.colors.background,
-                paddingTop: topInset
             }
         ]}
     >
-        <View style={styles.topBar}>
-            <Text style={[styles.pageTitle, {color: theme.colors.text}]}>资讯订阅</Text>
-            <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
-                <Icon
-                    size={16}
-                    name='add-outline'
-                    type='ionicon'
-                    color={theme.colors.primary}
-                />
-                <Text style={[styles.addButtonLabel, {color: theme.colors.primary}]}>
-                    添加RSS频道
-                </Text>
-            </TouchableOpacity>
-        </View>
-        <View style={styles.channelContainer}>
+        {/* Main scrollable content */}
+        <View style={[styles.channelContainer, {
+            paddingTop: topInset + (Platform.OS === 'android' ? 80 : 70)
+        }]}>
             {channelList === null ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={theme.colors.indicator}/>
@@ -639,6 +628,32 @@ export const SubscribeScreen = () => {
             )}
         </View>
 
+        {/* Floating glass title panel */}
+        <BlurView 
+            blurType={isDarkMode ? 'dark' : 'light'} 
+            style={[
+                styles.floatingTopBar,
+                {
+                    paddingTop: topInset + (Platform.OS === 'android' ? 10 : 5),
+                }
+            ]}
+        >
+            <View style={styles.topBar}>
+                <Text style={[styles.pageTitle, {color: theme.colors.text}]}>资讯订阅</Text>
+                <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
+                    <Icon
+                        size={16}
+                        name='add-outline'
+                        type='ionicon'
+                        color={theme.colors.primary}
+                    />
+                    <Text style={[styles.addButtonLabel, {color: theme.colors.primary}]}>
+                        添加RSS频道
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </BlurView>
+
         {renderRssModal()}
     </View>;
 };
@@ -651,7 +666,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 20,
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingBottom: 15,
+    },
+    floatingTopBar: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
     },
     dragTips: {
         marginLeft: 20,
@@ -672,7 +695,6 @@ const styles = StyleSheet.create({
         marginLeft: 2
     },
     channelContainer: {
-        marginTop: 12,
         flex: 1,
     },
     loadingContainer: {

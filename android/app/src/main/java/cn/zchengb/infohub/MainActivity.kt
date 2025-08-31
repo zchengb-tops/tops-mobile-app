@@ -2,6 +2,9 @@ package cn.zchengb.infohub
 
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -17,6 +20,23 @@ class MainActivity : ReactActivity() {
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
     super.onCreate(null)
+    
+    // Enable edge-to-edge display
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      WindowCompat.setDecorFitsSystemWindows(window, false)
+      
+      // Set navigation bar to match system theme
+      val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+      val isDarkMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+      
+      if (isDarkMode) {
+        window.navigationBarColor = android.graphics.Color.BLACK
+        windowInsetsController.isAppearanceLightNavigationBars = false
+      } else {
+        window.navigationBarColor = android.graphics.Color.WHITE
+        windowInsetsController.isAppearanceLightNavigationBars = true
+      }
+    }
   }
 
   /**
