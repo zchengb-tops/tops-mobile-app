@@ -197,7 +197,7 @@ const LoginModal = ({ isVisible, setIsVisible, onClose, onSuccess }) => {
                 <View>
                     <TextInput
                         style={[styles.input, {
-                            backgroundColor: theme.colors.inputBackground,
+                            backgroundColor: isDarkMode ? '#404040' : '#F7F7F7',
                             color: theme.colors.text,
                             borderColor: emailError ? 'red' : 'transparent',
                             borderWidth: 1
