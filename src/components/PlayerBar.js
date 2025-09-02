@@ -49,7 +49,10 @@ export const PlayerBar = () => {
     const {isPlayBarVisible} = useVisibility();
     const [isFullPlayerVisible, setIsFullPlayerVisible] = useState(false);
     
-    const showFullPlayer = () => setIsFullPlayerVisible(true);
+    const showFullPlayer = () => {
+        console.log('showFullPlayer called');
+        setIsFullPlayerVisible(true);
+    };
     const hideFullPlayer = () => setIsFullPlayerVisible(false);
     
     if (!isPlayBarVisible || !showing || !currentTrack?.title) {
