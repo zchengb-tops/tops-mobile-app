@@ -5,6 +5,7 @@ import {DiscoveryScreen} from "./src/screens/DiscoveryScreen";
 import {NewsDetailScreen} from "./src/screens/NewsDetailScreen";
 import * as TrackPlayer from "react-native-track-player/src/trackPlayer";
 import {AppRegistry, LogBox, TextInput, View, StatusBar, Platform} from "react-native";
+import SystemNavigationBar from "react-native-system-navigation-bar";
 import {PlaybackService} from "./src/services/PlaybackService";
 import {initializeTrackPlayer, PlayerBar} from "./src/components/PlayerBar";
 import {SafeAreaProvider} from "react-native-safe-area-context";
@@ -155,6 +156,13 @@ export default function App() {
     useEffect(() => {
         console.log('need update theme...', isDarkMode);
         updateTheme && updateTheme(theme);
+        
+        if (Platform.OS === 'android') {
+            SystemNavigationBar.setNavigationColor(
+                isDarkMode ? '#000' : '#FFFFFF',
+                !isDarkMode
+            );
+        }
     }, [isDarkMode]);
 
     useEffect(() => {
@@ -187,7 +195,7 @@ export default function App() {
                         <GestureHandlerRootView style={{flex: 1}}>
                             <StatusBar 
                                 barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-                                backgroundColor={isDarkMode ? '#000000' : '#FFFFFF'}
+                                backgroundColor={isDarkMode ? '#1A1A1A' : '#FFFFFF'}
                                 translucent={Platform.OS === 'android'}
                             />
                             <View style={{

@@ -56,6 +56,7 @@
     "react-native-screens": "3.31.1",
     "react-native-share": "^11.0.3",
     "react-native-svg": "15.2.0",
+    "react-native-system-navigation-bar": "^2.6.4",
     "react-native-tab-view": "^3.5.2",
     "react-native-track-player": "^4.1.1",
     "react-native-webview": "13.8.6",
