@@ -4,7 +4,7 @@ import {ActivityIndicator, Platform, StyleSheet, TouchableOpacity, View} from "r
 import {useIsFocused, useNavigation, useFocusEffect} from "@react-navigation/native";
 import {useVisibility} from "../providers/VisibilityProvider";
 import Share from "react-native-share";
-import {Icon} from "@rneui/themed";
+import {Icon, useTheme} from "@rneui/themed";
 import {Text} from "../components/Text";
 import {logEvent} from "../analytics";
 
@@ -17,6 +17,7 @@ export const NewsDetailScreen = ({route}) => {
     const {setIsNavBarVisible, setIsPlayBarVisible} = useVisibility();
     const navigation = useNavigation();
     const [key, setKey] = useState(0);
+    const {theme} = useTheme();
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -29,12 +30,12 @@ export const NewsDetailScreen = ({route}) => {
         navigation.setOptions({
             headerRight: () => (
                 <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-                    <Icon type={'ionicon'} name={'share-social-outline'} size={16} color={'#464646'}/>
-                    <Text style={styles.shareButtonText}>分享</Text>
+                    <Icon type={'ionicon'} name={'share-social-outline'} size={16} color={theme.colors.text}/>
+                    <Text style={[styles.shareButtonText, {color: theme.colors.text}]}>分享</Text>
                 </TouchableOpacity>
             ),
         });
-    }, [navigation, currentUrl]);
+    }, [navigation, currentUrl, theme]);
 
     useEffect(() => {
         setIsNavBarVisible(!isFocused);
@@ -137,7 +138,6 @@ const styles = StyleSheet.create({
     },
     shareButtonText: {
         fontSize: 16,
-        color: '#464646',
         marginLeft: 4,
     }
 });

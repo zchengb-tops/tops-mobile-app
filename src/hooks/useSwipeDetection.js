@@ -1,6 +1,8 @@
 import { useRef } from 'react';
+import { useTab } from './TabHooks';
 
 export const useSwipeDetection = () => {
+    const { isSwiping } = useTab();
     const touchStartRef = useRef(null);
 
     const handleTouchStart = (event) => {
@@ -12,15 +14,21 @@ export const useSwipeDetection = () => {
     };
 
     const handlePress = (callback) => {
-        return () => {
+        return (event) => {
+            // Don't trigger press events if we're in the middle of a tab swipe
+            if (isSwiping) {
+                touchStartRef.current = null;
+                return;
+            }
+            
             if (!touchStartRef.current) {
                 callback();
                 return;
             }
 
             const touchEnd = {
-                x: touchStartRef.current.x,
-                y: touchStartRef.current.y,
+                x: event?.nativeEvent?.pageX || touchStartRef.current.x,
+                y: event?.nativeEvent?.pageY || touchStartRef.current.y,
                 timestamp: Date.now()
             };
 
@@ -29,9 +37,13 @@ export const useSwipeDetection = () => {
             const deltaTime = touchEnd.timestamp - touchStartRef.current.timestamp;
 
             // Only execute callback if it's a tap (not a swipe) and within reasonable time
-            if (deltaX < 10 && deltaY < 10 && deltaTime < 500) {
+            // Increased deltaX threshold to better handle horizontal swipes between tabs
+            if (deltaX < 15 && deltaY < 15 && deltaTime < 500) {
                 callback();
             }
+            
+            // Clear the touch start reference after handling
+            touchStartRef.current = null;
         };
     };
 

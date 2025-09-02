@@ -24,6 +24,8 @@ import {UserPrivacyAgreementScreen} from "./src/screens/UserPrivacyAgreementScre
 import {UserServiceAgreementScreen} from "./src/screens/UserServiceAgreementScreen";
 import {useTrackStateStore} from "./src/hooks/TrackHooks";
 import {enableLayoutAnimations} from "react-native-reanimated";
+import {useVersionCheck} from "./src/hooks/VersionHooks";
+import UpgradeModal from "./src/components/UpgradeModal";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -135,6 +137,7 @@ export default function App() {
 
     const isDarkMode = useDarkMode();
     const {updateTheme} = useContext(ThemeContext);
+    const { updateInfo, showModal, hideModal } = useVersionCheck();
 
     const theme = {
         isDarkMode: isDarkMode,
@@ -240,6 +243,11 @@ export default function App() {
                                 </Stack.Navigator>
                                 <PlayerBar/>
                                 <NavBar/>
+                                <UpgradeModal 
+                                    isVisible={showModal}
+                                    onClose={hideModal}
+                                    updateInfo={updateInfo}
+                                />
                             </View>
                         </GestureHandlerRootView>
                     </NavigationContainer>

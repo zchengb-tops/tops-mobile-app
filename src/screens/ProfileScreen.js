@@ -21,6 +21,7 @@ import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
 import {storage} from "../storage";
 import useNewsStore from '../stores/useNewsStore';
 import {useTopInset} from "../hooks/useTopInset";
+import {useVersionCheck} from "../hooks/VersionHooks";
 
 export const ProfileScreen = () => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
@@ -43,6 +44,7 @@ export const ProfileScreen = () => {
     ];
     const topInset = useTopInset();
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
+    const { checkForUpdates, isLoading: isVersionCheckLoading } = useVersionCheck();
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -327,6 +329,28 @@ export const ProfileScreen = () => {
                     <Text
                         style={[styles.settingValue, {color: theme.colors.secondaryText}]}>{Application.nativeApplicationVersion || '未知'}{Platform.OS === 'ios' ? ` (${Application.nativeBuildVersion})` : ''}</Text>
                 </View>
+
+                <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
+                    onPress={async () => {
+                        await logEvent('manual_version_check');
+                        checkForUpdates(true);
+                    }}
+                    disabled={isVersionCheckLoading}
+                >
+                    <View style={styles.settingLeft}>
+                        <Icon 
+                            name={isVersionCheckLoading ? "refresh" : "download-outline"} 
+                            type="ionicon" 
+                            size={20} 
+                            color={theme.colors.text}
+                        />
+                        <Text style={[styles.settingText, {color: theme.colors.text}]}>检查更新</Text>
+                    </View>
+                    <Icon name="chevron-forward-outline" type="ionicon" size={20}
+                          color={theme.colors.secondaryText}/>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                     activeOpacity={0.8}

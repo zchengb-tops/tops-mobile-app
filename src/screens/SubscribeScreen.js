@@ -19,7 +19,6 @@ import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {Text} from "../components/Text";
 import {useDarkMode} from "../hooks/DarkModeHooks";
-import {BlurView} from "../components/BlurView";
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {
     getUserNewsChannelConfig,
@@ -109,11 +108,11 @@ export const SubscribeScreen = () => {
 
     const injectChannelComponentFields = (channelList) => {
         return channelList.map((channel, index) => (
-                {
-                    ...channel,
-                    renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon
-                }
-            ));
+            {
+                ...channel,
+                renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon
+            }
+        ));
     }
 
     const reorderChannelList = async (newChannelList) => {
@@ -454,18 +453,18 @@ export const SubscribeScreen = () => {
                                                         style={styles.rssTag}/> : <></>}
                                 </View>
                                 <Text style={[styles.channelDesc, {color: theme.colors.secondaryText}]}
-                                          numberOfLines={1}>{item.desc || item.title}</Text>
+                                      numberOfLines={1}>{item.desc || item.title}</Text>
                             </View>
                             <TouchableOpacity
                                 style={[
-                                    styles.subscribeButton, 
+                                    styles.subscribeButton,
                                     {borderColor: item.enable ? '#B6B6B6' : theme.colors.primary}
                                 ]}
                                 onPress={() => handleSubscribe(item)}
                             >
                                 <Text
                                     style={[
-                                        styles.subscribeButtonLabel, 
+                                        styles.subscribeButtonLabel,
                                         {color: item.enable ? theme.colors.secondaryText : theme.colors.primary}
                                     ]}
                                 >
@@ -538,7 +537,7 @@ export const SubscribeScreen = () => {
                             <View style={styles.rssModalInputItem}>
                                 <View style={styles.labelContainer}>
                                     <Text style={[styles.rssModalInputLabel, {marginBottom: 0, color: theme.colors.text}]}>资讯名称：</Text>
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         onPress={handleGetRssTitle}
                                         disabled={loading || !rssLink}
                                     >
@@ -547,7 +546,7 @@ export const SubscribeScreen = () => {
                                         ) : (
                                             <View style={{flexDirection: 'row', alignItems: 'center'}}>
                                                 <Icon
-                                                    name="lightbulb-outline" 
+                                                    name="lightbulb-outline"
                                                     size={14}
                                                     color={loading || !rssLink ? theme.colors.secondaryText : theme.colors.primary}
                                                     style={{marginRight: 2}}
@@ -595,18 +594,30 @@ export const SubscribeScreen = () => {
         );
     }
 
-    return <View 
+    return <View
         style={[
-            styles.container, 
+            styles.container,
             {
                 backgroundColor: theme.colors.background,
+                paddingTop: topInset
             }
         ]}
     >
-        {/* Main scrollable content */}
-        <View style={[styles.channelContainer, {
-            paddingTop: topInset + (Platform.OS === 'android' ? 80 : 70)
-        }]}>
+        <View style={styles.topBar}>
+            <Text style={[styles.pageTitle, {color: theme.colors.text}]}>资讯订阅</Text>
+            <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
+                <Icon
+                    size={16}
+                    name='add-outline'
+                    type='ionicon'
+                    color={theme.colors.primary}
+                />
+                <Text style={[styles.addButtonLabel, {color: theme.colors.primary}]}>
+                    添加RSS频道
+                </Text>
+            </TouchableOpacity>
+        </View>
+        <View style={styles.channelContainer}>
             {channelList === null ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={theme.colors.indicator}/>
@@ -628,32 +639,6 @@ export const SubscribeScreen = () => {
             )}
         </View>
 
-        {/* Floating glass title panel */}
-        <BlurView 
-            blurType={isDarkMode ? 'dark' : 'light'} 
-            style={[
-                styles.floatingTopBar,
-                {
-                    paddingTop: topInset + (Platform.OS === 'android' ? 10 : 5),
-                }
-            ]}
-        >
-            <View style={styles.topBar}>
-                <Text style={[styles.pageTitle, {color: theme.colors.text}]}>资讯订阅</Text>
-                <TouchableOpacity style={styles.addButton} onPress={() => setRssModalVisible(true)}>
-                    <Icon
-                        size={16}
-                        name='add-outline'
-                        type='ionicon'
-                        color={theme.colors.primary}
-                    />
-                    <Text style={[styles.addButtonLabel, {color: theme.colors.primary}]}>
-                        添加RSS频道
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </BlurView>
-
         {renderRssModal()}
     </View>;
 };
@@ -666,15 +651,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 20,
         justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingBottom: 15,
-    },
-    floatingTopBar: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
+        alignItems: 'center'
     },
     dragTips: {
         marginLeft: 20,
@@ -695,6 +672,7 @@ const styles = StyleSheet.create({
         marginLeft: 2
     },
     channelContainer: {
+        marginTop: 12,
         flex: 1,
     },
     loadingContainer: {
