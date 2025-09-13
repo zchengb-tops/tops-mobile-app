@@ -5,7 +5,8 @@ import {State, useProgress} from "react-native-track-player";
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {AnimatedCircularProgress} from 'react-native-circular-progress';
-import {PanGestureHandler, State as GestureState, TapGestureHandler} from 'react-native-gesture-handler';
+import {PanGestureHandler, State as GestureState} from 'react-native-gesture-handler';
+import {TouchableOpacity} from 'react-native';
 
 export const MiniPlayer = ({onPress}) => {
     const currentTrack = useTrack();
@@ -41,6 +42,16 @@ export const MiniPlayer = ({onPress}) => {
             rotationValue.stopAnimation();
         }
     }, [isPlaying]);
+
+    // Start collapsed and begin collapse timer
+    useEffect(() => {
+        resetCollapseTimer();
+        return () => {
+            if (collapseTimer.current) {
+                clearTimeout(collapseTimer.current);
+            }
+        };
+    }, []);
     
     const rotation = rotationValue.interpolate({
         inputRange: [0, 1],
@@ -50,7 +61,44 @@ export const MiniPlayer = ({onPress}) => {
     const dragOffset = useRef({x: 0, y: 0});
     
     const panRef = useRef();
-    const tapRef = useRef();
+    const isDragging = useRef(false);
+    const isExpanded = useRef(false);
+    const expandAnimation = useRef(new Animated.Value(0)).current;
+
+    const expandPlayer = () => {
+        if (!isExpanded.current) {
+            isExpanded.current = true;
+            Animated.spring(expandAnimation, {
+                toValue: 1,
+                useNativeDriver: false,
+                tension: 150,
+                friction: 8,
+            }).start();
+        }
+    };
+
+    const collapsePlayer = () => {
+        if (isExpanded.current) {
+            isExpanded.current = false;
+            Animated.spring(expandAnimation, {
+                toValue: 0,
+                useNativeDriver: false,
+                tension: 150,
+                friction: 8,
+            }).start();
+        }
+    };
+
+    // Auto-collapse after 3 seconds of no interaction
+    const collapseTimer = useRef(null);
+    const resetCollapseTimer = () => {
+        if (collapseTimer.current) {
+            clearTimeout(collapseTimer.current);
+        }
+        collapseTimer.current = setTimeout(() => {
+            collapsePlayer();
+        }, 3000);
+    };
 
     const onPanGestureEvent = (event) => {
         var newX = event.nativeEvent.absoluteX + dragOffset.current.x;
@@ -71,10 +119,22 @@ export const MiniPlayer = ({onPress}) => {
 
     const onPanHandlerStateChange = (event) => {
         if (event.nativeEvent.state === GestureState.BEGAN) {
+            isDragging.current = false;
+            // Only expand if already expanded, don't auto-expand on drag
+            if (isExpanded.current) {
+                resetCollapseTimer();
+            }
             dragOffset.current = {
                 x: pan.x._value - event.nativeEvent.absoluteX,
                 y: pan.y._value - event.nativeEvent.absoluteY,
             };
+        } else if (event.nativeEvent.state === GestureState.ACTIVE) {
+            isDragging.current = true;
+            // Expand when actually dragging
+            if (!isExpanded.current) {
+                expandPlayer();
+            }
+            resetCollapseTimer();
         } else if (event.nativeEvent.state === GestureState.END) {
             var currentX = pan.x._value;
             var currentY = pan.y._value;
@@ -87,12 +147,27 @@ export const MiniPlayer = ({onPress}) => {
                 tension: 100,
                 friction: 8,
             }).start();
+            
+            // Reset dragging state and start collapse timer
+            setTimeout(() => {
+                isDragging.current = false;
+                resetCollapseTimer();
+            }, 100);
         }
     };
 
-    const onTapHandlerStateChange = (event) => {
-        if (event.nativeEvent.state === GestureState.END) {
-            onPress && onPress();
+    const handlePress = () => {
+        if (!isDragging.current) {
+            if (!isExpanded.current) {
+                // First click: just expand, don't open full player
+                expandPlayer();
+                resetCollapseTimer();
+                console.log('Mini-player expanded');
+            } else {
+                // Second click when already expanded: open full player
+                console.log('Mini-player pressed - opening full player');
+                onPress && onPress();
+            }
         }
     };
     
@@ -102,58 +177,67 @@ export const MiniPlayer = ({onPress}) => {
             onGestureEvent={onPanGestureEvent}
             onHandlerStateChange={onPanHandlerStateChange}
             minDist={5}
-            simultaneousHandlers={tapRef}
         >
             <Animated.View
                 style={[
                     styles.container,
                     {
-                        transform: pan.getTranslateTransform(),
+                        transform: [
+                            ...pan.getTranslateTransform(),
+                            {
+                                translateX: expandAnimation.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [50, 0], // When collapsed, move 50px to the right (mostly hidden)
+                                })
+                            }
+                        ],
+                        opacity: expandAnimation.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.7, 1], // Slightly transparent when collapsed
+                        }),
                     }
                 ]}
             >
-                <TapGestureHandler
-                    ref={tapRef}
-                    onHandlerStateChange={onTapHandlerStateChange}
-                    simultaneousHandlers={panRef}
+                <TouchableOpacity
+                    onPress={handlePress}
+                    style={styles.touchableArea}
+                    activeOpacity={0.8}
                 >
-                    <View style={styles.touchableArea}>
-                        <View style={styles.progressContainer}>
-                            <AnimatedCircularProgress
-                                size={64}
-                                width={2}
-                                fill={Math.min(100, Math.max(0, progressPercent))}
-                                tintColor="#F76F00"
-                                backgroundColor="rgba(255, 255, 255, 0.4)"
-                                rotation={0}
-                                lineCap="round"
-                                style={styles.progressRing}
-                            >
-                                {() => (
-                                    <Animated.View 
-                                        style={[
-                                            styles.avatarContainer,
-                                            { transform: [{ rotate: isPlaying ? rotation : '0deg' }] }
-                                        ]}
-                                    >
-                                        {currentTrack?.artwork ? (
-                                            <Image style={styles.avatar} source={{uri: currentTrack.artwork}}/>
-                                        ) : (
-                                            <TopsIcon width={36} height={36}/>
-                                        )}
-                                        {isLoading && (
-                                            <ActivityIndicator 
-                                                style={styles.loadingIndicator}
-                                                size="small" 
-                                                color="#FFFFFF"
-                                            />
-                                        )}
-                                    </Animated.View>
-                                )}
-                            </AnimatedCircularProgress>
-                        </View>
+                    <View style={styles.progressContainer}>
+                        <AnimatedCircularProgress
+                            size={64}
+                            width={2}
+                            fill={Math.min(100, Math.max(0, progressPercent))}
+                            tintColor="#F76F00"
+                            backgroundColor="rgba(255, 255, 255, 0.4)"
+                            rotation={0}
+                            lineCap="round"
+                            style={styles.progressRing}
+                        >
+                            {() => (
+                                <Animated.View 
+                                    style={[
+                                        styles.avatarContainer,
+                                        { transform: [{ rotate: isPlaying ? rotation : '0deg' }] }
+                                    ]}
+                                >
+                                    {currentTrack?.artwork ? (
+                                        <Image style={styles.avatar} source={{uri: currentTrack.artwork}}/>
+                                    ) : (
+                                        <TopsIcon width={36} height={36}/>
+                                    )}
+                                    {isLoading && (
+                                        <ActivityIndicator 
+                                            style={styles.loadingIndicator}
+                                            size="small" 
+                                            color="#FFFFFF"
+                                        />
+                                    )}
+                                </Animated.View>
+                            )}
+                        </AnimatedCircularProgress>
                     </View>
-                </TapGestureHandler>
+                </TouchableOpacity>
             </Animated.View>
         </PanGestureHandler>
     );
