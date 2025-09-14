@@ -39,7 +39,7 @@ const TabContent = memo(({channel}) => {
 
 export const TabView = ({channelList}) => {
     const pagerRef = useRef(null);
-    const { tabIndex, setTabIndex, triggerByTabBar, setIsSwiping } = useTab();
+    const { tabIndex, setTabIndex, triggerByTabBar } = useTab();
 
     useEffect(() => {
         if (pagerRef.current && triggerByTabBar) {
@@ -66,10 +66,6 @@ export const TabView = ({channelList}) => {
                 if (e.nativeEvent.position !== tabIndex) {
                     setTabIndex(e.nativeEvent.position);
                 }
-                setIsSwiping(false);
-            }}
-            onPageScrollStateChanged={(e) => {
-                setIsSwiping(e.nativeEvent.pageScrollState !== 'idle');
             }}
             pageMargin={10}
             offscreenPageLimit={2}

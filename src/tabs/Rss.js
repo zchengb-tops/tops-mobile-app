@@ -6,7 +6,6 @@ import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
-import {useSwipeDetection} from "../hooks/useSwipeDetection";
 
 export const Rss = ({rssUrl}) => {
     const rssNews = useNewsStore(state => state.rssNews);
@@ -16,8 +15,7 @@ export const Rss = ({rssUrl}) => {
     const navigation = useNavigation();
     const { theme } = useTheme();
     const isDarkMode = useDarkMode();
-    const { handleTouchStart, handlePress } = useSwipeDetection();
-    
+
     useEffect(() => {
         setNews(rssNews[rssUrl]?.items || [])
     }, [rssNews]);
@@ -84,13 +82,12 @@ export const Rss = ({rssUrl}) => {
                     delayPressIn={200}
                     activeOpacity={0.8}
                     style={styles.newsItem}
-                    onPressIn={handleTouchStart}
-                    onPress={handlePress(() =>
+                    onPress={() =>
                         navigation.navigate('NewsDetailScreen', {
                             url: item.link,
                             title: item.title
                         })
-                    )}
+                    }
                 >
                     <View style={styles.newsInfoWrapper}>
                         <View style={styles.newsItemIndicator}/>

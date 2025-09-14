@@ -33,6 +33,11 @@ export const TabBar = ({channelList}) => {
             const tabItemEndPosition = tabWidths.current.slice(0, index + 1).reduce((total, width) => total + width, 10 * (index + 1));
             const tabItemStartPosition = tabItemEndPosition - 10 - tabWidths.current[index];
 
+            Animated.spring(animatedWidth, {
+                toValue: tabWidths.current[index],
+                useNativeDriver: true,
+            })
+
             const currentScreenEndPosition = scrollX + screenWidth;
             const currentScreenStartPosition = currentScreenEndPosition - screenWidth;
 
@@ -51,24 +56,20 @@ export const TabBar = ({channelList}) => {
                     animated: true,
                 });
             }
+            Animated.spring(animatedPosition, {
+                toValue: tabItemStartPosition,
+                useNativeDriver: true,
+            }).start();
 
-            // Animate position and width simultaneously for instant response
-            Animated.parallel([
-                Animated.spring(animatedPosition, {
-                    toValue: tabItemStartPosition,
-                    useNativeDriver: true,
-                    tension: 300,
-                    friction: 30,
-                }),
-                Animated.spring(animatedWidth, {
-                    toValue: tabWidths.current[index],
+            setTimeout(() => setIsAnimating(false), 300);
+
+            setTimeout(() => {
+                Animated.timing(animatedWidth, {
+                    toValue: (tabWidths.current[tabIndex] || tabWidths.current[0]),
+                    duration: 300,
                     useNativeDriver: false,
-                    tension: 300,
-                    friction: 30,
-                })
-            ]).start();
-
-            setTimeout(() => setIsAnimating(false), 100);
+                }).start();
+            }, 100);
         }
     };
 

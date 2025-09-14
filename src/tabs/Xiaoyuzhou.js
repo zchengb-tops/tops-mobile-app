@@ -10,7 +10,6 @@ import {globalStyles} from "../globalStyle";
 import {useTrack, useTrackStateStore, useTrackStatus} from "../hooks/TrackHooks";
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
-import {useSwipeDetection} from "../hooks/useSwipeDetection";
 
 export const Xiaoyuzhou = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -25,7 +24,6 @@ export const Xiaoyuzhou = () => {
     const isDarkMode = useDarkMode();
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
-    const { handleTouchStart, handlePress } = useSwipeDetection();
 
     useEffect(() => {
         if (playingTrack && news.length > 0) {
@@ -106,8 +104,6 @@ export const Xiaoyuzhou = () => {
             }
         }
 
-
-
         await TrackPlayer.play();
     }
 
@@ -168,11 +164,10 @@ export const Xiaoyuzhou = () => {
                 <TouchableOpacity style={styles.newsItemWrapper}
                                   delayPressIn={200}
                                   activeOpacity={0.8}
-                                  onPressIn={handleTouchStart}
-                                  onPress={handlePress(() => navigation.navigate('NewsDetailScreen', {
+                                  onPress={() => navigation.navigate('NewsDetailScreen', {
                                       url: item.url,
                                       title: item.title
-                                  }))}>
+                                  })}>
                     <View style={styles.newItemContainer}>
                         <Image
                             style={styles.image}

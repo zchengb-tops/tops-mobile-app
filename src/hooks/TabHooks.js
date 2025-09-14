@@ -6,7 +6,6 @@ export const useTabStore = create(
         data: {
             tabIndex: 0,
             triggerByTabBar: false,
-            isSwiping: false,
         },
         setTabIndex: (tabIndex, triggerByTabBar = false) => {
             set((state) => ({
@@ -14,14 +13,6 @@ export const useTabStore = create(
                     ...state.data,
                     tabIndex: tabIndex,
                     triggerByTabBar: triggerByTabBar,
-                },
-            }));
-        },
-        setIsSwiping: (isSwiping) => {
-            set((state) => ({
-                data: {
-                    ...state.data,
-                    isSwiping: isSwiping,
                 },
             }));
         },
@@ -33,9 +24,7 @@ export const useTab = () => {
         useCallback(state => ({
             tabIndex: state.data.tabIndex,
             setTabIndex: state.setTabIndex,
-            triggerByTabBar: state.data.triggerByTabBar,
-            isSwiping: state.data.isSwiping,
-            setIsSwiping: state.setIsSwiping,
+            triggerByTabBar: state.data.triggerByTabBar
         }), [])
     );
 };
