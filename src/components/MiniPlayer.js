@@ -12,7 +12,10 @@ import {
     useAnimatedGestureHandler,
     useAnimatedStyle,
     useSharedValue,
-    withSpring, withTiming
+    withSpring, 
+    withTiming,
+    withRepeat,
+    cancelAnimation
 } from "react-native-reanimated";
 import Animated from 'react-native-reanimated';
 import {Animated as ReactNativeAnimated} from 'react-native';
@@ -38,7 +41,7 @@ export const MiniPlayer = ({onPress}) => {
     const isExpanded = useRef(false);
     const expandAnimation = useSharedValue(0);
 
-    const rotationValue = useRef(new ReactNativeAnimated.Value(0)).current;
+    const rotationValue = useSharedValue(0);
 
     if (!currentTrack?.title) return null;
 
@@ -75,16 +78,17 @@ export const MiniPlayer = ({onPress}) => {
 
     useEffect(() => {
         if (isPlaying) {
-            ReactNativeAnimated.loop(
-                ReactNativeAnimated.timing(rotationValue, {
-                    toValue: 1,
+            // Start continuous rotation animation
+            rotationValue.value = withRepeat(
+                withTiming(360, {
                     duration: 8000,
-                    easing: Easing.linear,
-                    useNativeDriver: true,
-                })
-            ).start();
+                }),
+                -1, // Infinite repeats
+                false // Don't reverse
+            );
         } else {
-            rotationValue.stopAnimation();
+            // Cancel the rotation animation when paused
+            cancelAnimation(rotationValue);
         }
     }, [isPlaying]);
 
@@ -119,6 +123,7 @@ export const MiniPlayer = ({onPress}) => {
             runOnJS(resetCollapseTimer)();
         },
         onEnd: (event, ctx) => {
+            // Snap to the closest edge based on current position
             const targetX = x.value < screenWidth / 2 ? 0 : screenWidth - 80;
             x.value = withSpring(targetX, {tension: 100, friction: 8});
 
@@ -129,17 +134,31 @@ export const MiniPlayer = ({onPress}) => {
 
 
     const animatedStyle = useAnimatedStyle(() => {
+        // Determine which side the mini-player is on
+        const isOnLeftSide = x.value < screenWidth / 2;
+        
+        // Calculate the collapse offset based on which side it's on
+        const collapseOffset = isOnLeftSide ? -50 : 50; // Left side: move left, Right side: move right
+        
         const translateX = expandAnimation.value === 0
-            ? withTiming(50, {duration: 300}) // 收起时向右移动
-            : withTiming(0, {duration: 300}); // 展开时回到原位
+            ? withTiming(collapseOffset, {duration: 300})
+            : withTiming(0, {duration: 300});
 
         return {
             transform: [
                 {translateX: x.value},
                 {translateY: y.value},
-                {translateX: translateX}, // 结合展开动画
+                {translateX: translateX},
             ],
             opacity: withTiming(expandAnimation.value === 0 ? 0.7 : 1, {duration: 300}),
+        };
+    });
+
+    const rotationAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{
+                rotate: `${rotationValue.value}deg`
+            }]
         };
     });
 
@@ -174,7 +193,6 @@ export const MiniPlayer = ({onPress}) => {
                         <AnimatedCircularProgress
                             size={64}
                             width={2}
-                            // fill 属性会触发渲染，但由于 useProgress 仍然存在，这里暂时不做改动
                             fill={Math.min(100, Math.max(0, progressPercent))}
                             tintColor="#F76F00"
                             backgroundColor="rgba(255, 255, 255, 0.4)"
@@ -183,17 +201,10 @@ export const MiniPlayer = ({onPress}) => {
                             style={styles.progressRing}
                         >
                             {() => (
-                                <ReactNativeAnimated.View
+                                <Animated.View
                                     style={[
                                         styles.avatarContainer,
-                                        {
-                                            transform: [{
-                                                rotate: isPlaying ? rotationValue.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: ['0deg', '360deg'],
-                                                }) : '0deg'
-                                            }]
-                                        }
+                                        rotationAnimatedStyle
                                     ]}
                                 >
                                     {currentTrack?.artwork ? (
@@ -208,7 +219,7 @@ export const MiniPlayer = ({onPress}) => {
                                             color="#FFFFFF"
                                         />
                                     )}
-                                </ReactNativeAnimated.View>
+                                </Animated.View>
                             )}
                         </AnimatedCircularProgress>
                     </View>
