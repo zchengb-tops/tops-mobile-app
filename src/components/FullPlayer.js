@@ -1,24 +1,23 @@
-// FullPlayer.js
-
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     View,
     StyleSheet,
     Image,
     TouchableOpacity,
     Dimensions,
-    ActivityIndicator
+    ActivityIndicator,
+    Modal,
+    FlatList
 } from 'react-native';
 import {useTrack, useTrackStatus, useTrackStateStore} from "../hooks/TrackHooks";
 import {Icon, Slider, useTheme} from "@rneui/themed";
-import TrackPlayer, {State} from "react-native-track-player";
+import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {Text} from "./Text";
 import {useDarkMode} from "../hooks/DarkModeHooks";
 import {storage} from "../storage";
 import {initializeTrackPlayer} from "./PlayerBar";
-import {PlayerProgress} from './PlayerProgress';
 import {
     runOnJS,
     useAnimatedGestureHandler,
@@ -32,7 +31,6 @@ import { PanGestureHandler } from 'react-native-gesture-handler';
 
 const {width: SCREEN_WIDTH, height: SCREEN_HEIGHT} = Dimensions.get('window');
 
-// 自定义一个 Reanimated Modal
 export const FullPlayer = ({isVisible, onClose}) => {
     const currentTrack = useTrack();
     const status = useTrackStatus();
@@ -40,11 +38,29 @@ export const FullPlayer = ({isVisible, onClose}) => {
     const isDarkMode = useDarkMode();
     const {theme} = useTheme();
     const {setShowing, setTrack} = useTrackStateStore.getState();
+    const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+    const [showSpeedModal, setShowSpeedModal] = useState(false);
+    const progress = useProgress(500);
 
-    // 共享值，用于控制模态框的 translateY 位置
     const y = useSharedValue(SCREEN_HEIGHT);
 
-    // 模态框显示/隐藏的动画
+    const formatTime = (time) => {
+        if (!time || isNaN(time)) return '00:00:00';
+        var hours = Math.floor(time / 3600);
+        var minutes = Math.floor((time % 3600) / 60);
+        var seconds = Math.floor(time % 60);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}年${month}月${day}日`;
+    };
+
     useEffect(() => {
         if (isVisible) {
             y.value = withTiming(0, { duration: 300 });
@@ -53,32 +69,26 @@ export const FullPlayer = ({isVisible, onClose}) => {
         }
     }, [isVisible]);
 
-    // 手势处理函数
     const onGestureEvent = useAnimatedGestureHandler({
         onStart: (event, ctx) => {
             ctx.startY = y.value;
         },
         onActive: (event, ctx) => {
-            // 只在向下滑动时移动模态框
             if (event.translationY > 0) {
                 y.value = ctx.startY + event.translationY;
             }
         },
         onEnd: (event, ctx) => {
-            // 如果手势速度足够快或者滑动距离超过屏幕的 1/3，则收起模态框
             if (event.translationY > SCREEN_HEIGHT / 3 || event.velocityY > 500) {
                 y.value = withTiming(SCREEN_HEIGHT, { duration: 250 }, () => {
-                    // 动画结束后，调用 onClose
                     runOnJS(onClose)();
                 });
             } else {
-                // 否则，弹回顶部
                 y.value = withSpring(0, { tension: 150, friction: 8 });
             }
         },
     });
 
-    // 模态框的动画样式
     const animatedStyle = useAnimatedStyle(() => {
         return {
             transform: [{ translateY: y.value }],
@@ -130,18 +140,41 @@ export const FullPlayer = ({isVisible, onClose}) => {
         }
     };
 
+    var handleSpeedChange = () => {
+        setShowSpeedModal(true);
+    };
+
+    var selectSpeed = async (speed) => {
+        try {
+            await TrackPlayer.setRate(speed);
+            setPlaybackSpeed(speed);
+            setShowSpeedModal(false);
+        } catch (error) {
+            console.warn('Speed change error:', error);
+        }
+    };
+
+    const speedOptions = [
+        { label: '0.5倍', value: 0.5 },
+        { label: '0.75倍', value: 0.75 },
+        { label: '1倍', value: 1.0 },
+        { label: '1.25倍', value: 1.25 },
+        { label: '1.5倍', value: 1.5 },
+        { label: '1.75倍', value: 1.75 },
+        { label: '2倍', value: 2.0 }
+    ];
+
     var isPlaying = status === State.Playing;
     var isLoading = status === State.Loading || status === State.Buffering || status === undefined;
 
     return (
-        // 使用 PanGestureHandler 替代 Modal
+        <>
         <PanGestureHandler onGestureEvent={onGestureEvent}>
             <Animated.View
                 style={[
                     styles.container,
                     {backgroundColor: isDarkMode ? '#1C1C1E' : '#FFFFFF', paddingTop: insets.top},
                     animatedStyle,
-                    // 只有模态框可见时才显示
                     { display: isVisible ? 'flex' : 'none' }
                 ]}
             >
@@ -189,19 +222,55 @@ export const FullPlayer = ({isVisible, onClose}) => {
                         >
                             {currentTrack?.artist || 'Unknown Artist'}
                         </Text>
+                        {currentTrack?.date && (
+                            <Text
+                                style={[styles.timestamp, {color: isDarkMode ? '#888888' : '#999999'}]}
+                                numberOfLines={1}
+                            >
+                                {formatDate(currentTrack.date)}
+                            </Text>
+                        )}
                     </View>
 
-                    <PlayerProgress />
+                    <View style={styles.progressSection}>
+                        <View style={styles.progressContainer}>
+                            <Slider
+                                style={styles.progressSlider}
+                                minimumValue={0}
+                                maximumValue={progress.duration || 1}
+                                value={progress.position}
+                                onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
+                                minimumTrackTintColor="#F76F00"
+                                maximumTrackTintColor={isDarkMode ? '#333333' : '#E5E5EA'}
+                                thumbStyle={[styles.sliderThumb, {backgroundColor: '#F76F00'}]}
+                                trackStyle={styles.sliderTrack}
+                            />
+                            <View style={styles.timeRow}>
+                                <Text style={[styles.timeText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>
+                                    {formatTime(progress.position)}
+                                </Text>
+                                <TouchableOpacity onPress={handleSpeedChange} style={[styles.speedButton, {backgroundColor: isDarkMode ? '#2C2C2E' : '#F2F2F7'}]}>
+                                    <Text style={[styles.speedText, {color: isDarkMode ? '#FFFFFF' : '#000000'}]}>{playbackSpeed}x</Text>
+                                </TouchableOpacity>
+                                <Text style={[styles.timeText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>
+                                    {formatTime(progress.duration)}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
 
                     <View style={styles.controlsContainer}>
-                        <TouchableOpacity onPress={handleSeekBack} style={styles.controlButton}>
+                        <TouchableOpacity onPress={handleSeekBack} style={styles.skipButton}>
+                            <View style={[styles.skipButtonInner, {backgroundColor: isDarkMode ? '#2C2C2E' : '#F2F2F7'}]}>
+                                <Text style={[styles.skipButtonText, {color: isDarkMode ? '#FFFFFF' : '#000000'}]}>15</Text>
+                            </View>
                             <Icon
                                 name="play-skip-back"
                                 type="ionicon"
-                                size={28}
+                                size={20}
                                 color={isDarkMode ? '#FFFFFF' : '#000000'}
+                                style={styles.skipIcon}
                             />
-                            <Text style={[styles.skipText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>15s</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -221,19 +290,66 @@ export const FullPlayer = ({isVisible, onClose}) => {
                             )}
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={handleSeekForward} style={styles.controlButton}>
+                        <TouchableOpacity onPress={handleSeekForward} style={styles.skipButton}>
+                            <View style={[styles.skipButtonInner, {backgroundColor: isDarkMode ? '#2C2C2E' : '#F2F2F7'}]}>
+                                <Text style={[styles.skipButtonText, {color: isDarkMode ? '#FFFFFF' : '#000000'}]}>15</Text>
+                            </View>
                             <Icon
                                 name="play-skip-forward"
                                 type="ionicon"
-                                size={28}
+                                size={20}
                                 color={isDarkMode ? '#FFFFFF' : '#000000'}
+                                style={styles.skipIcon}
                             />
-                            <Text style={[styles.skipText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>15s</Text>
                         </TouchableOpacity>
                     </View>
+
                 </View>
             </Animated.View>
         </PanGestureHandler>
+        
+        <Modal
+            visible={showSpeedModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowSpeedModal(false)}
+        >
+            <TouchableOpacity 
+                style={styles.modalOverlay} 
+                activeOpacity={1} 
+                onPress={() => setShowSpeedModal(false)}
+            >
+                <View style={[styles.speedModalContent, {backgroundColor: isDarkMode ? '#2C2C2E' : '#FFFFFF'}]}>
+                    <FlatList
+                        data={speedOptions}
+                        keyExtractor={(item) => item.value.toString()}
+                        renderItem={({item}) => (
+                            <TouchableOpacity
+                                style={[styles.speedOption, playbackSpeed === item.value && styles.selectedSpeedOption]}
+                                onPress={() => selectSpeed(item.value)}
+                            >
+                                <Text style={[
+                                    styles.speedOptionText, 
+                                    {color: isDarkMode ? '#FFFFFF' : '#000000'},
+                                    playbackSpeed === item.value && {color: '#F76F00'}
+                                ]}>
+                                    {item.label}
+                                </Text>
+                                {playbackSpeed === item.value && (
+                                    <Icon
+                                        name="checkmark"
+                                        type="ionicon"
+                                        size={20}
+                                        color="#F76F00"
+                                    />
+                                )}
+                            </TouchableOpacity>
+                        )}
+                    />
+                </View>
+            </TouchableOpacity>
+        </Modal>
+        </>
     );
 };
 
@@ -292,17 +408,24 @@ const styles = StyleSheet.create({
     },
     trackInfo: {
         alignItems: 'center',
-        marginBottom: 40,
+        marginBottom: 32,
+        paddingHorizontal: 16,
     },
     title: {
-        fontSize: 24,
-        fontWeight: '700',
+        fontSize: 22,
+        fontWeight: '600',
         textAlign: 'center',
         marginBottom: 8,
-        lineHeight: 32,
+        lineHeight: 30,
     },
     artist: {
-        fontSize: 18,
+        fontSize: 16,
+        fontWeight: '400',
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    timestamp: {
+        fontSize: 14,
         fontWeight: '400',
         textAlign: 'center',
     },
@@ -312,15 +435,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 20,
     },
-    controlButton: {
-        padding: 20,
-        marginHorizontal: 20,
+    skipButton: {
         alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
     },
-    skipText: {
+    skipButtonInner: {
+        width: 32,
+        height: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 4,
+    },
+    skipButtonText: {
         fontSize: 12,
-        marginTop: 4,
         fontWeight: '600',
+    },
+    skipIcon: {
+        marginTop: 2,
     },
     playButton: {
         width: 80,
@@ -334,5 +467,79 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 8,
+    },
+    progressSection: {
+        marginBottom: 40,
+    },
+    progressContainer: {
+        paddingHorizontal: 0,
+    },
+    progressSlider: {
+        width: '100%',
+        height: 40,
+    },
+    sliderThumb: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+    },
+    sliderTrack: {
+        height: 4,
+        borderRadius: 2,
+    },
+    timeRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    timeText: {
+        fontSize: 14,
+        fontWeight: '400',
+    },
+    speedButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    speedText: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    speedModalContent: {
+        borderRadius: 12,
+        paddingVertical: 8,
+        minWidth: 120,
+        maxHeight: 300,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    speedOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    selectedSpeedOption: {
+        backgroundColor: 'rgba(247, 111, 0, 0.1)',
+    },
+    speedOptionText: {
+        fontSize: 16,
+        fontWeight: '400',
     },
 });
