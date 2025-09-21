@@ -5,15 +5,15 @@ import {
     Image,
     TouchableOpacity,
     Dimensions,
-    ActivityIndicator
+    ActivityIndicator,
+    StatusBar
 } from 'react-native';
 import {useTrack, useTrackStatus, useTrackStateStore} from "../hooks/TrackHooks";
-import {Icon, Slider, useTheme} from "@rneui/themed";
+import {Icon, Slider} from "@rneui/themed";
 import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {Text} from "./Text";
-import {useDarkMode} from "../hooks/DarkModeHooks";
 import {storage} from "../storage";
 import {initializeTrackPlayer} from "./PlayerBar";
 import {
@@ -25,7 +25,7 @@ import {
     withTiming
 } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import {PanGestureHandler} from 'react-native-gesture-handler';
 import {BlurView} from "@react-native-community/blur";
 import ForwardIcon from '../../assets/icons/forward_30.svg';
 import BackwardIcon from '../../assets/icons/backward_15.svg';
@@ -36,12 +36,12 @@ export const FullPlayer = ({isVisible, onClose}) => {
     const currentTrack = useTrack();
     const status = useTrackStatus();
     const insets = useSafeAreaInsets();
-    const isDarkMode = useDarkMode();
-    const {theme} = useTheme();
     const {setShowing, setTrack} = useTrackStateStore.getState();
     const progress = useProgress(500);
+    const [dominantColor, setDominantColor] = useState('#1C1C1E');
 
     const y = useSharedValue(SCREEN_HEIGHT);
+    const artworkScale = useSharedValue(1);
 
     const formatTime = (time) => {
         if (!time || isNaN(time)) return '00:00';
@@ -61,11 +61,23 @@ export const FullPlayer = ({isVisible, onClose}) => {
 
     useEffect(() => {
         if (isVisible) {
-            y.value = withTiming(0, { duration: 300 });
+            y.value = withTiming(0, {duration: 300});
         } else {
-            y.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
+            y.value = withTiming(SCREEN_HEIGHT, {duration: 300});
         }
     }, [isVisible]);
+
+    useEffect(() => {
+        const isPlaying = status === State.Playing;
+        artworkScale.value = withSpring(isPlaying ? 1 : 0.8, {
+            damping: 80,
+            stiffness: 150,
+            mass: 1,
+            overshootClamping: false,
+            restDisplacementThreshold: 0.01,
+            restSpeedThreshold: 0.01,
+        });
+    }, [status]);
 
     const onGestureEvent = useAnimatedGestureHandler({
         onStart: (event, ctx) => {
@@ -78,20 +90,49 @@ export const FullPlayer = ({isVisible, onClose}) => {
         },
         onEnd: (event, ctx) => {
             if (event.translationY > SCREEN_HEIGHT / 3 || event.velocityY > 500) {
-                y.value = withTiming(SCREEN_HEIGHT, { duration: 250 }, () => {
+                y.value = withTiming(SCREEN_HEIGHT, {duration: 250}, () => {
                     runOnJS(onClose)();
                 });
             } else {
-                y.value = withSpring(0, { tension: 150, friction: 8 });
+                y.value = withSpring(0, {tension: 150, friction: 8});
             }
         },
     });
 
     const animatedStyle = useAnimatedStyle(() => {
         return {
-            transform: [{ translateY: y.value }],
+            transform: [{translateY: y.value}],
         };
     });
+
+    const artworkAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{scale: artworkScale.value}],
+        };
+    });
+
+    const extractDominantColor = async (imageUri) => {
+        try {
+            // For now, we'll use a simple approach with predefined dark colors
+            // In a real implementation, you might want to use a library like react-native-image-colors
+            const darkColors = [
+                '#1C1C1E', '#2C2C2E', '#3A3A3C', '#48484A', '#636366',
+                '#1A1A2E', '#16213E', '#0F3460', '#533A71', '#6A4C93',
+                '#2D1B69', '#11009E', '#4E0E4E', '#2E0249', '#3C096C'
+            ];
+            const randomColor = darkColors[Math.floor(Math.random() * darkColors.length)];
+            setDominantColor(randomColor);
+        } catch (error) {
+            console.warn('Error extracting color:', error);
+            setDominantColor('#1C1C1E');
+        }
+    };
+
+    useEffect(() => {
+        if (currentTrack?.artwork) {
+            extractDominantColor(currentTrack.artwork);
+        }
+    }, [currentTrack?.artwork]);
 
     const handlePlayPause = async () => {
         try {
@@ -111,17 +152,17 @@ export const FullPlayer = ({isVisible, onClose}) => {
 
     const handleClose = async () => {
         console.log('handleClose: Starting cleanup...');
-        
+
         setShowing(false);
-        
+
         storage.delete('currentTrack');
         setTrack({});
-        
+
         await TrackPlayer.reset();
-        
+
         await initializeTrackPlayer();
         console.log('handleClose: Track player cleaned and reinitialized');
-        
+
         onClose();
     };
 
@@ -151,17 +192,24 @@ export const FullPlayer = ({isVisible, onClose}) => {
 
     return (
         <>
+            {isVisible && (
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor="transparent"
+                    translucent={true}
+                />
+            )}
             <Animated.View
                 style={[
                     styles.backgroundContainer,
                     animatedStyle,
-                    { backgroundColor: isDarkMode ? 'rgba(28, 28, 30, 0)' : 'rgba(255, 255, 255, 0.5)' }
+                    {backgroundColor: dominantColor + '80'}
                 ]}
             >
                 <BlurView
                     style={[StyleSheet.absoluteFill, {zIndex: 99999}]}
-                    blurType={isDarkMode ? "dark" : "light"}
-                    blurAmount={isDarkMode ? 20 : 30}
+                    blurType="dark"
+                    blurAmount={20}
                 />
             </Animated.View>
             <PanGestureHandler onGestureEvent={onGestureEvent}>
@@ -169,7 +217,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
                     style={[
                         styles.container,
                         animatedStyle,
-                        { display: isVisible ? 'flex' : 'none' }
+                        {display: isVisible ? 'flex' : 'none'}
                     ]}
                 >
                     <View style={[styles.contentWrapper, {paddingTop: insets.top}]}>
@@ -179,75 +227,80 @@ export const FullPlayer = ({isVisible, onClose}) => {
                                     name="chevron-down"
                                     type="ionicon"
                                     size={28}
-                                    color={isDarkMode ? '#FFFFFF' : '#000000'}
+                                    color="#FFFFFF"
                                 />
                             </TouchableOpacity>
-                            <View style={styles.spacer} />
+                            <View style={styles.spacer}/>
                             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                                 <Icon
                                     name="close"
                                     type="ionicon"
                                     size={24}
-                                    color={isDarkMode ? '#FFFFFF' : '#000000'}
+                                    color="#FFFFFF"
                                 />
                             </TouchableOpacity>
                         </View>
 
                         <View style={styles.contentContainer}>
                             <View style={styles.artworkContainer}>
-                                {currentTrack?.artwork ? (
-                                    <Image style={styles.artwork} source={{uri: currentTrack.artwork}}/>
-                                ) : (
-                                    <View style={[styles.artwork, styles.defaultArtwork]}>
-                                        <TopsIcon width={120} height={120}/>
-                                    </View>
-                                )}
+                                <Animated.View style={artworkAnimatedStyle}>
+                                    {currentTrack?.artwork ? (
+                                        <Image style={styles.artwork} source={{uri: currentTrack.artwork}}/>
+                                    ) : (
+                                        <View style={[styles.artwork, styles.defaultArtwork]}>
+                                            <TopsIcon width={120} height={120}/>
+                                        </View>
+                                    )}
+                                </Animated.View>
                             </View>
 
                             <View style={styles.trackInfo}>
                                 {currentTrack?.date && (
                                     <Text
-                                        style={[styles.timestamp, {color: isDarkMode ? '#888888' : '#999999'}]}
+                                        style={[styles.timestamp, {color: 'rgba(255, 255, 255, 0.6)'}]}
                                         numberOfLines={1}
                                     >
                                         {formatDate(currentTrack.date)}
                                     </Text>
                                 )}
                                 <Text
-                                    style={[styles.title, {color: isDarkMode ? '#FFFFFF' : '#000000'}]}
+                                    style={[styles.title, {color: '#FFFFFF'}]}
                                     numberOfLines={2}
                                 >
                                     {currentTrack?.title || 'Unknown Title'}
                                 </Text>
                                 <Text
-                                    style={[styles.artist, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}
+                                    style={[styles.artist, {color: 'rgba(255, 255, 255, 0.8)'}]}
                                     numberOfLines={1}
                                 >
                                     {currentTrack?.artist || 'Unknown Artist'}
                                 </Text>
                                 <View style={styles.progressSection}>
-                                <View style={styles.progressContainer}>
-                                    <Slider
-                                        style={styles.progressSlider}
-                                        minimumValue={0}
-                                        maximumValue={progress.duration || 1}
-                                        value={progress.position}
-                                        onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
-                                        minimumTrackTintColor="#F76F00"
-                                        maximumTrackTintColor={isDarkMode ? '#333333' : '#E5E5EA'}
-                                        thumbStyle={[styles.sliderThumb, {backgroundColor: '#F76F00'}]}
-                                        trackStyle={styles.sliderTrack}
-                                    />
-                                    <View style={styles.timeRow}>
-                                        <Text style={[styles.timeText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>
-                                            {formatTime(progress.position)}
-                                        </Text>
-                                        <Text style={[styles.timeText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>
-                                            -{formatTime(Math.max(0, progress.duration - progress.position))}
-                                        </Text>
+                                    <View style={styles.progressContainer}>
+                                         <Slider
+                                             style={styles.progressSlider}
+                                             minimumValue={0}
+                                             maximumValue={progress.duration || 1}
+                                             value={progress.position}
+                                             onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
+                                             minimumTrackTintColor="rgba(255, 255, 255, 0.9)"
+                                             maximumTrackTintColor="rgba(255, 255, 255, 0.2)"
+                                             thumbStyle={styles.sliderThumb}
+                                             trackStyle={styles.sliderTrack}
+                                             thumbProps={{
+                                                children: () => {return <></>}
+                                            }}
+                                         />
+                                        <View style={styles.timeRow}>
+                                            <Text style={[styles.timeText, {color: 'rgba(255, 255, 255, 0.6)'}]}>
+                                                {formatTime(progress.position)}
+                                            </Text>
+                                            <Text style={[styles.timeText, {color: 'rgba(255, 255, 255, 0.6)'}]}>
+                                                -{formatTime(Math.max(0, progress.duration - progress.position))}
+                                            </Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
                             </View>
 
                             <View style={styles.controlsContainer}>
@@ -257,17 +310,17 @@ export const FullPlayer = ({isVisible, onClose}) => {
 
                                 <TouchableOpacity
                                     onPress={handlePlayPause}
-                                    style={[styles.playButton, {backgroundColor: isDarkMode ? '#FFFFFF' : theme.colors.darkPrimary}]}
+                                    style={[styles.playButton, {backgroundColor: '#FFFFFF'}]}
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
-                                        <ActivityIndicator size="large" color={isDarkMode ? '#000000' : '#FFFFFF'}/>
+                                        <ActivityIndicator size="large" color="#000000"/>
                                     ) : (
                                         <Icon
                                             name={isPlaying ? 'pause' : 'play'}
                                             type="ionicon"
                                             size={32}
-                                            color={isDarkMode ? '#000000' : '#FFFFFF'}
+                                            color="#000000"
                                         />
                                     )}
                                 </TouchableOpacity>
@@ -409,6 +462,7 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     progressSection: {
+        marginTop: 16,
         marginBottom: 40,
     },
     progressContainer: {
@@ -416,16 +470,16 @@ const styles = StyleSheet.create({
     },
     progressSlider: {
         width: '100%',
-        height: 40,
+        height: 20,
     },
     sliderThumb: {
         width: 20,
         height: 20,
-        borderRadius: 10,
+        backgroundColor: 'transparent',
     },
     sliderTrack: {
-        height: 4,
-        borderRadius: 2,
+        height: 6,
+        borderRadius: 4,
     },
     timeRow: {
         flexDirection: 'row',
