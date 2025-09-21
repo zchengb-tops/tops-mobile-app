@@ -86,9 +86,10 @@ export const Xiaoyuzhou = () => {
                 url: mediaItem.mediaUrl,
                 title: mediaItem.title,
                 artist: mediaItem.author,
-                artwork: mediaItem.coverUrl,
+                artwork: mediaItem.hdCoverUrl || mediaItem.coverUrl,
                 duration: mediaItem.duration,
-                source: 'xiaoyuzhou'
+                source: 'xiaoyuzhou',
+                date: mediaItem.publishDate || mediaItem.publishTime || mediaItem.date
             };
             setTrack(track);
             if (trackIndex !== -1) {
