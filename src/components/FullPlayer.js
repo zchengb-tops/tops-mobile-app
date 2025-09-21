@@ -115,11 +115,18 @@ export const FullPlayer = ({isVisible, onClose}) => {
     };
 
     var handleClose = async () => {
+        console.log('handleClose: Starting cleanup...');
+        
         setShowing(false);
-        storage.set('currentTrack', JSON.stringify({}));
+        
+        storage.delete('currentTrack');
         setTrack({});
+        
         await TrackPlayer.reset();
-        initializeTrackPlayer().then(() => console.log('clean track play.'));
+        
+        await initializeTrackPlayer();
+        console.log('handleClose: Track player cleaned and reinitialized');
+        
         onClose();
     };
 
@@ -204,7 +211,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
                                 />
                             </TouchableOpacity>
                             <View style={styles.spacer} />
-                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                                 <Icon
                                     name="close"
                                     type="ionicon"
