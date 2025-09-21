@@ -5,9 +5,7 @@ import {
     Image,
     TouchableOpacity,
     Dimensions,
-    ActivityIndicator,
-    Modal,
-    FlatList
+    ActivityIndicator
 } from 'react-native';
 import {useTrack, useTrackStatus, useTrackStateStore} from "../hooks/TrackHooks";
 import {Icon, Slider, useTheme} from "@rneui/themed";
@@ -41,18 +39,15 @@ export const FullPlayer = ({isVisible, onClose}) => {
     const isDarkMode = useDarkMode();
     const {theme} = useTheme();
     const {setShowing, setTrack} = useTrackStateStore.getState();
-    const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
-    const [showSpeedModal, setShowSpeedModal] = useState(false);
     const progress = useProgress(500);
 
     const y = useSharedValue(SCREEN_HEIGHT);
 
     const formatTime = (time) => {
-        if (!time || isNaN(time)) return '00:00:00';
-        var hours = Math.floor(time / 3600);
-        var minutes = Math.floor((time % 3600) / 60);
-        var seconds = Math.floor(time % 60);
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        if (!time || isNaN(time)) return '00:00';
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes.toString()}:${seconds.toString().padStart(2, '0')}`;
     };
 
     const formatDate = (dateString) => {
@@ -150,29 +145,6 @@ export const FullPlayer = ({isVisible, onClose}) => {
         }
     };
 
-    const handleSpeedChange = () => {
-        setShowSpeedModal(true);
-    };
-
-    const selectSpeed = async (speed) => {
-        try {
-            await TrackPlayer.setRate(speed);
-            setPlaybackSpeed(speed);
-            setShowSpeedModal(false);
-        } catch (error) {
-            console.warn('Speed change error:', error);
-        }
-    };
-
-    const speedOptions = [
-        { label: '0.5倍', value: 0.5 },
-        { label: '0.75倍', value: 0.75 },
-        { label: '1倍', value: 1.0 },
-        { label: '1.25倍', value: 1.25 },
-        { label: '1.5倍', value: 1.5 },
-        { label: '1.75倍', value: 1.75 },
-        { label: '2倍', value: 2.0 }
-    ];
 
     const isPlaying = status === State.Playing;
     const isLoading = status === State.Loading || status === State.Buffering || status === undefined;
@@ -233,6 +205,14 @@ export const FullPlayer = ({isVisible, onClose}) => {
                             </View>
 
                             <View style={styles.trackInfo}>
+                                {currentTrack?.date && (
+                                    <Text
+                                        style={[styles.timestamp, {color: isDarkMode ? '#888888' : '#999999'}]}
+                                        numberOfLines={1}
+                                    >
+                                        {formatDate(currentTrack.date)}
+                                    </Text>
+                                )}
                                 <Text
                                     style={[styles.title, {color: isDarkMode ? '#FFFFFF' : '#000000'}]}
                                     numberOfLines={2}
@@ -245,17 +225,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
                                 >
                                     {currentTrack?.artist || 'Unknown Artist'}
                                 </Text>
-                                {currentTrack?.date && (
-                                    <Text
-                                        style={[styles.timestamp, {color: isDarkMode ? '#888888' : '#999999'}]}
-                                        numberOfLines={1}
-                                    >
-                                        {formatDate(currentTrack.date)}
-                                    </Text>
-                                )}
-                            </View>
-
-                            <View style={styles.progressSection}>
+                                <View style={styles.progressSection}>
                                 <View style={styles.progressContainer}>
                                     <Slider
                                         style={styles.progressSlider}
@@ -272,14 +242,12 @@ export const FullPlayer = ({isVisible, onClose}) => {
                                         <Text style={[styles.timeText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>
                                             {formatTime(progress.position)}
                                         </Text>
-                                        <TouchableOpacity onPress={handleSpeedChange} style={[styles.speedButton, {backgroundColor: isDarkMode ? '#2C2C2E' : '#F2F2F7'}]}>
-                                            <Text style={[styles.speedText, {color: isDarkMode ? '#FFFFFF' : '#000000'}]}>{playbackSpeed}x</Text>
-                                        </TouchableOpacity>
                                         <Text style={[styles.timeText, {color: isDarkMode ? '#AAAAAA' : '#666666'}]}>
-                                            {formatTime(progress.duration)}
+                                            -{formatTime(Math.max(0, progress.duration - progress.position))}
                                         </Text>
                                     </View>
                                 </View>
+                            </View>
                             </View>
 
                             <View style={styles.controlsContainer}>
@@ -313,47 +281,6 @@ export const FullPlayer = ({isVisible, onClose}) => {
                 </Animated.View>
             </PanGestureHandler>
 
-            <Modal
-                visible={showSpeedModal}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => setShowSpeedModal(false)}
-            >
-                <TouchableOpacity
-                    style={styles.modalOverlay}
-                    activeOpacity={1}
-                    onPress={() => setShowSpeedModal(false)}
-                >
-                    <View style={[styles.speedModalContent, {backgroundColor: isDarkMode ? '#2C2C2E' : '#FFFFFF'}]}>
-                        <FlatList
-                            data={speedOptions}
-                            keyExtractor={(item) => item.value.toString()}
-                            renderItem={({item}) => (
-                                <TouchableOpacity
-                                    style={[styles.speedOption, playbackSpeed === item.value && styles.selectedSpeedOption]}
-                                    onPress={() => selectSpeed(item.value)}
-                                >
-                                    <Text style={[
-                                        styles.speedOptionText,
-                                        {color: isDarkMode ? '#FFFFFF' : '#000000'},
-                                        playbackSpeed === item.value && {color: '#F76F00'}
-                                    ]}>
-                                        {item.label}
-                                    </Text>
-                                    {playbackSpeed === item.value && (
-                                        <Icon
-                                            name="checkmark"
-                                            type="ionicon"
-                                            size={20}
-                                            color="#F76F00"
-                                        />
-                                    )}
-                                </TouchableOpacity>
-                            )}
-                        />
-                    </View>
-                </TouchableOpacity>
-            </Modal>
         </>
     );
 };
@@ -425,27 +352,22 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     trackInfo: {
-        alignItems: 'center',
-        marginBottom: 32,
-        paddingHorizontal: 16,
+        marginBottom: 0,
+    },
+    timestamp: {
+        fontSize: 14,
+        fontWeight: '400',
+        marginBottom: 8,
     },
     title: {
         fontSize: 22,
         fontWeight: '600',
-        textAlign: 'center',
         marginBottom: 8,
         lineHeight: 30,
     },
     artist: {
         fontSize: 16,
         fontWeight: '400',
-        textAlign: 'center',
-        marginBottom: 4,
-    },
-    timestamp: {
-        fontSize: 14,
-        fontWeight: '400',
-        textAlign: 'center',
     },
     controlsContainer: {
         flexDirection: 'row',
@@ -509,55 +431,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 8,
     },
     timeText: {
         fontSize: 14,
-        fontWeight: '400',
-    },
-    speedButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
-    },
-    speedText: {
-        fontSize: 13,
-        fontWeight: '500',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    speedModalContent: {
-        borderRadius: 12,
-        paddingVertical: 8,
-        minWidth: 120,
-        maxHeight: 300,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    speedOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    selectedSpeedOption: {
-        backgroundColor: 'rgba(247, 111, 0, 0.1)',
-    },
-    speedOptionText: {
-        fontSize: 16,
         fontWeight: '400',
     },
 });
