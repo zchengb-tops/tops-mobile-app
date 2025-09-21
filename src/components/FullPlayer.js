@@ -98,7 +98,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
         };
     });
 
-    var handlePlayPause = async () => {
+    const handlePlayPause = async () => {
         try {
             const playerProgress = await TrackPlayer.getProgress();
             if (status === State.Playing) {
@@ -114,7 +114,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
         }
     };
 
-    var handleClose = async () => {
+    const handleClose = async () => {
         console.log('handleClose: Starting cleanup...');
         
         setShowing(false);
@@ -130,7 +130,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
         onClose();
     };
 
-    var handleSeekBack = async () => {
+    const handleSeekBack = async () => {
         try {
             const playerProgress = await TrackPlayer.getProgress();
             var newPosition = Math.max(0, playerProgress.position - 15);
@@ -140,7 +140,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
         }
     };
 
-    var handleSeekForward = async () => {
+    const handleSeekForward = async () => {
         try {
             const playerProgress = await TrackPlayer.getProgress();
             var newPosition = Math.min(playerProgress.duration, playerProgress.position + 30);
@@ -150,11 +150,11 @@ export const FullPlayer = ({isVisible, onClose}) => {
         }
     };
 
-    var handleSpeedChange = () => {
+    const handleSpeedChange = () => {
         setShowSpeedModal(true);
     };
 
-    var selectSpeed = async (speed) => {
+    const selectSpeed = async (speed) => {
         try {
             await TrackPlayer.setRate(speed);
             setPlaybackSpeed(speed);
