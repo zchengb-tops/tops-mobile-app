@@ -510,9 +510,9 @@ export const FullPlayer = ({isVisible, onClose}) => {
                                                   maximumTrackTintColor="rgba(255, 255, 255, 0.2)"
                                                   thumbStyle={styles.sliderThumb}
                                                   trackStyle={styles.sliderTrack}
-                                                  thumbProps={{
-                                                     children: () => {return <></>}
-                                                 }}
+                                             thumbProps={{
+                                                children: <></>
+                                            }}
                                               />
                                          </Animated.View>
                                         <View style={styles.timeRow}>
