@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import TrackPlayer, {Capability} from "react-native-track-player";
-import {useTrack, useTrackShowing} from "../hooks/TrackHooks";
+import {useTrack, useTrackShowing, useFullPlayerVisible, useTrackStateStore} from "../hooks/TrackHooks";
 import {useVisibility} from "../providers/VisibilityProvider";
 import {MiniPlayer} from "./MiniPlayer";
 import {FullPlayer} from "./FullPlayer";
@@ -47,13 +47,14 @@ export const PlayerBar = () => {
     const currentTrack = useTrack();
     const showing = useTrackShowing();
     const {isPlayBarVisible} = useVisibility();
-    const [isFullPlayerVisible, setIsFullPlayerVisible] = useState(false);
+    const fullPlayerVisible = useFullPlayerVisible();
+    const {setFullPlayerVisible} = useTrackStateStore.getState();
     
     const showFullPlayer = () => {
         console.log('showFullPlayer called');
-        setIsFullPlayerVisible(true);
+        setFullPlayerVisible(true);
     };
-    const hideFullPlayer = () => setIsFullPlayerVisible(false);
+    const hideFullPlayer = () => setFullPlayerVisible(false);
     
     if (!isPlayBarVisible || !showing || !currentTrack?.title) {
         return null;
@@ -63,7 +64,7 @@ export const PlayerBar = () => {
         <>
             <MiniPlayer onPress={showFullPlayer} />
             <FullPlayer 
-                isVisible={isFullPlayerVisible} 
+                isVisible={fullPlayerVisible} 
                 onClose={hideFullPlayer} 
             />
         </>

@@ -24,6 +24,7 @@ export const Xiaoyuzhou = () => {
     const isDarkMode = useDarkMode();
     const setPlayerBarShowing = useTrackStateStore.getState().setShowing;
     const setTrack = useTrackStateStore.getState().setTrack;
+    const setShrink = useTrackStateStore.getState().setShrink;
 
     useEffect(() => {
         if (playingTrack && news.length > 0) {
@@ -78,6 +79,8 @@ export const Xiaoyuzhou = () => {
     const triggerTrackPlayerToPlay = async (mediaItem) => {
         if (!playingTrack || !isCurrentItemInTrack(mediaItem) || isCurrentMediaItemPlayedComplete(mediaItem)) {
             setPlayerBarShowing();
+            console.log('Xiaoyuzhou: calling setShrink(false) to expand mini player');
+            setShrink(false);
             let tracks = await TrackPlayer.getQueue();
             const trackIndex = tracks.findIndex(item => (item.id === mediaItem.id && item.title === mediaItem.title && item.artist === mediaItem.author && item.source === 'xiaoyuzhou'))
 
@@ -92,15 +95,17 @@ export const Xiaoyuzhou = () => {
                 date: mediaItem.publishDate || mediaItem.publishTime || mediaItem.date
             };
             setTrack(track);
+            
+            const startPosition = isCurrentMediaItemPlayedComplete(mediaItem) ? 0 : mediaItem.position;
+            
             if (trackIndex !== -1) {
                 console.log('start to skip.');
-                await TrackPlayer.skip(trackIndex, isCurrentMediaItemPlayedComplete(mediaItem) ? 0 : mediaItem.position);
+                await TrackPlayer.skip(trackIndex, startPosition);
             } else {
                 await TrackPlayer.add(track);
-
                 markHasBeenActive(mediaItem);
                 const queue = await TrackPlayer.getQueue();
-                await TrackPlayer.skip(queue.length - 1, mediaItem.position);
+                await TrackPlayer.skip(queue.length - 1, startPosition);
                 console.log('add new track to queue.');
             }
         }

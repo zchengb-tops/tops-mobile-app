@@ -8,7 +8,7 @@ import {
     ActivityIndicator,
     StatusBar
 } from 'react-native';
-import {useTrack, useTrackStatus, useTrackStateStore} from "../hooks/TrackHooks";
+import {useTrack, useTrackStatus, useTrackStateStore, useFullPlayerVisible} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
 import TrackPlayer, {State, useProgress} from "react-native-track-player";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
@@ -36,7 +36,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
     const currentTrack = useTrack();
     const status = useTrackStatus();
     const insets = useSafeAreaInsets();
-    const {setShowing, setTrack} = useTrackStateStore.getState();
+    const {setShowing, setTrack, setFullPlayerVisible} = useTrackStateStore.getState();
     const progress = useProgress(500);
     const [dominantColor, setDominantColor] = useState('#1C1C1E');
 
@@ -154,7 +154,12 @@ export const FullPlayer = ({isVisible, onClose}) => {
         console.log('handleClose: Starting cleanup...');
 
         setShowing(false);
+        setFullPlayerVisible(false);
 
+        // Stop the player and reset position
+        await TrackPlayer.pause();
+        await TrackPlayer.seekTo(0);
+        
         storage.delete('currentTrack');
         setTrack({});
 

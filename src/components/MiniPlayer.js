@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {StyleSheet, Image, ActivityIndicator, Easing, View, Dimensions, Platform} from 'react-native';
-import {useTrack, useTrackStatus} from "../hooks/TrackHooks";
+import {StyleSheet, Image, ActivityIndicator, View, Dimensions, Platform} from 'react-native';
+import {useTrack, useTrackStatus, useTrackShrink} from "../hooks/TrackHooks";
 import {State, useProgress} from "react-native-track-player";
 import TopsIcon from '../../assets/icons/tops-logo.svg';
 import {useSafeAreaInsets} from "react-native-safe-area-context";
@@ -18,12 +18,12 @@ import {
     cancelAnimation
 } from "react-native-reanimated";
 import Animated from 'react-native-reanimated';
-import {Animated as ReactNativeAnimated} from 'react-native';
 
 
 export const MiniPlayer = ({onPress}) => {
     const currentTrack = useTrack();
     const status = useTrackStatus();
+    const shrink = useTrackShrink();
     const progress = useProgress(1000);
     const insets = useSafeAreaInsets();
     const screenWidth = Dimensions.get('window').width;
@@ -78,16 +78,19 @@ export const MiniPlayer = ({onPress}) => {
 
     useEffect(() => {
         if (isPlaying) {
-            // Start continuous rotation animation
-            rotationValue.value = withRepeat(
-                withTiming(360, {
+            const startRotation = () => {
+                rotationValue.value = rotationValue.value + 360;
+                rotationValue.value = withTiming(rotationValue.value, {
                     duration: 8000,
-                }),
-                -1, // Infinite repeats
-                false // Don't reverse
-            );
+                }, (finished) => {
+                    'worklet';
+                    if (finished) {
+                        runOnJS(startRotation)();
+                    }
+                });
+            };
+            startRotation();
         } else {
-            // Cancel the rotation animation when paused
             cancelAnimation(rotationValue);
         }
     }, [isPlaying]);
@@ -100,6 +103,19 @@ export const MiniPlayer = ({onPress}) => {
             }
         };
     }, []);
+
+    useEffect(() => {
+        console.log('MiniPlayer shrink state changed:', shrink, 'isExpanded:', isExpanded.current);
+        
+        if (shrink === false && !isExpanded.current) {
+            console.log('Expanding player due to setShrink(false)');
+            expandPlayer();
+            resetCollapseTimer();
+        } else if (shrink === true && isExpanded.current) {
+            console.log('Collapsing player due to setShrink(true)');
+            collapsePlayer();
+        }
+    }, [shrink]);
 
     const onGestureEvent = useAnimatedGestureHandler({
         onStart: (event, ctx) => {

@@ -34,6 +34,12 @@ export const useTrackStateStore = create(
                 status: status
             },
         })),
+        setFullPlayerVisible: (visible = false) => set((state) => ({
+            data: {
+                ...state.data,
+                fullPlayerVisible: visible,
+            },
+        })),
     })
 );
 
@@ -64,5 +70,11 @@ export const useTrackStatus = () => {
 export const useTrackShrink = () => {
     return useTrackStateStore(useCallback(state => {
         return state.data?.shrink;
+    }, []));
+};
+
+export const useFullPlayerVisible = () => {
+    return useTrackStateStore(useCallback(state => {
+        return state.data?.fullPlayerVisible;
     }, []));
 };
