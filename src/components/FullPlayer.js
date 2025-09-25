@@ -6,7 +6,8 @@ import {
     TouchableOpacity,
     Dimensions,
     ActivityIndicator,
-    StatusBar
+    StatusBar,
+    Platform
 } from 'react-native';
 import {useTrack, useTrackStatus, useTrackStateStore, useFullPlayerVisible} from "../hooks/TrackHooks";
 import {Icon, Slider} from "@rneui/themed";
@@ -395,7 +396,10 @@ export const FullPlayer = ({isVisible, onClose}) => {
 
 
     const isPlaying = status === State.Playing;
-    const isLoading = status === State.Loading || status === State.Buffering || status === undefined;
+    // Don't show loading during seek operations, but show for genuine loading/buffering
+    const isLoading = (status === State.Loading || 
+                      (status === State.Buffering && !isSliding && !isSeeking) || 
+                      status === undefined) && !isSliding && !isSeeking;
 
     return (
         <>
@@ -410,13 +414,16 @@ export const FullPlayer = ({isVisible, onClose}) => {
                 style={[
                     styles.backgroundContainer,
                     animatedStyle,
-                    {backgroundColor: dominantColor + '80'}
+                    {
+                        backgroundColor: dominantColor + '80',
+                        zIndex: Platform.OS === 'ios' ? 1000 : (isVisible ? 100 : 0),
+                    }
                 ]}
             >
                 <BlurView
-                    style={[StyleSheet.absoluteFill, {zIndex: 99999}]}
+                    style={[StyleSheet.absoluteFill, {zIndex: 1}]}
                     blurType="dark"
-                    blurAmount={20}
+                    blurAmount={Platform.OS === 'ios' ? 20 : 50}
                 />
             </Animated.View>
             <PanGestureHandler onGestureEvent={onGestureEvent}>
@@ -562,7 +569,14 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1000
+        zIndex: Platform.OS === 'ios' ? 1000 : 100,
+        ...(Platform.OS === 'android' && {
+            overflow: 'hidden',
+            elevation: 1,
+            ...(Platform.Version >= 30 && {
+                paddingTop: 0, // Let safe area handle this
+            })
+        })
     },
     container: {
         position: 'absolute',
@@ -570,7 +584,11 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 1000,
+        zIndex: Platform.OS === 'ios' ? 1001 : 101,
+        ...(Platform.OS === 'android' && {
+            overflow: 'hidden',
+            elevation: 2,
+        })
     },
     contentWrapper: {
         flex: 1,
@@ -718,7 +736,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000,
+        zIndex: Platform.OS === 'ios' ? 1000 : 200,
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.3,
