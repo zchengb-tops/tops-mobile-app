@@ -44,10 +44,16 @@ export const FullPlayer = ({isVisible, onClose}) => {
     const [sliderValue, setSliderValue] = useState(0);
     const animationFrameRef = useRef(null);
     const pendingValueRef = useRef(null);
+    const expectedSeekPositionRef = useRef(null);
+    const seekTimeoutRef = useRef(null);
 
     const y = useSharedValue(SCREEN_HEIGHT);
     const artworkScale = useSharedValue(1);
     const sliderThumbScale = useSharedValue(1);
+    const sliderHeightScale = useSharedValue(1);
+    const tooltipOpacity = useSharedValue(0);
+    const tooltipY = useSharedValue(0);
+    const tooltipX = useSharedValue(0);
 
     const formatTime = (time) => {
         if (!time || isNaN(time)) return '00:00';
@@ -63,6 +69,24 @@ export const FullPlayer = ({isVisible, onClose}) => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
         return `${year}年${month}月${day}日`;
+    };
+
+    const calculateTooltipPosition = (currentValue, maxValue) => {
+        if (!maxValue || maxValue === 0) return 0;
+        
+        // Calculate percentage of progress (0 to 1)
+        const percentage = Math.max(0, Math.min(1, currentValue / maxValue));
+        
+        // Slider width calculation (accounting for padding)
+        const sliderWidth = SCREEN_WIDTH - 64; // 32px padding on each side
+        const tooltipWidth = 60; // Approximate tooltip width
+        
+        // Calculate position, ensuring tooltip stays within bounds
+        const rawPosition = (percentage * sliderWidth) - (sliderWidth / 2);
+        const minPosition = -(sliderWidth / 2) + (tooltipWidth / 2);
+        const maxPosition = (sliderWidth / 2) - (tooltipWidth / 2);
+        
+        return Math.max(minPosition, Math.min(maxPosition, rawPosition));
     };
 
     useEffect(() => {
@@ -119,7 +143,21 @@ export const FullPlayer = ({isVisible, onClose}) => {
 
     const sliderThumbAnimatedStyle = useAnimatedStyle(() => {
         return {
-            transform: [{scale: sliderThumbScale.value}],
+            transform: [
+                {scaleX: sliderThumbScale.value},
+                {scaleY: sliderHeightScale.value}
+            ],
+        };
+    });
+
+    const tooltipAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            opacity: tooltipOpacity.value,
+            transform: [
+                {translateX: tooltipX.value},
+                {translateY: tooltipY.value},
+                {scale: tooltipOpacity.value}
+            ],
         };
     });
 
@@ -149,6 +187,26 @@ export const FullPlayer = ({isVisible, onClose}) => {
     useEffect(() => {
         if (!isSliding && !isSeeking) {
             setSliderValue(progress.position);
+        } else if (isSeeking && expectedSeekPositionRef.current !== null) {
+            // During seeking, validate if the progress position matches our expected seek position
+            const expectedPosition = expectedSeekPositionRef.current;
+            const actualPosition = progress.position;
+            // Adaptive tolerance: 0.5s for short tracks, up to 2s for very long tracks
+            const tolerance = Math.min(2, Math.max(0.5, progress.duration * 0.001));
+            
+            // If the actual position is close to our expected position, the seek has completed
+            if (Math.abs(actualPosition - expectedPosition) < tolerance) {
+                setSliderValue(actualPosition);
+                expectedSeekPositionRef.current = null;
+                setIsSeeking(false);
+                setIsSliding(false);
+                
+                // Clear any pending timeout
+                if (seekTimeoutRef.current) {
+                    clearTimeout(seekTimeoutRef.current);
+                    seekTimeoutRef.current = null;
+                }
+            }
         }
     }, [progress.position, isSliding, isSeeking]);
 
@@ -156,6 +214,9 @@ export const FullPlayer = ({isVisible, onClose}) => {
         return () => {
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
+            }
+            if (seekTimeoutRef.current) {
+                clearTimeout(seekTimeoutRef.current);
             }
         };
     }, []);
@@ -219,39 +280,105 @@ export const FullPlayer = ({isVisible, onClose}) => {
 
     const handleSlidingStart = useCallback(() => {
         setIsSliding(true);
+        
+        // Enhanced zoom animation - scale both width and height
         sliderThumbScale.value = withSpring(1.1, {
             damping: 15,
             stiffness: 150,
             mass: 0.8
+        });
+        sliderHeightScale.value = withSpring(1.8, {
+            damping: 15,
+            stiffness: 150,
+            mass: 0.8
+        });
+        
+        // Show tooltip with animation
+        tooltipOpacity.value = withSpring(1, {
+            damping: 20,
+            stiffness: 300,
+        });
+        tooltipY.value = withSpring(-10, {
+            damping: 20,
+            stiffness: 300,
+        });
+        
+        // Set initial tooltip position
+        const initialPosition = calculateTooltipPosition(progress.position, progress.duration);
+        tooltipX.value = withSpring(initialPosition, {
+            damping: 20,
+            stiffness: 300,
         });
     }, []);
 
     const handleSlidingComplete = useCallback(async (value) => {
         try {
             setIsSeeking(true);
+            expectedSeekPositionRef.current = value;
+            
             await TrackPlayer.seekTo(value);
             
-            setTimeout(() => {
-                setIsSeeking(false);
-                setIsSliding(false);
-            }, 100);
+            // Set a fallback timeout in case the position validation doesn't work
+            seekTimeoutRef.current = setTimeout(() => {
+                if (expectedSeekPositionRef.current !== null) {
+                    expectedSeekPositionRef.current = null;
+                    setIsSeeking(false);
+                    setIsSliding(false);
+                }
+            }, 500); // Longer timeout as fallback
             
+            // Reset zoom animation
             sliderThumbScale.value = withSpring(1, {
                 damping: 15,
                 stiffness: 150,
                 mass: 0.8
             });
+            sliderHeightScale.value = withSpring(1, {
+                damping: 15,
+                stiffness: 150,
+                mass: 0.8
+            });
+            
+            // Hide tooltip with animation
+            tooltipOpacity.value = withSpring(0, {
+                damping: 20,
+                stiffness: 300,
+            });
+            tooltipY.value = withSpring(0, {
+                damping: 20,
+                stiffness: 300,
+            });
+            tooltipX.value = withSpring(0, {
+                damping: 20,
+                stiffness: 300,
+            });
         } catch (error) {
             console.warn('Seek error:', error);
+            expectedSeekPositionRef.current = null;
             setIsSeeking(false);
             setIsSliding(false);
             sliderThumbScale.value = withSpring(1);
+            sliderHeightScale.value = withSpring(1);
+            
+            // Hide tooltip on error
+            tooltipOpacity.value = withSpring(0);
+            tooltipY.value = withSpring(0);
+            tooltipX.value = withSpring(0);
+            
+            if (seekTimeoutRef.current) {
+                clearTimeout(seekTimeoutRef.current);
+                seekTimeoutRef.current = null;
+            }
         }
     }, []);
 
     const handleValueChange = useCallback((value) => {
         if (isSliding) {
             pendingValueRef.current = value;
+            
+            // Update tooltip position based on current drag value
+            const newPosition = calculateTooltipPosition(value, progress.duration);
+            tooltipX.value = newPosition;
             
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
@@ -264,7 +391,7 @@ export const FullPlayer = ({isVisible, onClose}) => {
                 }
             });
         }
-    }, [isSliding]);
+    }, [isSliding, progress.duration]);
 
 
     const isPlaying = status === State.Playing;
@@ -357,6 +484,12 @@ export const FullPlayer = ({isVisible, onClose}) => {
                                 </Text>
                                 <View style={styles.progressSection}>
                                     <View style={styles.progressContainer}>
+                                        <Animated.View style={[styles.tooltip, tooltipAnimatedStyle]}>
+                                            <Text style={styles.tooltipText}>
+                                                {formatTime((isSliding || isSeeking) ? sliderValue : progress.position)}
+                                            </Text>
+                                            <View style={styles.tooltipArrow} />
+                                        </Animated.View>
                                          <Animated.View style={sliderThumbAnimatedStyle}>
                                               <Slider
                                                   style={styles.progressSlider}
@@ -573,5 +706,44 @@ const styles = StyleSheet.create({
     timeText: {
         fontSize: 14,
         fontWeight: '400',
+    },
+    tooltip: {
+        position: 'absolute',
+        top: -30,
+        left: '50%',
+        marginLeft: -30,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+        minWidth: 60,
+    },
+    tooltipText: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    tooltipArrow: {
+        position: 'absolute',
+        bottom: -6,
+        left: '50%',
+        marginLeft: -6,
+        width: 0,
+        height: 0,
+        borderLeftWidth: 6,
+        borderRightWidth: 6,
+        borderTopWidth: 6,
+        borderLeftColor: 'transparent',
+        borderRightColor: 'transparent',
+        borderTopColor: 'rgba(0, 0, 0, 0.8)',
     },
 });
