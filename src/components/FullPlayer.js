@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {
     View,
     StyleSheet,
@@ -39,9 +39,15 @@ export const FullPlayer = ({isVisible, onClose}) => {
     const {setShowing, setTrack, setFullPlayerVisible} = useTrackStateStore.getState();
     const progress = useProgress(500);
     const [dominantColor, setDominantColor] = useState('#1C1C1E');
+    const [isSliding, setIsSliding] = useState(false);
+    const [isSeeking, setIsSeeking] = useState(false);
+    const [sliderValue, setSliderValue] = useState(0);
+    const animationFrameRef = useRef(null);
+    const pendingValueRef = useRef(null);
 
     const y = useSharedValue(SCREEN_HEIGHT);
     const artworkScale = useSharedValue(1);
+    const sliderThumbScale = useSharedValue(1);
 
     const formatTime = (time) => {
         if (!time || isNaN(time)) return '00:00';
@@ -111,6 +117,12 @@ export const FullPlayer = ({isVisible, onClose}) => {
         };
     });
 
+    const sliderThumbAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{scale: sliderThumbScale.value}],
+        };
+    });
+
     const extractDominantColor = async (imageUri) => {
         try {
             // For now, we'll use a simple approach with predefined dark colors
@@ -133,6 +145,20 @@ export const FullPlayer = ({isVisible, onClose}) => {
             extractDominantColor(currentTrack.artwork);
         }
     }, [currentTrack?.artwork]);
+
+    useEffect(() => {
+        if (!isSliding && !isSeeking) {
+            setSliderValue(progress.position);
+        }
+    }, [progress.position, isSliding, isSeeking]);
+
+    useEffect(() => {
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, []);
 
     const handlePlayPause = async () => {
         try {
@@ -190,6 +216,55 @@ export const FullPlayer = ({isVisible, onClose}) => {
             console.warn('Seek forward error:', error);
         }
     };
+
+    const handleSlidingStart = useCallback(() => {
+        setIsSliding(true);
+        sliderThumbScale.value = withSpring(1.1, {
+            damping: 15,
+            stiffness: 150,
+            mass: 0.8
+        });
+    }, []);
+
+    const handleSlidingComplete = useCallback(async (value) => {
+        try {
+            setIsSeeking(true);
+            await TrackPlayer.seekTo(value);
+            
+            setTimeout(() => {
+                setIsSeeking(false);
+                setIsSliding(false);
+            }, 100);
+            
+            sliderThumbScale.value = withSpring(1, {
+                damping: 15,
+                stiffness: 150,
+                mass: 0.8
+            });
+        } catch (error) {
+            console.warn('Seek error:', error);
+            setIsSeeking(false);
+            setIsSliding(false);
+            sliderThumbScale.value = withSpring(1);
+        }
+    }, []);
+
+    const handleValueChange = useCallback((value) => {
+        if (isSliding) {
+            pendingValueRef.current = value;
+            
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+            
+            animationFrameRef.current = requestAnimationFrame(() => {
+                if (pendingValueRef.current !== null) {
+                    setSliderValue(pendingValueRef.current);
+                    pendingValueRef.current = null;
+                }
+            });
+        }
+    }, [isSliding]);
 
 
     const isPlaying = status === State.Playing;
@@ -282,26 +357,30 @@ export const FullPlayer = ({isVisible, onClose}) => {
                                 </Text>
                                 <View style={styles.progressSection}>
                                     <View style={styles.progressContainer}>
-                                         <Slider
-                                             style={styles.progressSlider}
-                                             minimumValue={0}
-                                             maximumValue={progress.duration || 1}
-                                             value={progress.position}
-                                             onSlidingComplete={(value) => TrackPlayer.seekTo(value)}
-                                             minimumTrackTintColor="rgba(255, 255, 255, 0.9)"
-                                             maximumTrackTintColor="rgba(255, 255, 255, 0.2)"
-                                             thumbStyle={styles.sliderThumb}
-                                             trackStyle={styles.sliderTrack}
-                                             thumbProps={{
-                                                children: () => {return <></>}
-                                            }}
-                                         />
+                                         <Animated.View style={sliderThumbAnimatedStyle}>
+                                              <Slider
+                                                  style={styles.progressSlider}
+                                                  minimumValue={0}
+                                                  maximumValue={progress.duration || 1}
+                                                  value={sliderValue}
+                                                  onSlidingStart={handleSlidingStart}
+                                                  onValueChange={handleValueChange}
+                                                  onSlidingComplete={handleSlidingComplete}
+                                                  minimumTrackTintColor="rgba(255, 255, 255, 0.9)"
+                                                  maximumTrackTintColor="rgba(255, 255, 255, 0.2)"
+                                                  thumbStyle={styles.sliderThumb}
+                                                  trackStyle={styles.sliderTrack}
+                                                  thumbProps={{
+                                                     children: () => {return <></>}
+                                                 }}
+                                              />
+                                         </Animated.View>
                                         <View style={styles.timeRow}>
                                             <Text style={[styles.timeText, {color: 'rgba(255, 255, 255, 0.6)'}]}>
-                                                {formatTime(progress.position)}
+                                                {formatTime((isSliding || isSeeking) ? sliderValue : progress.position)}
                                             </Text>
                                             <Text style={[styles.timeText, {color: 'rgba(255, 255, 255, 0.6)'}]}>
-                                                -{formatTime(Math.max(0, progress.duration - progress.position))}
+                                                -{formatTime(Math.max(0, progress.duration - ((isSliding || isSeeking) ? sliderValue : progress.position)))}
                                             </Text>
                                         </View>
                                     </View>
