@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { checkVersion } from '../apis/Version';
 import { storage } from '../storage';
 import * as Burnt from 'burnt';
@@ -8,28 +8,24 @@ export const useVersionCheck = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
-    const checkForUpdates = async (force = false) => {
+    const checkForUpdates = useCallback(async (force = false) => {
         try {
+            console.log('🔍 Starting version check...', { force });
             setIsLoading(true);
             
-            // Check if we should skip version check (for optional updates)
             const lastSkippedVersion = storage.getString('lastSkippedVersion');
-            const lastCheckTime = storage.getNumber('lastVersionCheckTime') || 0;
-            const now = Date.now();
-            const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
 
-            // Skip check if not forced and checked recently (within 1 hour)
-            if (!force && (now - lastCheckTime) < oneHour) {
-                return;
-            }
-
+            console.log('📡 Calling checkVersion API...');
             const result = await checkVersion();
+            console.log('📱 Version check result:', result);
             
             if (result.success && result.data.hasUpdate) {
                 const { latestVersion, isMandatory } = result.data;
+                console.log('🎯 Update available:', { latestVersion, isMandatory, lastSkippedVersion });
                 
                 // Skip showing modal for optional updates if user already dismissed this version
                 if (!isMandatory && lastSkippedVersion === latestVersion) {
+                    console.log('🙈 User already skipped this version');
                     if (force) {
                         Burnt.toast({
                             title: '已是最新版本',
@@ -40,26 +36,28 @@ export const useVersionCheck = () => {
                     return;
                 }
                 
+                console.log('🚀 Showing update modal');
                 setUpdateInfo(result.data);
                 setShowModal(true);
             } else if (result.success && force) {
+                console.log('✅ No update available (manual check)');
                 // Manual check with no update available
                 Burnt.toast({
                     title: '已是最新版本',
                     preset: 'done',
                     duration: 2,
                 });
+            } else if (result.success) {
+                console.log('✅ No update available (auto check)');
+            } else {
+                console.log('❌ Version check failed:', result.error);
             }
-            
-            // Update last check time
-            storage.set('lastVersionCheckTime', now);
-            
         } catch (error) {
-            console.error('Version check failed:', error);
+            console.error('❌ Version check failed:', error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     const hideModal = () => {
         if (updateInfo && !updateInfo.isMandatory) {
@@ -67,23 +65,31 @@ export const useVersionCheck = () => {
             storage.set('lastSkippedVersion', updateInfo.latestVersion);
         }
         setShowModal(false);
-        setUpdateInfo(null);
+        // Don't clear updateInfo immediately to allow modal to animate out
+        setTimeout(() => {
+            setUpdateInfo(null);
+        }, 300);
     };
 
-    // Auto check on app launch
+    // Auto check on app launch - immediate check
     useEffect(() => {
-        const timer = setTimeout(() => {
-            checkForUpdates();
-        }, 2000); // Wait 2 seconds after app launch
+        console.log('🚀 App launched - checking for updates immediately');
+        checkForUpdates();
+    }, [checkForUpdates]);
 
-        return () => clearTimeout(timer);
-    }, []);
+
+    const clearVersionCache = () => {
+        console.log('🗑️ Clearing version check cache');
+        storage.delete('lastVersionCheckTime');
+        storage.delete('lastSkippedVersion');
+    };
 
     return {
         updateInfo,
         isLoading,
         showModal,
         checkForUpdates,
-        hideModal
+        hideModal,
+        clearVersionCache
     };
 };

@@ -1,8 +1,8 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {Icon, useTheme} from "@rneui/themed";
 import * as Application from 'expo-application';
-import React, {useEffect, useState} from "react";
-import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
+import React, {useEffect, useState, useRef} from "react";
+import {Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, View, Animated} from "react-native";
 import {logEvent} from "../analytics";
 import {
     getUserNewsChannelConfig,
@@ -21,10 +21,13 @@ import {useDarkMode, useDarkModeValue} from '../hooks/DarkModeHooks';
 import {storage} from "../storage";
 import useNewsStore from '../stores/useNewsStore';
 import {useTopInset} from "../hooks/useTopInset";
-import {useVersionCheck} from "../hooks/VersionHooks";
-
-export const ProfileScreen = () => {
+export const ProfileScreen = ({ 
+    checkForUpdates, 
+    isVersionCheckLoading, 
+    clearVersionCache 
+}) => {
     const [fontSizeModalVisible, setFontSizeModalVisible] = useState(false);
+    const spinValue = useRef(new Animated.Value(0)).current;
     const [darkModeModalVisible, setDarkModeModalVisible] = useState(false);
     const [loginModalVisible, setLoginModalVisible] = useState(false);
     const [aboutModalVisible, setAboutModalVisible] = useState(false);
@@ -44,7 +47,23 @@ export const ProfileScreen = () => {
     ];
     const topInset = useTopInset();
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
-    const { checkForUpdates, isLoading: isVersionCheckLoading } = useVersionCheck();
+
+    // Spinning animation for loading icon
+    useEffect(() => {
+        if (isVersionCheckLoading) {
+            const spinAnimation = Animated.loop(
+                Animated.timing(spinValue, {
+                    toValue: 1,
+                    duration: 1000,
+                    useNativeDriver: true,
+                })
+            );
+            spinAnimation.start();
+            return () => spinAnimation.stop();
+        } else {
+            spinValue.setValue(0);
+        }
+    }, [isVersionCheckLoading, spinValue]);
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -331,26 +350,66 @@ export const ProfileScreen = () => {
                 </View>
 
                 <TouchableOpacity
-                    activeOpacity={0.8}
-                    style={[styles.settingItem, {borderBottomColor: theme.colors.border}]}
+                    activeOpacity={isVersionCheckLoading ? 1 : 0.8}
+                    style={[
+                        styles.settingItem, 
+                        {
+                            borderBottomColor: theme.colors.border,
+                            opacity: isVersionCheckLoading ? 0.6 : 1
+                        }
+                    ]}
                     onPress={async () => {
+                        if (isVersionCheckLoading) return;
+                        
+                        console.log('🔘 Manual version check button pressed');
                         await logEvent('manual_version_check');
-                        checkForUpdates(true);
+                        clearVersionCache();
+                        await checkForUpdates(true);
                     }}
                     disabled={isVersionCheckLoading}
                 >
                     <View style={styles.settingLeft}>
-                        <Icon 
-                            name={isVersionCheckLoading ? "refresh" : "download-outline"} 
-                            type="ionicon" 
-                            size={20} 
-                            color={theme.colors.text}
-                        />
-                        <Text style={[styles.settingText, {color: theme.colors.text}]}>检查更新</Text>
+                        {isVersionCheckLoading ? (
+                            <Animated.View
+                                style={{
+                                    transform: [{
+                                        rotate: spinValue.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ['0deg', '360deg']
+                                        })
+                                    }]
+                                }}
+                            >
+                                <Icon 
+                                    name="refresh" 
+                                    type="ionicon" 
+                                    size={20} 
+                                    color={theme.colors.secondaryText}
+                                />
+                            </Animated.View>
+                        ) : (
+                            <Icon 
+                                name="download-outline" 
+                                type="ionicon" 
+                                size={20} 
+                                color={theme.colors.text}
+                            />
+                        )}
+                        <Text style={[
+                            styles.settingText, 
+                            {
+                                color: theme.colors.text
+                            }
+                        ]}>
+                            检查更新
+                        </Text>
                     </View>
-                    <Icon name="chevron-forward-outline" type="ionicon" size={20}
-                          color={theme.colors.secondaryText}/>
+                    {!isVersionCheckLoading && (
+                        <Icon name="chevron-forward-outline" type="ionicon" size={20}
+                              color={theme.colors.secondaryText}/>
+                    )}
                 </TouchableOpacity>
+
 
                 <TouchableOpacity
                     activeOpacity={0.8}

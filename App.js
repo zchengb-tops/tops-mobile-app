@@ -25,7 +25,7 @@ import {UserServiceAgreementScreen} from "./src/screens/UserServiceAgreementScre
 import {useTrackStateStore} from "./src/hooks/TrackHooks";
 import {enableLayoutAnimations} from "react-native-reanimated";
 import {useVersionCheck} from "./src/hooks/VersionHooks";
-import UpgradeModal from "./src/components/UpgradeModal";
+import UpdateModal from "./src/components/UpdateModal";
 
 AppRegistry.registerComponent("tops-mobile-app", () => App);
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -137,7 +137,11 @@ export default function App() {
 
     const isDarkMode = useDarkMode();
     const {updateTheme} = useContext(ThemeContext);
-    const { updateInfo, showModal, hideModal } = useVersionCheck();
+    const { updateInfo, showModal, hideModal, checkForUpdates, isLoading: isVersionCheckLoading, clearVersionCache } = useVersionCheck();
+
+    useEffect(() => {
+        console.log('App.js showModal changes', showModal);
+    }, [showModal]);
 
     const theme = {
         isDarkMode: isDarkMode,
@@ -226,7 +230,15 @@ export default function App() {
                                             >
                                                 <Tab.Screen name="DiscoveryStack" component={DiscoveryStackNavigator}/>
                                                 <Tab.Screen name="SubscribeScreen" component={SubscribeScreen}/>
-                                                <Tab.Screen name="ProfileScreen" component={ProfileScreen}/>
+                                                <Tab.Screen name="ProfileScreen">
+                                                    {() => (
+                                                        <ProfileScreen
+                                                            checkForUpdates={checkForUpdates}
+                                                            isVersionCheckLoading={isVersionCheckLoading}
+                                                            clearVersionCache={clearVersionCache}
+                                                        />
+                                                    )}
+                                                </Tab.Screen>
                                             </Tab.Navigator>
                                         )}
                                     </Stack.Screen>
@@ -243,7 +255,7 @@ export default function App() {
                                 </Stack.Navigator>
                                 <PlayerBar/>
                                 <NavBar/>
-                                <UpgradeModal 
+                                <UpdateModal 
                                     isVisible={showModal}
                                     onClose={hideModal}
                                     updateInfo={updateInfo}
