@@ -199,7 +199,7 @@ export const DiscoveryScreen = () => {
                 ...channel,
                 renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon,
                 component: channel.isRss
-                    ? <Rss rssUrl={channel.rssLink}/>
+                    ? <Rss rssUrl={channel.rssUrl}/>
                     : CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.component
             }
         ));
