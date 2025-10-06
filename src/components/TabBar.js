@@ -100,7 +100,7 @@ export const TabBar = ({channelList}) => {
                 {[1, 2, 3, 4].map((_, index) => (
                     <View key={index} style={{flexDirection: 'row'}}>
                         <View style={[styles.tabBarIcon, {
-                            backgroundColor: '#F5F5F5',
+                            backgroundColor: theme.colors.border,
                             borderRadius: 26,
                             width: 24,
                             height: 24,
@@ -108,7 +108,7 @@ export const TabBar = ({channelList}) => {
                             marginRight: 2,
                         }]}/>
                         <View style={[styles.tabBarItem, {
-                            backgroundColor: '#F5F5F5',
+                            backgroundColor: theme.colors.border,
                             width: 72,
                             height: 28,
                             borderRadius: 8,
