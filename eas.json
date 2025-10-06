@@ -17,7 +17,8 @@
     "testflight": {
       "autoIncrement": true,
       "ios": {
-        "distribution": "store"
+        "distribution": "store",
+        "image": "latest"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://infohub.net.cn/api"
@@ -26,7 +27,8 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "distribution": "store"
+        "distribution": "store",
+        "image": "latest"
       },
       "android": {
         "buildType": "apk",
