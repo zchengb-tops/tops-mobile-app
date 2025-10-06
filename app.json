@@ -17,7 +17,8 @@
         "UIBackgroundModes": [
           "audio"
         ]
-      }
+      },
+      "buildNumber": "17"
     },
     "android": {
       "splash": {
