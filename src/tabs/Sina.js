@@ -1,11 +1,12 @@
 import {useNavigation} from "@react-navigation/native";
 import {useTheme} from '@rneui/themed';
 import React, {useEffect, useState} from "react";
-import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {FlatList, RefreshControl, StyleSheet, View} from "react-native";
 import {Text} from "../components/Text";
 import {globalStyles} from "../globalStyle";
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const Sina = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -34,6 +35,8 @@ export const Sina = () => {
 
     return <FlatList
         initialNumToRender={20}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
@@ -43,17 +46,13 @@ export const Sina = () => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
             return (
-                <TouchableOpacity
-                    delayPressIn={200}
-                    activeOpacity={0.8}
+                <PressableNewsItem
                     style={styles.newsItem}
-                    onPress={() =>
-                        navigation.navigate('NewsDetailScreen', {
-                            url: item.link,
-                            title: item.title,
-                            useTitleForShare: true
-                        })
-                    }
+                    onPress={() => navigation.navigate('NewsDetailScreen', {
+                        url: item.link,
+                        title: item.title,
+                        useTitleForShare: true
+                    })}
                 >
                     <View style={styles.newsInfoWrapper}>
                         <View
@@ -75,7 +74,7 @@ export const Sina = () => {
                     <Text style={[styles.viewerText, { color: theme.colors.secondaryText }]}>
                         {prettifyNumber(item.properties.viewers)}
                     </Text>
-                </TouchableOpacity>
+                </PressableNewsItem>
             );
         }}
     />

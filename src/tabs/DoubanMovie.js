@@ -1,4 +1,4 @@
-import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, View} from "react-native";
 import React, {useEffect, useState} from "react";
 import {useNavigation} from "@react-navigation/native";
 import {Rating} from "../components/Rating";
@@ -7,6 +7,7 @@ import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
 import {useDarkMode} from "../hooks/DarkModeHooks";
 import useNewsStore from '../stores/useNewsStore';
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const DoubanMovie = () => {
     const [movies, setMovies] = useState([]);
@@ -25,6 +26,8 @@ export const DoubanMovie = () => {
 
     return <FlatList
         style={styles.container}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}
                             tintColor={darkMode ? '#d77f31' : ''}/>
@@ -37,16 +40,12 @@ export const DoubanMovie = () => {
             const rate = numericRate / 2;
 
             return (
-                <TouchableOpacity
+                <PressableNewsItem
                     style={styles.movieItem}
-                    delayPressIn={200}
-                    activeOpacity={0.8}
-                    onPress={() =>
-                        navigation.navigate('NewsDetailScreen', {
-                            url: item.link,
-                            title: item.title
-                        })
-                    }
+                    onPress={() => navigation.navigate('NewsDetailScreen', {
+                        url: item.link,
+                        title: item.title
+                    })}
                 >
                     <View
                         style={[
@@ -85,7 +84,7 @@ export const DoubanMovie = () => {
                             <Text style={styles.rankText}>{item.rate}</Text>
                         </View>
                     </View>
-                </TouchableOpacity>
+                </PressableNewsItem>
             );
         }}
     />

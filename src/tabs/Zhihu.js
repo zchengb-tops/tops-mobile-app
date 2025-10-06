@@ -1,11 +1,12 @@
 import {useNavigation} from "@react-navigation/native";
 import {useTheme} from '@rneui/themed';
 import React, {useEffect, useState} from "react";
-import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, View} from "react-native";
 import {Text} from "../components/Text";
 import {globalStyles} from "../globalStyle";
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const Zhihu = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -29,15 +30,15 @@ export const Zhihu = () => {
 
     return <FlatList
         data={news}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         renderItem={({item, index}) => (
-            <TouchableOpacity
-                delayPressIn={200}
-                activeOpacity={0.8}
+            <PressableNewsItem
                 onPress={() => navigation.navigate('NewsDetailScreen', {
                     url: item.link,
                     title: item.title
@@ -70,7 +71,7 @@ export const Zhihu = () => {
                     </View>
                     <View style={[styles.borderBottom, { borderBottomColor: theme.colors.border }]}/>
                 </View>
-            </TouchableOpacity>
+            </PressableNewsItem>
         )}
     />
 }

@@ -10,6 +10,7 @@ import {globalStyles} from "../globalStyle";
 import {useTrack, useTrackStateStore, useTrackStatus} from "../hooks/TrackHooks";
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const Xiaoyuzhou = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -160,6 +161,8 @@ export const Xiaoyuzhou = () => {
     return (
         <FlatList
             data={news}
+            directionalLockEnabled={true}
+            scrollEventThrottle={16}
             refreshControl={
                 <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing}
                                 onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
@@ -167,13 +170,13 @@ export const Xiaoyuzhou = () => {
             contentContainerStyle={styles.contentContainer}
             keyExtractor={(item, index) => `${item.id || index}-${item.title || 'unknown'}`}
             renderItem={({item, index}) => (
-                <TouchableOpacity style={styles.newsItemWrapper}
-                                  delayPressIn={200}
-                                  activeOpacity={0.8}
-                                  onPress={() => navigation.navigate('NewsDetailScreen', {
-                                      url: item.url,
-                                      title: item.title
-                                  })}>
+                <PressableNewsItem
+                    style={styles.newsItemWrapper}
+                    onPress={() => navigation.navigate('NewsDetailScreen', {
+                        url: item.url,
+                        title: item.title
+                    })}
+                >
                     <View style={styles.newItemContainer}>
                         <Image
                             style={styles.image}
@@ -241,7 +244,7 @@ export const Xiaoyuzhou = () => {
                             </AnimatedCircularProgress>
                         </View>
                     </View>
-                </TouchableOpacity>
+                </PressableNewsItem>
             )}
         />
     );

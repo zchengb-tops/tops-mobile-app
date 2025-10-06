@@ -1,4 +1,4 @@
-import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, View} from "react-native";
 import React, {useEffect, useState} from "react";
 import {useNavigation} from "@react-navigation/native";
 import AuthorIcon from "../../assets/icons/author.svg"
@@ -9,6 +9,7 @@ import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const Bilibili = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -39,18 +40,20 @@ export const Bilibili = () => {
     return <FlatList
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         data={news}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
-            return <TouchableOpacity style={[styles.itemWrapper, {marginTop: index === 0 ? 16 : 8}]}
-                                     activeOpacity={0.8}
-                                     onPress={() => navigation.navigate('NewsDetailScreen', {
-                                         url: item.link,
-                                         title: item.title
-                                     })}
+            return <PressableNewsItem
+                style={[styles.itemWrapper, {marginTop: index === 0 ? 16 : 8}]}
+                onPress={() => navigation.navigate('NewsDetailScreen', {
+                    url: item.link,
+                    title: item.title
+                })}
             >
                 <Image style={styles.cover} source={{uri: item.properties.firstFrame.replace('http://', 'https://')}}/>
                 <View style={styles.itemInfoWrapper}>
@@ -76,7 +79,7 @@ export const Bilibili = () => {
                         </View>
                     </View>
                 </View>
-            </TouchableOpacity>
+            </PressableNewsItem>
         }}
     />
 }

@@ -163,6 +163,8 @@ export const Stock = () => {
 
     return <ScrollView
         contentContainerStyle={styles.stockContentWrapper}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }

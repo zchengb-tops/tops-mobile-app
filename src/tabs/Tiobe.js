@@ -1,11 +1,12 @@
 import {useNavigation} from "@react-navigation/native";
 import React, {useEffect, useState} from "react";
-import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {FlatList, RefreshControl, StyleSheet, View} from "react-native";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const Tiobe = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -49,13 +50,12 @@ export const Tiobe = () => {
 
     const renderItem = (item, index) => {
         return (
-            <TouchableOpacity style={[styles.itemWrapper, {borderBottomColor: theme.colors.border}]}
-                              delayPressIn={200}
-                              activeOpacity={0.8}
-                              onPress={() => navigation.navigate('NewsDetailScreen', {
-                                  url: item.link,
-                                  title: item.title
-                              })}
+            <PressableNewsItem
+                style={[styles.itemWrapper, {borderBottomColor: theme.colors.border}]}
+                onPress={() => navigation.navigate('NewsDetailScreen', {
+                    url: item.link,
+                    title: item.title
+                })}
             >
                 <Text style={[styles.itemText, styles.rankCol, {color: theme.colors.text}]}>{item.rankNum}</Text>
                 <Text
@@ -66,7 +66,7 @@ export const Tiobe = () => {
                     style={[styles.itemText, styles.percentageCol, {color: theme.colors.text}]}>{item.properties.ratings}</Text>
                 <Text
                     style={[styles.itemText, styles.changeCol, {color: item.properties.isUp ? 'green' : 'red'}]}>{item.properties.change}</Text>
-            </TouchableOpacity>
+            </PressableNewsItem>
         );
     }
 
@@ -74,6 +74,8 @@ export const Tiobe = () => {
     return <FlatList
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         initialNumToRender={20}
         data={news}
         refreshControl={

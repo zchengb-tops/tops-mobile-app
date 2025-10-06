@@ -1,11 +1,12 @@
 import {useNavigation} from "@react-navigation/native";
 import React, {useEffect, useState} from "react";
-import {FlatList, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {FlatList, RefreshControl, StyleSheet, View} from "react-native";
 import {globalStyles} from "../globalStyle";
 import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const Rss = ({rssUrl}) => {
     const rssNews = useNewsStore(state => state.rssNews);
@@ -64,6 +65,8 @@ export const Rss = ({rssUrl}) => {
 
     return <FlatList
         initialNumToRender={20}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         refreshControl={
             <RefreshControl
                 style={globalStyles.refreshControl} 
@@ -78,16 +81,12 @@ export const Rss = ({rssUrl}) => {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => {
             return (
-                <TouchableOpacity
-                    delayPressIn={200}
-                    activeOpacity={0.8}
+                <PressableNewsItem
                     style={styles.newsItem}
-                    onPress={() =>
-                        navigation.navigate('NewsDetailScreen', {
-                            url: item.link,
-                            title: item.title
-                        })
-                    }
+                    onPress={() => navigation.navigate('NewsDetailScreen', {
+                        url: item.link,
+                        title: item.title
+                    })}
                 >
                     <View style={styles.newsInfoWrapper}>
                         <View style={styles.newsItemIndicator}/>
@@ -98,7 +97,7 @@ export const Rss = ({rssUrl}) => {
                             <Text style={[styles.publishDate, { color: theme.colors.secondaryText }]}>{formatDate(item.publishDate)}</Text>
                         </View>
                     </View>
-                </TouchableOpacity>
+                </PressableNewsItem>
             );
         }}
     />

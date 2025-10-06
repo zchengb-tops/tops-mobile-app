@@ -1,4 +1,4 @@
-import {FlatList, Image, RefreshControl, StyleSheet, TouchableOpacity, View} from "react-native";
+import {FlatList, Image, RefreshControl, StyleSheet, View} from "react-native";
 import React, {useEffect, useState} from "react";
 import {useNavigation} from "@react-navigation/native";
 import {globalStyles} from "../globalStyle";
@@ -7,6 +7,7 @@ import {Text} from "../components/Text";
 import {useTheme} from '@rneui/themed';
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const NnGroup = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -26,6 +27,8 @@ export const NnGroup = () => {
 
     return <FlatList
         data={news}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews}
                             tintColor={isDarkMode ? '#d77f31' : ''}/>
@@ -33,15 +36,12 @@ export const NnGroup = () => {
         contentContainerStyle={styles.contentContainer}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (
-            <TouchableOpacity
-                delayPressIn={200}
+            <PressableNewsItem
                 style={styles.newsItemWrapper}
-                onPress={() =>
-                    navigation.navigate('NewsDetailScreen', {
-                        url: item.link,
-                        title: item.title
-                    })}
-                activeOpacity={0.8}
+                onPress={() => navigation.navigate('NewsDetailScreen', {
+                    url: item.link,
+                    title: item.title
+                })}
             >
                 <View style={styles.newItemContainer}>
                     <View style={styles.infoContainer}>
@@ -79,7 +79,7 @@ export const NnGroup = () => {
                     }
                 </View>
                 <View style={[styles.borderBottom, {borderBottomColor: theme.colors.border}]}/>
-            </TouchableOpacity>
+            </PressableNewsItem>
         )}
     />
 }

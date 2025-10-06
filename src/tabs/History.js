@@ -1,11 +1,12 @@
 import {useNavigation} from "@react-navigation/native";
 import {useTheme} from '@rneui/themed';
 import React, {useEffect, useState} from "react";
-import {RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View} from "react-native";
+import {RefreshControl, ScrollView, StyleSheet, View} from "react-native";
 import {Text} from "../components/Text";
 import {globalStyles} from "../globalStyle";
 import useNewsStore from '../stores/useNewsStore';
 import {useDarkMode} from "../hooks/DarkModeHooks";
+import {PressableNewsItem} from "../components/PressableNewsItem";
 
 export const History = () => {
     const normalNews = useNewsStore(state => state.normalNews);
@@ -25,10 +26,9 @@ export const History = () => {
 
     const renderItem = (item, index) => {
         return (
-            <TouchableOpacity style={[styles.itemWrapper]}
-                delayPressIn={200}
+            <PressableNewsItem
+                style={[styles.itemWrapper]}
                 key={index}
-                activeOpacity={0.8}
                 onPress={() => navigation.navigate('NewsDetailScreen', {
                     url: item.link,
                     title: item.title
@@ -43,13 +43,15 @@ export const History = () => {
                         {item.desc?.endsWith("...") && <Text style={[styles.moreText, { color: theme.colors.primary }]}>&nbsp;更多&gt;&gt;</Text>}
                     </Text>
                 </View>
-            </TouchableOpacity>
+            </PressableNewsItem>
         );
     }
 
 
     return <ScrollView
         style={styles.container}
+        directionalLockEnabled={true}
+        scrollEventThrottle={16}
         refreshControl={
             <RefreshControl style={globalStyles.refreshControl} refreshing={normalRefreshing} onRefresh={refreshNews} tintColor={isDarkMode ? '#d77f31' : ''}/>
         }
