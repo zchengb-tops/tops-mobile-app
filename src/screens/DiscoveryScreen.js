@@ -81,6 +81,7 @@ export const DiscoveryScreen = () => {
     const alignChannelList = (currentChannelList, latestChannelList) => {
         let currentChannelMap = new Map(currentChannelList.map(item => [item.id, item]));
         let newChannelList = [...currentChannelList];
+        const latestChannelMap = new Map(latestChannelList.map(item => [item.id, item]));
 
         latestChannelList.filter(channel => !channel.isRss)
             .forEach(channel => {
@@ -98,11 +99,21 @@ export const DiscoveryScreen = () => {
                 }
             });
 
-        const latestChannelMap = new Map(latestChannelList.map(item => [item.id, item]));
-
-        newChannelList = newChannelList.filter(channel =>
-            channel.isRss || latestChannelMap.get(channel.id)
-        );
+        newChannelList = newChannelList.map(channel => {
+            if (channel.isRss) {
+                return channel;
+            }
+            
+            const latestChannel = latestChannelMap.get(channel.id);
+            if (!latestChannel) {
+                return {
+                    ...channel,
+                    enable: false
+                };
+            }
+            
+            return channel;
+        });
 
         return newChannelList;
     }

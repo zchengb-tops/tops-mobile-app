@@ -90,13 +90,41 @@ export const SubscribeScreen = () => {
         }
     };
 
+    const alignChannelList = (currentChannelList, latestChannelList) => {
+        const latestChannelMap = new Map(latestChannelList.map(item => [item.id, item]));
+        
+        return currentChannelList.map(channel => {
+            if (channel.isRss) {
+                return channel;
+            }
+            
+            const latestChannel = latestChannelMap.get(channel.id);
+            if (!latestChannel) {
+                return {
+                    ...channel,
+                    enable: false
+                };
+            }
+            
+            return channel;
+        });
+    };
+
     const loadLocalChannelList = async () => {
         const stringifyChannelList = storage.getString('channelList');
+        const defaultChannels = await fetchDefaultChannels();
+        
         if (stringifyChannelList) {
-            setChannelList(injectChannelComponentFields(JSON.parse(stringifyChannelList) || await fetchDefaultChannels()));
+            const parsedChannelList = JSON.parse(stringifyChannelList);
+            const alignedChannelList = alignChannelList(parsedChannelList, defaultChannels);
+            setChannelList(injectChannelComponentFields(alignedChannelList));
+            
+            if (JSON.stringify(parsedChannelList) !== JSON.stringify(alignedChannelList)) {
+                saveChannelListToStorage(alignedChannelList);
+            }
         } else {
-            setChannelList(injectChannelComponentFields(await fetchDefaultChannels()));
-            saveChannelListToStorage(await fetchDefaultChannels());
+            setChannelList(injectChannelComponentFields(defaultChannels));
+            saveChannelListToStorage(defaultChannels);
         }
     };
 
