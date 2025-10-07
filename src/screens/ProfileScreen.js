@@ -196,7 +196,31 @@ export const ProfileScreen = ({
         storage.set('accessToken', token);
         await loadUserInfo();
         closeLoginModal();
-        fetchUserNewsChannelConfig();
+        
+        const syncEnabled = storage.getBoolean('isSyncEnabled');
+        if (!syncEnabled) {
+            Alert.alert(
+                '开启云同步',
+                '是否开启云同步功能？开启后可以在多个设备间同步您的订阅配置。',
+                [
+                    {
+                        text: '暂不开启',
+                        style: 'cancel'
+                    },
+                    {
+                        text: '开启',
+                        onPress: () => {
+                            storage.set('isSyncEnabled', true);
+                            setIsSyncEnabled(true);
+                            fetchUserNewsChannelConfig();
+                        }
+                    }
+                ]
+            );
+        } else {
+            fetchUserNewsChannelConfig();
+        }
+        
         await logEvent('user_login_success');
     }
 
