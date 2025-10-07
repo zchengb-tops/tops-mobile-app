@@ -3,7 +3,6 @@ import {
     ActivityIndicator,
     Alert,
     Image,
-    Platform,
     StyleSheet,
     TextInput,
     TouchableOpacity,
