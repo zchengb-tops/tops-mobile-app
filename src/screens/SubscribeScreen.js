@@ -31,6 +31,7 @@ import {debounce} from 'lodash';
 import {getRssResourceTitle, saveRssResource} from "../apis/News";
 import {useTopInset} from '../hooks/useTopInset';
 import useNewsStore from '../stores/useNewsStore';
+import {useTab} from '../hooks/TabHooks';
 
 export const SubscribeScreen = () => {
     const [channelList, setChannelList] = useState(null);
@@ -45,6 +46,7 @@ export const SubscribeScreen = () => {
     const isFocused = useIsFocused();
     const topInset = useTopInset();
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
+    const {setTabIndex} = useTab();
 
     useEffect(() => {
         logEvent('screen_view', {
@@ -154,6 +156,7 @@ export const SubscribeScreen = () => {
             channel_count: newChannelList.length
         });
         saveChannelListToStorage(pureChannelList, true);
+        setTabIndex(0);
     }
 
     const debouncedSync = useCallback(
