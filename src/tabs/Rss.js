@@ -19,7 +19,7 @@ export const Rss = ({rssUrl}) => {
 
     useEffect(() => {
         setNews(rssNews[rssUrl]?.items || [])
-    }, [rssNews]);
+    }, [rssNews, rssUrl]);
 
     const isAllNewsInSameDay = () => {
         const items = rssNews[rssUrl]?.items || [];

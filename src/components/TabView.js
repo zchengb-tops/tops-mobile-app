@@ -1,11 +1,12 @@
-import React, {memo, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {ErrorScreen} from "../screens/ErrorScreen";
 import PagerView from 'react-native-pager-view';
 import useNewsStore from '../stores/useNewsStore';
 import {useTab} from "../hooks/TabHooks";
+import {Rss} from "../tabs/Rss";
 
-const TabContent = memo(({channel}) => {
+const TabContent = ({channel}) => {
     const rssLoadError = useNewsStore(state => state.rssLoadError);
     const normalLoadError = useNewsStore(state => state.normalLoadError);
     const rssLoading = useNewsStore(state => state.rssLoading);
@@ -23,7 +24,7 @@ const TabContent = memo(({channel}) => {
             <View style={styles.loadingView}>
                 <ActivityIndicator/>
             </View>
-        ) : channel.component;
+        ) : <Rss key={channel.rssUrl} rssUrl={channel.rssUrl}/>;
     }
 
     if (normalLoadError || !channel.component) {
@@ -35,14 +36,14 @@ const TabContent = memo(({channel}) => {
             <ActivityIndicator/>
         </View>
     ) : channel.component;
-});
+};
 
 export const TabView = ({channelList}) => {
     const pagerRef = useRef(null);
     const { tabIndex, setTabIndex, triggerByTabBar } = useTab();
 
     useEffect(() => {
-        if (pagerRef.current && triggerByTabBar) {
+        if (pagerRef.current) {
             pagerRef.current.setPage(tabIndex);
         }
     }, [tabIndex]);
@@ -71,8 +72,9 @@ export const TabView = ({channelList}) => {
             offscreenPageLimit={2}
         >
             {enabledChannels.map((channel, index) => {
+                const uniqueKey = channel.isRss ? `${channel.id}-${channel.rssUrl}` : channel.id;
                 return (
-                    <View key={index} style={styles.tabView}>
+                    <View key={uniqueKey} style={styles.tabView}>
                         <TabContent channel={channel}/>
                     </View>
                 )

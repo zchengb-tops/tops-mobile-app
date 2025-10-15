@@ -151,14 +151,27 @@ export const DiscoveryScreen = () => {
                 const defaultChannelList = await fetchDefaultChannels();
                 const alignedChannelList = alignChannelList(parsedChannelList, defaultChannelList);
 
-                const hasChanges = checkChannelListChanges(alignedChannelList, parsedChannelList);
+                const hasChanges = checkChannelListChanges(alignedChannelList, channelList.length > 0 ? channelList : parsedChannelList);
+                const hasOrderChanges = checkChannelOrderChanges(alignedChannelList, channelList.length > 0 ? channelList : parsedChannelList);
+                
+                console.log('🔍 Channel Check:', {
+                    hasChanges,
+                    hasOrderChanges,
+                    currentOrder: (channelList.length > 0 ? channelList : parsedChannelList).filter(c => c.enable).map(c => c.id),
+                    newOrder: alignedChannelList.filter(c => c.enable).map(c => c.id)
+                });
+                
                 setChannelList(injectChannelComponentFields(alignedChannelList));
                 needUseDefaultChannelList = false;
 
-                if (hasChanges) {
+                if (hasChanges || hasOrderChanges) {
+                    console.log('🔄 Incrementing pagerKey and resetting tab');
                     storage.set("channelList", JSON.stringify(alignedChannelList));
                     setTabIndex(0);
-                    setPagerKey(prevKey => prevKey + 1);
+                    setPagerKey(prevKey => {
+                        console.log('📄 PagerKey change:', prevKey, '->', prevKey + 1);
+                        return prevKey + 1;
+                    });
                 }
             }
         }
@@ -204,13 +217,30 @@ export const DiscoveryScreen = () => {
         return false;
     };
 
+    const checkChannelOrderChanges = (newList, oldList) => {
+        const enabledNewChannels = newList.filter(channel => channel.enable);
+        const enabledOldChannels = oldList.filter(channel => channel.enable);
+
+        if (enabledNewChannels.length !== enabledOldChannels.length) {
+            return true;
+        }
+
+        for (let i = 0; i < enabledNewChannels.length; i++) {
+            if (enabledNewChannels[i].id !== enabledOldChannels[i].id) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
     const injectChannelComponentFields = (channelList) => {
         return channelList.map(channel => (
             {
                 ...channel,
                 renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon,
                 component: channel.isRss
-                    ? <Rss rssUrl={channel.rssUrl}/>
+                    ? null
                     : CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.component
             }
         ));
