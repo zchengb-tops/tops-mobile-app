@@ -10,18 +10,29 @@ const useAuthStore = create((set) => ({
     loadUserInfo: async () => {
         try {
             const token = storage.getString('accessToken');
+            const cachedUserInfo = storage.getString('userInfo');
+            
             set({ isLoggedIn: !!token });
+            
             if (token) {
+                if (cachedUserInfo) {
+                    try {
+                        const parsedUserInfo = JSON.parse(cachedUserInfo);
+                        set({ userInfo: parsedUserInfo });
+                        console.log('Loaded cached user info:', parsedUserInfo);
+                    } catch (error) {
+                        console.error('Error parsing cached user info:', error);
+                    }
+                }
+                
                 getUserInfo(token).then(async response => {
                     if (response.ok) {
                         const data = await response.json();
                         set({ userInfo: data });
                         storage.set('userInfo', JSON.stringify(data));
+                        console.log('Updated user info from server:', data);
                     } else {
-                        Burnt.toast({
-                            title: '获取用户信息失败',
-                            preset: 'error',
-                        });
+                        console.error('Failed to fetch user info from server');
                     }
                 });
             } else {

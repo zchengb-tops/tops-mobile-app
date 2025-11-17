@@ -26,6 +26,7 @@ const SyncModal = ({
     const [isSyncing, setIsSyncing] = useState(false);
     const { isLoggedIn } = useAuth();
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
+    const fetchRssNews = useNewsStore(state => state.fetchRssNews);
 
     useEffect(() => {
         const subscription = storage.addOnValueChangedListener((key) => {
@@ -59,6 +60,24 @@ const SyncModal = ({
         storage.set('lastSyncTime', now);
         setLastSyncTime(now);
     }
+
+    const checkRssChannelChanges = (newList, oldList) => {
+        const enabledNewRssChannels = newList.filter(channel => channel.enable && channel.isRss);
+        const enabledOldRssChannels = oldList.filter(channel => channel.enable && channel.isRss);
+
+        if (enabledNewRssChannels.length !== enabledOldRssChannels.length) {
+            return true;
+        }
+
+        const oldRssUrlSet = new Set(enabledOldRssChannels.map(channel => channel.rssUrl));
+        for (let i = 0; i < enabledNewRssChannels.length; i++) {
+            if (!oldRssUrlSet.has(enabledNewRssChannels[i].rssUrl)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
 
     const fetchUserNewsChannelConfig = async () => {
         if (!isLoggedIn) {
@@ -104,15 +123,25 @@ const SyncModal = ({
     };
 
     const fetchUserNewsChannelConfigFromServer = async () => {
+        const oldChannelList = JSON.parse(storage.getString('channelList') || '[]');
+        
         getUserNewsChannelConfig().then(async response => {
             if (response.ok) {
                 const data = await response.json();
                 const version = data.version;
                 const channelSettings = data.content;
+                const newChannelList = JSON.parse(channelSettings);
+                
                 storage.set('channelList', channelSettings);
                 updateChannelConfigVersion(version);
                 updateLastSyncTime();
                 console.log('fetch user news channel config from server success');
+                
+                const hasRssChannelChanges = checkRssChannelChanges(newChannelList, oldChannelList);
+                if (hasRssChannelChanges) {
+                    console.log('🔄 RSS channels changed after sync, fetching RSS news');
+                    fetchRssNews().then(() => console.log('Successfully fetch rss news after sync :)'));
+                }
             } else {
                 throw new Error(await response.json());
             }

@@ -45,6 +45,7 @@ export const SubscribeScreen = () => {
     const isFocused = useIsFocused();
     const topInset = useTopInset();
     const fetchDefaultChannels = useNewsStore(state => state.fetchDefaultChannels);
+    const fetchRssNews = useNewsStore(state => state.fetchRssNews);
     const {setTabIndex} = useTab();
 
     useEffect(() => {
@@ -267,6 +268,8 @@ export const SubscribeScreen = () => {
 
                 setChannelList(newChannelList);
                 saveChannelListToStorage(newChannelList, true);
+                
+                fetchRssNews().then(() => console.log('Successfully fetch rss news after editing RSS channel :)'));
 
                 closeRssInfoModal();
                 setRssName('');
@@ -387,6 +390,8 @@ export const SubscribeScreen = () => {
 
                 setChannelList(newChannelList);
                 saveChannelListToStorage(newChannelList, true);
+                
+                fetchRssNews().then(() => console.log('Successfully fetch rss news after adding RSS channel :)'));
 
                 closeRssInfoModal();
                 setRssName('');

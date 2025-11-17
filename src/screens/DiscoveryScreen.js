@@ -132,11 +132,19 @@ export const DiscoveryScreen = () => {
         const {version: serverVersion} = await response.json();
 
         if (!localVersion || (serverVersion && localVersion < serverVersion)) {
+            const oldChannelList = JSON.parse(storage.getString("channelList") || '[]');
             const {data: {version, content}} = await getUserNewsChannelConfig();
-            const channelList = injectChannelComponentFields(JSON.parse(content));
-            storage.set("channelList", JSON.stringify(channelList));
+            const newChannelList = JSON.parse(content);
+            
+            storage.set("channelList", JSON.stringify(newChannelList));
             storage.set("newsChannelConfigVersion", version);
-            setChannelList(channelList);
+            setChannelList(injectChannelComponentFields(newChannelList));
+            
+            const hasRssChannelChanges = checkRssChannelChanges(newChannelList, oldChannelList);
+            if (hasRssChannelChanges) {
+                console.log('🔄 RSS channels changed after server sync, fetching RSS news');
+                fetchRssNews().then(() => console.log('Successfully fetch rss news after server sync :)'));
+            }
         }
     }
 
@@ -172,6 +180,12 @@ export const DiscoveryScreen = () => {
                         console.log('📄 PagerKey change:', prevKey, '->', prevKey + 1);
                         return prevKey + 1;
                     });
+                    
+                    const hasRssChannelChanges = checkRssChannelChanges(alignedChannelList, channelList.length > 0 ? channelList : parsedChannelList);
+                    if (hasRssChannelChanges) {
+                        console.log('🔄 RSS channels changed, fetching RSS news');
+                        fetchRssNews().then(() => console.log('Successfully fetch rss news after channel sync :)'));
+                    }
                 }
             }
         }
@@ -227,6 +241,24 @@ export const DiscoveryScreen = () => {
 
         for (let i = 0; i < enabledNewChannels.length; i++) {
             if (enabledNewChannels[i].id !== enabledOldChannels[i].id) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const checkRssChannelChanges = (newList, oldList) => {
+        const enabledNewRssChannels = newList.filter(channel => channel.enable && channel.isRss);
+        const enabledOldRssChannels = oldList.filter(channel => channel.enable && channel.isRss);
+
+        if (enabledNewRssChannels.length !== enabledOldRssChannels.length) {
+            return true;
+        }
+
+        const oldRssUrlSet = new Set(enabledOldRssChannels.map(channel => channel.rssUrl));
+        for (let i = 0; i < enabledNewRssChannels.length; i++) {
+            if (!oldRssUrlSet.has(enabledNewRssChannels[i].rssUrl)) {
                 return true;
             }
         }
