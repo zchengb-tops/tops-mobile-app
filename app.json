@@ -28,7 +28,7 @@
       },
       "icon": "./assets/images/logo-436.png",
       "package": "cn.zchengb.infohub",
-      "versionCode": 5
+      "versionCode": 6
     },
     "web": {
       "favicon": "./assets/logo.png"
@@ -40,7 +40,17 @@
     },
     "owner": "zxchengb",
     "plugins": [
-      "expo-build-properties"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25",
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
+        }
+      ]
     ]
   }
 }
