@@ -2,10 +2,11 @@
   "expo": {
     "name": "InfoHub",
     "slug": "tops",
-    "version": "1.0.1",
+    "version": "1.1",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
+    "jsEngine": "hermes",
     "splash": {
       "image": "./assets/welcomePage.png",
       "backgroundColor": "#ffffff"
@@ -28,7 +29,7 @@
       },
       "icon": "./assets/images/logo-436.png",
       "package": "cn.zchengb.infohub",
-      "versionCode": 8
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/logo.png"
