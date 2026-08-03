@@ -164,4 +164,26 @@ export const CHANNEL_COMPONENT_MAP = {
     },
 };
 
+export const getChannelComponent = (channel) =>
+    CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id];
+
+export const isAppSupportedChannel = (channel) =>
+    Boolean(channel?.isRss) || Boolean(getChannelComponent(channel));
+
+const CHANNEL_ICON_FALLBACK = {
+    arena: 'https://infohub.net.cn/oss/channel-icon/arena.svg?v=20260803',
+};
+
+export const resolveChannelIconUrl = (channel) =>
+    channel?.iconUrl || CHANNEL_ICON_FALLBACK[channel?.channelCode || channel?.id] || null;
+
+export const sanitizeChannelsForApp = (channelList = []) =>
+    channelList.map((channel) => {
+        const withIcon = {
+            ...channel,
+            iconUrl: resolveChannelIconUrl(channel),
+        };
+        return isAppSupportedChannel(withIcon) ? withIcon : {...withIcon, enable: false};
+    });
+
 export const DEFAULT_AVATAR = "https://tops-resources.oss-cn-hangzhou.aliyuncs.com/avatar/avatar4.png";

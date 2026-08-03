@@ -160,15 +160,15 @@ export const TabBar = ({channelList}) => {
                                 }}
                             >
                                 {
-                                    channel.isRss || (!channel.renderIcon && channel.iconUrl)
-                                        ?
-                                        (
-                                            channel.iconUrl?.endsWith('.svg')
-                                                ? <SvgUri width={16} height={16} uri={channel.iconUrl} style={styles.tabBarIcon}/>
-                                                : <Image source={{uri: channel.iconUrl}} style={styles.tabBarIcon}/>
-                                        )
-                                        :
-                                        channel.renderIcon()
+                                    typeof channel.renderIcon === 'function'
+                                        ? channel.renderIcon()
+                                        : channel.iconUrl
+                                            ? (
+                                                /\.svg(\?|#|$)/i.test(channel.iconUrl)
+                                                    ? <SvgUri width={16} height={16} uri={channel.iconUrl} style={styles.tabBarIcon}/>
+                                                    : <Image source={{uri: channel.iconUrl}} style={styles.tabBarIcon}/>
+                                            )
+                                            : <View style={styles.tabBarIcon}/>
                                 }
                                 <Text
                                     style={{

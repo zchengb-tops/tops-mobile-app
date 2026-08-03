@@ -12,7 +12,7 @@ import {
 import Modal from "react-native-modal";
 import {Icon, useTheme} from "@rneui/themed";
 import {storage} from "../storage";
-import {CHANNEL_COMPONENT_MAP} from "../constant";
+import {getChannelComponent, sanitizeChannelsForApp} from "../constant";
 import DraggableFlatList, {ScaleDecorator} from 'react-native-draggable-flatlist'
 import {trigger} from "react-native-haptic-feedback";
 import {GestureHandlerRootView} from "react-native-gesture-handler";
@@ -137,12 +137,13 @@ export const SubscribeScreen = () => {
     );
 
     const injectChannelComponentFields = (channelList) => {
-        return channelList.map((channel, index) => (
-            {
+        return sanitizeChannelsForApp(channelList).map((channel) => {
+            const mapped = getChannelComponent(channel);
+            return {
                 ...channel,
-                renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon
-            }
-        ));
+                renderIcon: mapped?.renderIcon
+            };
+        });
     }
 
     const reorderChannelList = async (newChannelList) => {
@@ -469,15 +470,14 @@ export const SubscribeScreen = () => {
                     style={[styles.channelItem, {backgroundColor: theme.colors.background}]}
                 >
                     {
-                        item.isRss || (!item.renderIcon && item.iconUrl)
-                            ?
-                            (item.iconUrl?.endsWith('.svg')
+                        typeof item.renderIcon === 'function'
+                            ? item.renderIcon(styles.channelIcon, 24, 24)
+                            : item.iconUrl
+                                ? (/\.svg(\?|#|$)/i.test(item.iconUrl)
                                     ? <SvgUri width={24} height={24} uri={item.iconUrl} style={styles.channelIcon}/>
                                     : <Image source={{uri: item.iconUrl}} width={24} height={24}
-                                             style={styles.channelIcon}/>
-                            )
-                            :
-                            item.renderIcon(styles.channelIcon, 24, 24)
+                                             style={styles.channelIcon}/>)
+                                : <View style={styles.channelIcon}/>
                     }
                     <View style={styles.channelInfoWrapper}>
                         <View style={styles.channelInfoRow}>

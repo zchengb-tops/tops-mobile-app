@@ -6,7 +6,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {logEvent} from "../analytics";
 import {TabBar} from "../components/TabBar";
 import {TabView} from "../components/TabView";
-import {CHANNEL_COMPONENT_MAP} from "../constant";
+import {getChannelComponent, sanitizeChannelsForApp} from "../constant";
 import {storage} from "../storage";
 import useNewsStore from '../stores/useNewsStore';
 import {Rss} from "../tabs/Rss";
@@ -267,15 +267,14 @@ export const DiscoveryScreen = () => {
     };
 
     const injectChannelComponentFields = (channelList) => {
-        return channelList.map(channel => (
-            {
+        return sanitizeChannelsForApp(channelList).map(channel => {
+            const mapped = getChannelComponent(channel);
+            return {
                 ...channel,
-                renderIcon: CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.renderIcon,
-                component: channel.isRss
-                    ? null
-                    : CHANNEL_COMPONENT_MAP[channel?.channelCode || channel?.id]?.component
-            }
-        ));
+                renderIcon: mapped?.renderIcon,
+                component: channel.isRss ? null : mapped?.component
+            };
+        });
     }
 
     return <View
