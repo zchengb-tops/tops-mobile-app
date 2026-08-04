@@ -59,19 +59,39 @@ export const DiscoveryScreen = () => {
     }, []);
 
     useEffect(() => {
-        if (isFocused && channelList && channelList[tabIndex]) {
-            const timer = setTimeout(() => {
-                logEvent('screen_view', {
-                    screen_name: 'DiscoveryScreen',
-                    page_title: channelList[tabIndex]?.tabTitle || 'unknown',
-                }).catch(error => {
-                    console.error('record screen view event failed:', error);
-                });
-            }, 300);
-            
-            return () => clearTimeout(timer);
+        if (!isFocused || !channelList?.length) {
+            return;
         }
+        const enabledChannels = channelList.filter((channel) => channel.enable);
+        const activeChannel = enabledChannels[tabIndex];
+        if (!activeChannel) {
+            return;
+        }
+        const timer = setTimeout(() => {
+            logEvent('screen_view', {
+                screen_name: 'DiscoveryScreen',
+                page_title: activeChannel.tabTitle || 'unknown',
+            }).catch(error => {
+                console.error('record screen view event failed:', error);
+            });
+        }, 300);
+
+        return () => clearTimeout(timer);
     }, [isFocused, tabIndex, channelList]);
+
+    const resolveTabIndex = (nextChannelList, previousChannelList, currentTabIndex) => {
+        const nextEnabled = nextChannelList.filter((channel) => channel.enable);
+        if (!nextEnabled.length) {
+            return 0;
+        }
+        const previousEnabled = previousChannelList.filter((channel) => channel.enable);
+        const currentChannel = previousEnabled[currentTabIndex];
+        if (!currentChannel) {
+            return Math.min(currentTabIndex, nextEnabled.length - 1);
+        }
+        const matchedIndex = nextEnabled.findIndex((channel) => channel.id === currentChannel.id);
+        return matchedIndex >= 0 ? matchedIndex : 0;
+    };
 
     const initNews = async () => {
         fetchNormalNews().then(() => console.log('Successfully fetch normal news :)'));
@@ -92,7 +112,8 @@ export const DiscoveryScreen = () => {
                         ...newChannelList[index],
                         title: channel.title,
                         tabTitle: channel.tabTitle,
-                        desc: channel.desc
+                        desc: channel.desc,
+                        iconUrl: channel.iconUrl || newChannelList[index].iconUrl,
                     };
                 } else {
                     newChannelList.push({...channel});
@@ -135,10 +156,14 @@ export const DiscoveryScreen = () => {
             const oldChannelList = JSON.parse(storage.getString("channelList") || '[]');
             const {data: {version, content}} = await getUserNewsChannelConfig();
             const newChannelList = JSON.parse(content);
+            const baselineChannelList = channelList.length > 0 ? channelList : oldChannelList;
+            const nextTabIndex = resolveTabIndex(newChannelList, baselineChannelList, tabIndex);
             
             storage.set("channelList", JSON.stringify(newChannelList));
             storage.set("newsChannelConfigVersion", version);
             setChannelList(injectChannelComponentFields(newChannelList));
+            setTabIndex(nextTabIndex);
+            setPagerKey((prevKey) => prevKey + 1);
             
             const hasRssChannelChanges = checkRssChannelChanges(newChannelList, oldChannelList);
             if (hasRssChannelChanges) {
@@ -158,30 +183,38 @@ export const DiscoveryScreen = () => {
             if (parsedChannelList?.length > 0) {
                 const defaultChannelList = await fetchDefaultChannels();
                 const alignedChannelList = alignChannelList(parsedChannelList, defaultChannelList);
+                const nextChannelList = sanitizeChannelsForApp(alignedChannelList);
+                const baselineChannelList = channelList.length > 0 ? channelList : sanitizeChannelsForApp(parsedChannelList);
 
-                const hasChanges = checkChannelListChanges(alignedChannelList, channelList.length > 0 ? channelList : parsedChannelList);
-                const hasOrderChanges = checkChannelOrderChanges(alignedChannelList, channelList.length > 0 ? channelList : parsedChannelList);
+                const hasChanges = checkChannelListChanges(nextChannelList, baselineChannelList);
+                const hasOrderChanges = checkChannelOrderChanges(nextChannelList, baselineChannelList);
                 
                 console.log('🔍 Channel Check:', {
                     hasChanges,
                     hasOrderChanges,
-                    currentOrder: (channelList.length > 0 ? channelList : parsedChannelList).filter(c => c.enable).map(c => c.id),
-                    newOrder: alignedChannelList.filter(c => c.enable).map(c => c.id)
+                    currentOrder: baselineChannelList.filter(c => c.enable).map(c => c.id),
+                    newOrder: nextChannelList.filter(c => c.enable).map(c => c.id)
                 });
-                
+
+                if (!hasChanges && !hasOrderChanges && channelList.length > 0) {
+                    needUseDefaultChannelList = false;
+                    return;
+                }
+
+                const nextTabIndex = resolveTabIndex(nextChannelList, baselineChannelList, tabIndex);
                 setChannelList(injectChannelComponentFields(alignedChannelList));
                 needUseDefaultChannelList = false;
 
                 if (hasChanges || hasOrderChanges) {
-                    console.log('🔄 Incrementing pagerKey and resetting tab');
+                    console.log('🔄 Incrementing pagerKey and restoring tab', nextTabIndex);
                     storage.set("channelList", JSON.stringify(alignedChannelList));
-                    setTabIndex(0);
+                    setTabIndex(nextTabIndex);
                     setPagerKey(prevKey => {
                         console.log('📄 PagerKey change:', prevKey, '->', prevKey + 1);
                         return prevKey + 1;
                     });
                     
-                    const hasRssChannelChanges = checkRssChannelChanges(alignedChannelList, channelList.length > 0 ? channelList : parsedChannelList);
+                    const hasRssChannelChanges = checkRssChannelChanges(nextChannelList, baselineChannelList);
                     if (hasRssChannelChanges) {
                         console.log('🔄 RSS channels changed, fetching RSS news');
                         fetchRssNews().then(() => console.log('Successfully fetch rss news after channel sync :)'));

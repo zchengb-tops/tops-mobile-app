@@ -1,6 +1,6 @@
 const SUPPORTED = new Set([
   'sina', 'zhihu', 'sspai', 'xiaoyuzhou', 'stock',
-  'doubanMovie', 'bilibili', 'nnGroup', 'tiobe', 'history',
+  'doubanMovie', 'bilibili', 'nnGroup', 'tiobe', 'history', 'arena',
 ]);
 
 const getChannelComponent = (channel) =>
@@ -29,9 +29,18 @@ const arenaFromProdSync = {
   enable: true,
 };
 
-const sanitized = sanitizeChannelsForApp([arenaFromProdSync]);
-console.assert(sanitized[0].enable === false, 'arena must be disabled for app');
-console.assert(resolveIcon({...sanitized[0], renderIcon: undefined}) === 'placeholder', 'missing icon must not call renderIcon');
+const unknownChannel = {
+  id: 99,
+  channelCode: 'futureThing',
+  isRss: false,
+  enable: true,
+};
+
+const sanitizedArena = sanitizeChannelsForApp([arenaFromProdSync]);
+console.assert(sanitizedArena[0].enable === true, 'arena stays enabled once mapped');
+const sanitizedUnknown = sanitizeChannelsForApp([unknownChannel]);
+console.assert(sanitizedUnknown[0].enable === false, 'unknown channel disabled');
+console.assert(resolveIcon({...sanitizedArena[0], renderIcon: undefined}) === 'placeholder', 'missing icon must not call renderIcon');
 console.assert(resolveIcon({renderIcon: () => null}) === 'component-icon', 'mapped icon still works');
 console.assert(resolveIcon({iconUrl: 'https://x/a.svg'}) === 'remote-icon', 'remote icon fallback works');
 console.assert(isAppSupportedChannel({isRss: true, enable: true}) === true, 'rss stays supported');

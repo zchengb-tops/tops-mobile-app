@@ -4,7 +4,7 @@ import {storage} from '../storage';
 
 const useNewsStore = create((set, get) => ({
     defaultChannelList: [],
-    normalNews: {"sina": [], "zhihu": [], 'sspai': [], 'tiobe': []},
+    normalNews: {"sina": [], "zhihu": [], 'sspai': [], 'tiobe': [], 'arena': []},
     rssNews: [],
     normalLoading: false,
     rssLoading: false,

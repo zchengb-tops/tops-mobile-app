@@ -12,6 +12,7 @@ import BilibiliIcon from "../assets/icons/bilibili.svg";
 import NngroupIcon from "../assets/icons/nngroup.svg";
 import TiobeIcon from "../assets/icons/tiobe.svg";
 import HistoryIcon from "../assets/icons/history.svg";
+import ArenaIcon from "../assets/icons/arena.svg";
 import React from "react";
 import {StyleSheet} from 'react-native';
 import {DoubanMovie} from "./tabs/DoubanMovie";
@@ -20,6 +21,20 @@ import {Stock} from "./tabs/Stock";
 import {NnGroup} from "./tabs/NnGroup";
 import {Tiobe} from "./tabs/Tiobe";
 import {History} from "./tabs/History";
+import {Arena} from "./tabs/Arena";
+import {useDarkMode} from "./hooks/DarkModeHooks";
+
+const ArenaTabIcon = ({style = styles.tabBarIcon, width = 16, height = 16}) => {
+    const isDarkMode = useDarkMode();
+    return (
+        <ArenaIcon
+            width={width}
+            height={height}
+            style={style}
+            color={isDarkMode ? "#FFFFFF" : "#242422"}
+        />
+    );
+};
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -162,6 +177,11 @@ export const CHANNEL_COMPONENT_MAP = {
                                                                                          style={style}/>,
         component: <History/>
     },
+    'arena': {
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) =>
+            <ArenaTabIcon style={style} width={width} height={height}/>,
+        component: <Arena key="arena-tab-icon-dark" />
+    },
 };
 
 export const getChannelComponent = (channel) =>
@@ -171,7 +191,7 @@ export const isAppSupportedChannel = (channel) =>
     Boolean(channel?.isRss) || Boolean(getChannelComponent(channel));
 
 const CHANNEL_ICON_FALLBACK = {
-    arena: 'https://infohub.net.cn/oss/channel-icon/arena.svg?v=20260803',
+    arena: 'https://infohub.net.cn/oss/channel-icon/arena.svg?v=20260804',
 };
 
 export const resolveChannelIconUrl = (channel) =>
