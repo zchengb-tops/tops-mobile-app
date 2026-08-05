@@ -2,7 +2,7 @@
   "expo": {
     "name": "InfoHub",
     "slug": "tops",
-    "version": "1.1",
+    "version": "1.2",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
@@ -19,7 +19,7 @@
           "audio"
         ]
       },
-      "buildNumber": "22"
+      "buildNumber": "23"
     },
     "android": {
       "splash": {
@@ -29,7 +29,7 @@
       },
       "icon": "./assets/images/logo-436.png",
       "package": "cn.zchengb.infohub",
-      "versionCode": 11
+      "versionCode": 23
     },
     "web": {
       "favicon": "./assets/logo.png"

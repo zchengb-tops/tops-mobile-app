@@ -843,14 +843,14 @@ const styles = StyleSheet.create({
         lineHeight: 13,
     },
     cardRight: {
-        width: 148,
+        width: 118,
         flexDirection: "row",
         flexWrap: "wrap",
-        gap: 6,
+        gap: 8,
         flexShrink: 0,
     },
     metric: {
-        width: 69,
+        width: 54,
         minWidth: 0,
     },
     metricLabel: {
