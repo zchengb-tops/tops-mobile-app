@@ -3,6 +3,7 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    ScrollView,
     StyleSheet,
     TextInput,
     TouchableOpacity,
@@ -27,7 +28,7 @@ import {
 import {logEvent} from "../analytics";
 import {SvgUri} from "react-native-svg";
 import {debounce} from 'lodash';
-import {getRssResourceTitle, saveRssResource} from "../apis/News";
+import {getRssRecommendations, getRssResourceTitle, saveRssResource} from "../apis/News";
 import {useTopInset} from '../hooks/useTopInset';
 import useNewsStore from '../stores/useNewsStore';
 import {useTab} from '../hooks/TabHooks';
@@ -40,6 +41,9 @@ export const SubscribeScreen = () => {
     const [loading, setLoading] = useState(false);
     const [editingChannel, setEditingChannel] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [rssRecommendations, setRssRecommendations] = useState([]);
+    const [recommendationLoading, setRecommendationLoading] = useState(false);
+    const [brokenRecommendationIcons, setBrokenRecommendationIcons] = useState({});
     const {theme} = useTheme();
     const isDarkMode = useDarkMode();
     const isFocused = useIsFocused();
@@ -92,6 +96,21 @@ export const SubscribeScreen = () => {
         }
     };
 
+    const loadRssRecommendations = async () => {
+        setRecommendationLoading(true);
+        try {
+            const response = await getRssRecommendations();
+            const data = await response.json();
+            if (response.ok) {
+                setRssRecommendations(data || []);
+            }
+        } catch (error) {
+            console.error('Error loading RSS recommendations:', error);
+        } finally {
+            setRecommendationLoading(false);
+        }
+    };
+
     const alignChannelList = (currentChannelList, latestChannelList) => {
         const latestChannelMap = new Map(latestChannelList.map(item => [item.id, item]));
         
@@ -133,6 +152,7 @@ export const SubscribeScreen = () => {
     useFocusEffect(
         useCallback(() => {
             loadChannelList();
+            loadRssRecommendations();
         }, [])
     );
 
@@ -236,6 +256,39 @@ export const SubscribeScreen = () => {
         saveChannelListToStorage(newChannelList, true);
     }
 
+    const recommendationIconUrl = (recommendation) => {
+        const key = recommendation.rssUrl || recommendation.id;
+        return recommendation.iconUrl && !brokenRecommendationIcons[key] ? recommendation.iconUrl : null;
+    };
+
+    const markRecommendationIconBroken = (recommendation) => {
+        setBrokenRecommendationIcons(current => ({
+            ...current,
+            [recommendation.rssUrl || recommendation.id]: true
+        }));
+    };
+
+    const recommendationHost = (recommendation) => {
+        try {
+            return new URL(recommendation.rssUrl).hostname.replace(/^www\./, '');
+        } catch (error) {
+            return recommendation.rssUrl;
+        }
+    };
+
+    const isRecommendationSelected = (recommendation) => rssLink === recommendation.rssUrl;
+
+    const isRecommendationSubscribed = (recommendation) =>
+        Boolean(channelList?.some(channel => channel.isRss && channel.rssUrl === recommendation.rssUrl));
+
+    const selectRecommendation = (recommendation) => {
+        if (isRecommendationSubscribed(recommendation)) {
+            return;
+        }
+        setRssName(recommendation.title || '');
+        setRssLink(recommendation.rssUrl || '');
+    };
+
     const handleEditRss = async () => {
         if (!validRssName() || !validRssLink()) {
             return;
@@ -291,8 +344,8 @@ export const SubscribeScreen = () => {
 
     const handleDeleteRss = async () => {
         Alert.alert(
-            "删除RSS订阅",
-            "确定要删除该RSS订阅吗？",
+            "删除 RSS 订阅",
+            "确定要删除该 RSS 订阅吗？",
             [
                 {
                     text: "取消",
@@ -337,7 +390,7 @@ export const SubscribeScreen = () => {
         if (!urlPattern.test(rssLink)) {
             Alert.alert(
                 "操作失败",
-                "请输入有效的RSS链接",
+                "请输入有效的 RSS 链接",
                 [{text: "确定"}]
             );
             return false;
@@ -349,7 +402,7 @@ export const SubscribeScreen = () => {
         if (rssName && rssName.length > 24) {
             Alert.alert(
                 "操作失败",
-                "RSS名称不能超过24个字符",
+                "RSS 名称不能超过 24 个字符",
                 [{text: "确定"}]
             );
             return false;
@@ -364,7 +417,10 @@ export const SubscribeScreen = () => {
 
         try {
             setLoading(true);
-            const response = await saveRssResource(rssLink);
+            const selectedRecommendation = rssRecommendations.find(
+                recommendation => recommendation.rssUrl === rssLink
+            );
+            const response = await saveRssResource(rssLink, selectedRecommendation?.id);
             const data = await response.json();
             if (response.ok) {
                 const newChannelList = [...channelList];
@@ -444,7 +500,7 @@ export const SubscribeScreen = () => {
         } catch (error) {
             Alert.alert(
                 "解析失败",
-                "获取RSS标题失败，请手动输入",
+                "获取 RSS 标题失败，请手动输入",
                 [{text: "确定"}]
             );
         } finally {
@@ -535,7 +591,7 @@ export const SubscribeScreen = () => {
                                     </Text>
                                 </TouchableOpacity>
                                 <Text
-                                    style={[styles.rssModalTitle, {color: theme.colors.text}]}>{isEditMode ? '编辑RSS订阅' : '添加RSS订阅'}</Text>
+                                    style={[styles.rssModalTitle, {color: theme.colors.text}]}>{isEditMode ? '编辑 RSS 订阅' : '添加 RSS 订阅'}</Text>
                                 <TouchableOpacity style={styles.rssModalButton} disabled={saveButtonDisabled()}
                                                   onPress={isEditMode ? handleEditRss : handleAddRss}
                                 >
@@ -553,7 +609,7 @@ export const SubscribeScreen = () => {
                             </View>
 
                             <View style={styles.rssModalInputItem}>
-                                <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>RSS链接：</Text>
+                                <Text style={[styles.rssModalInputLabel, {color: theme.colors.text}]}>RSS 链接：</Text>
                                 <TextInput
                                     style={[styles.rssModalInput, {
                                         backgroundColor: theme.colors.inputBackground,
@@ -561,11 +617,11 @@ export const SubscribeScreen = () => {
                                         borderColor: theme.colors.border,
                                         borderWidth: isDarkMode ? 1 : 0
                                     }]}
-                                    placeholder="RSS链接"
+                                    placeholder="RSS 链接"
                                     placeholderTextColor={theme.colors.secondaryText}
                                     value={rssLink}
                                     onChangeText={setRssLink}
-                                    autoFocus={true}
+                                    autoFocus={isEditMode}
                                 />
                             </View>
 
@@ -611,8 +667,91 @@ export const SubscribeScreen = () => {
                             </View>
 
                             <Text style={[styles.rssModalTips, {color: theme.colors.secondaryText}]}>
-                                💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的RSS链接，或者使用RSSHub直接获取相关链接
+                                💡使用浏览器搜索关键字 '网站名 + RSS'，找到网站对应的 RSS 链接，或者使用 RSSHub 直接获取相关链接
                             </Text>
+
+                            {!isEditMode && (rssRecommendations.length > 0 || recommendationLoading) ? (
+                                <View style={[styles.recommendationSection, {backgroundColor: theme.colors.inputBackground}]}>
+                                    <View style={styles.recommendationHeader}>
+                                        <View style={styles.recommendationHeading}>
+                                            <View style={[styles.recommendationHeadingIcon, {backgroundColor: isDarkMode ? '#493426' : '#fff2e8'}]}>
+                                                <Icon name="star" type="ionicon" size={14} color={theme.colors.primary}/>
+                                            </View>
+                                            <View>
+                                                <View style={styles.recommendationTitleRow}>
+                                                    <Text style={[styles.recommendationTitle, {color: theme.colors.text}]}>推荐 RSS 订阅</Text>
+                                                    <Text style={[styles.recommendationCount, {backgroundColor: isDarkMode ? '#493426' : '#fff2e8', color: theme.colors.primary}]}>精选 {rssRecommendations.length}</Text>
+                                                </View>
+                                                <Text style={[styles.recommendationDescription, {color: theme.colors.secondaryText}]}>点击频道自动填入上方表单</Text>
+                                            </View>
+                                        </View>
+                                        {recommendationLoading ? <ActivityIndicator size="small" color={theme.colors.primary}/> : null}
+                                    </View>
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        contentContainerStyle={styles.recommendationList}
+                                    >
+                                        {rssRecommendations.map(recommendation => {
+                                            const selected = isRecommendationSelected(recommendation);
+                                            const subscribed = isRecommendationSubscribed(recommendation);
+                                            const iconUrl = recommendationIconUrl(recommendation);
+                                            return (
+                                                <TouchableOpacity
+                                                    key={recommendation.id || recommendation.rssUrl}
+                                                    activeOpacity={0.8}
+                                                    disabled={subscribed}
+                                                    onPress={() => selectRecommendation(recommendation)}
+                                                    style={[styles.recommendationCard, {
+                                                        backgroundColor: selected ? (isDarkMode ? '#493426' : '#fffaf6') : theme.colors.background,
+                                                        borderColor: selected ? theme.colors.primary : theme.colors.border
+                                                    }]}
+                                                >
+                                                    <View style={styles.recommendationCardHeader}>
+                                                        <View style={[styles.recommendationIconFrame, {backgroundColor: isDarkMode ? '#493426' : '#fff2e8'}]}>
+                                                            {iconUrl ? (
+                                                                /\.svg(\?|#|$)/i.test(iconUrl) ? (
+                                                                    <SvgUri
+                                                                        width={36}
+                                                                        height={36}
+                                                                        uri={iconUrl}
+                                                                        style={styles.recommendationIcon}
+                                                                        onError={() => markRecommendationIconBroken(recommendation)}
+                                                                    />
+                                                                ) : (
+                                                                    <Image
+                                                                        source={{uri: iconUrl}}
+                                                                        style={styles.recommendationIcon}
+                                                                        onError={() => markRecommendationIconBroken(recommendation)}
+                                                                    />
+                                                                )
+                                                            ) : (
+                                                                <Icon name="logo-rss" type="ionicon" size={19} color={theme.colors.primary}/>
+                                                            )}
+                                                        </View>
+                                                        <View style={styles.recommendationTitleWrapper}>
+                                                            <Text style={[styles.recommendationCardTitle, {color: theme.colors.text}]} numberOfLines={1}>
+                                                                {recommendation.title}
+                                                            </Text>
+                                                            <Text style={[styles.recommendationHost, {color: theme.colors.secondaryText}]} numberOfLines={1}>
+                                                                {recommendationHost(recommendation)}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                    <Text style={[styles.recommendationCardDescription, {color: theme.colors.secondaryText}]} numberOfLines={2}>
+                                                        {recommendation.description || '值得订阅的精选内容'}
+                                                    </Text>
+                                                    <View style={[styles.recommendationButton, {borderColor: subscribed || selected ? theme.colors.primary : theme.colors.border}]}>
+                                                        <Text style={[styles.recommendationButtonLabel, {color: subscribed || selected ? theme.colors.primary : theme.colors.secondaryText}]}>
+                                                            {subscribed ? '已添加' : selected ? '已选择' : '选择'}
+                                                        </Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </ScrollView>
+                                </View>
+                            ) : null}
 
                             {isEditMode && (
                                 <TouchableOpacity
@@ -648,7 +787,7 @@ export const SubscribeScreen = () => {
                     color={theme.colors.primary}
                 />
                 <Text style={[styles.addButtonLabel, {color: theme.colors.primary}]}>
-                    添加RSS频道
+                    添加 RSS 频道
                 </Text>
             </TouchableOpacity>
         </View>
@@ -705,6 +844,113 @@ const styles = StyleSheet.create({
     addButtonLabel: {
         fontSize: 16,
         marginLeft: 2
+    },
+    recommendationSection: {
+        borderRadius: 16,
+        marginHorizontal: 0,
+        marginTop: 16,
+        overflow: 'hidden',
+    },
+    recommendationHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 14,
+    },
+    recommendationHeading: {
+        alignItems: 'center',
+        flex: 1,
+        flexDirection: 'row',
+    },
+    recommendationHeadingIcon: {
+        alignItems: 'center',
+        backgroundColor: '#fff2e8',
+        borderRadius: 10,
+        height: 34,
+        justifyContent: 'center',
+        marginRight: 10,
+        width: 34,
+    },
+    recommendationTitleRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+    recommendationTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+    },
+    recommendationCount: {
+        backgroundColor: '#fff2e8',
+        borderRadius: 10,
+        fontSize: 10,
+        marginLeft: 7,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+    },
+    recommendationDescription: {
+        fontSize: 11,
+        marginTop: 3,
+    },
+    recommendationList: {
+        paddingBottom: 14,
+        paddingHorizontal: 14,
+    },
+    recommendationCard: {
+        borderRadius: 12,
+        borderWidth: 1,
+        marginRight: 10,
+        padding: 12,
+        width: 220,
+    },
+    recommendationCardHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+    recommendationIcon: {
+        borderRadius: 7,
+        height: 36,
+        width: 36,
+    },
+    recommendationIconFrame: {
+        alignItems: 'center',
+        backgroundColor: '#fff2e8',
+        borderRadius: 9,
+        height: 36,
+        justifyContent: 'center',
+        marginRight: 9,
+        overflow: 'hidden',
+        width: 36,
+    },
+    recommendationTitleWrapper: {
+        flex: 1,
+        minWidth: 0,
+    },
+    recommendationCardTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    recommendationHost: {
+        fontSize: 10,
+        marginTop: 3,
+    },
+    recommendationCardDescription: {
+        fontSize: 12,
+        lineHeight: 17,
+        marginTop: 10,
+        minHeight: 34,
+    },
+    recommendationButton: {
+        alignItems: 'center',
+        borderRadius: 20,
+        borderWidth: 0.5,
+        justifyContent: 'center',
+        marginTop: 10,
+        minHeight: 30,
+        paddingHorizontal: 10,
+        width: '100%',
+    },
+    recommendationButtonLabel: {
+        fontSize: 12,
     },
     channelContainer: {
         marginTop: 12,

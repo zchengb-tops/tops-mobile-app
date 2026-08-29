@@ -22,6 +22,8 @@ import {NnGroup} from "./tabs/NnGroup";
 import {Tiobe} from "./tabs/Tiobe";
 import {History} from "./tabs/History";
 import {Arena} from "./tabs/Arena";
+import {Kr36} from "./tabs/Kr36";
+import {Kr36Logo} from "./components/Kr36Logo";
 import {useDarkMode} from "./hooks/DarkModeHooks";
 
 const ArenaTabIcon = ({style = styles.tabBarIcon, width = 16, height = 16}) => {
@@ -35,6 +37,10 @@ const ArenaTabIcon = ({style = styles.tabBarIcon, width = 16, height = 16}) => {
         />
     );
 };
+
+const Kr36TabIcon = ({style = styles.tabBarIcon, width = 16}) => (
+    <Kr36Logo size={width} style={style}/>
+);
 
 export const DEFAULT_CHANNEL_LIST = [
     {
@@ -116,6 +122,14 @@ export const DEFAULT_CHANNEL_LIST = [
         desc: '所以历史上的今天都发生了什么？',
         enable: true,
         isRss: false
+    },
+    {
+        id: '36kr',
+        title: '36氪',
+        tabTitle: '36氪',
+        desc: '人气榜、综合榜、收藏榜合并榜单',
+        enable: true,
+        isRss: false
     }
 ];
 
@@ -181,6 +195,11 @@ export const CHANNEL_COMPONENT_MAP = {
         renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) =>
             <ArenaTabIcon style={style} width={width} height={height}/>,
         component: <Arena key="arena-tab-icon-dark" />
+    },
+    '36kr': {
+        renderIcon: (style = styles.tabBarIcon, width = 16, height = 16) =>
+            <Kr36TabIcon style={style} width={width} height={height}/>,
+        component: <Kr36/>
     },
 };
 

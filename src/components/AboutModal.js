@@ -39,7 +39,7 @@ const AboutModal = ({isVisible, onClose}) => {
                         <Text
                             style={[styles.appVersion, {color: theme.colors.secondaryText}]}>版本 {Application.nativeApplicationVersion || '未知'}{Platform.OS === 'ios' ? ` (${Application.nativeBuildVersion})` : ''}</Text>
                         <Text style={[styles.appDesc, {color: theme.colors.text}]}>
-                            InfoHub 是一款专注于聚合多平台资讯的应用，同时也支持自定义RSS订阅，如果您有任何有趣的想法或是建议，欢迎随时提出反馈！ 您的支持将帮助 InfoHub 不断进步，走得更远 :)
+                            InfoHub 是一款专注于聚合多平台资讯的应用，同时也支持自定义 RSS 订阅，如果您有任何有趣的想法或是建议，欢迎随时提出反馈！ 您的支持将帮助 InfoHub 不断进步，走得更远 :)
                         </Text>
                         <TouchableOpacity
                             style={[styles.aboutButton, {backgroundColor: theme.colors.indicator}]}
@@ -119,4 +119,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AboutModal; 
+export default AboutModal;

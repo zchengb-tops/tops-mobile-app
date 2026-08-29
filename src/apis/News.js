@@ -13,15 +13,21 @@ export const getNormalNews = () => {
     });
 };
 
-export const saveRssResource = (rssUrl) => {
+export const saveRssResource = (rssUrl, recommendationId) => {
     return request('/rss-resource', {
         method: 'POST',
-        body: {rssUrl}
+        body: {rssUrl, ...(recommendationId ? {recommendationId} : {})}
     });
 };
 
 export const getRssResourceTitle = (rssUrl) => {
     return request('/rss-resource/title?rssUrl=' + rssUrl, {
+        method: 'GET'
+    });
+};
+
+export const getRssRecommendations = () => {
+    return request('/rss-recommendations', {
         method: 'GET'
     });
 };
