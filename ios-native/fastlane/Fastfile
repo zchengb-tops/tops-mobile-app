@@ -25,8 +25,10 @@ platform :ios do
     latest = latest_testflight_build_number(
       api_key: api_key, app_identifier: identifier, version: version, initial_build_number: 0
     )
-    target = Xcodeproj::Project.open(project).targets.find { |t| t.name == 'InfoHub' }
-    baseline = target.build_configurations.find { |c| c.name == 'Release' }.build_settings.fetch('CURRENT_PROJECT_VERSION').to_i
+    native_project = Xcodeproj::Project.open(project)
+    target = native_project.targets.find { |t| t.name == 'InfoHub' }
+    release = target.build_configurations.find { |c| c.name == 'Release' }
+    baseline = release.build_settings.fetch('CURRENT_PROJECT_VERSION').to_i
     build = [latest.to_i, baseline].max + 1
 
     # Reuse the imported distribution identity. Never create/revoke certificates on a run.
@@ -43,12 +45,15 @@ platform :ios do
     UI.user_error!('Provisioning profile belongs to a different Apple team') unless profile_data['TeamIdentifier'] == [team]
     UI.user_error!('Provisioning profile belongs to a different app') unless profile_data.dig('Entitlements', 'application-identifier') == "#{team}.#{identifier}"
 
-    update_code_signing_settings(
-      path: project, use_automatic_signing: false, targets: ['InfoHub'],
-      build_configurations: ['Release'], team_id: team,
-      bundle_identifier: identifier, code_sign_identity: 'Apple Distribution',
-      profile_name: profile
+    # Generated projects need not carry Xcode's optional TargetAttributes metadata.
+    # Change only the app's Release configuration; leave Debug and test targets alone.
+    release.build_settings.merge!(
+      'CODE_SIGN_STYLE' => 'Manual', 'DEVELOPMENT_TEAM' => team,
+      'PRODUCT_BUNDLE_IDENTIFIER' => identifier,
+      'CODE_SIGN_IDENTITY' => 'Apple Distribution',
+      'PROVISIONING_PROFILE_SPECIFIER' => profile
     )
+    native_project.save
     build_app(
       project: project, scheme: 'InfoHub', configuration: 'Release',
       export_method: 'app-store', clean: true,
