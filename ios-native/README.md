@@ -92,16 +92,31 @@ is an opaque, losslessly rendered copy of the original logo;
 `prepare_app_icon.swift` reproduces it when regenerating the project.
 
 Local validation on 2026-10-04: unsigned device Release archive and six unit tests
-passed. An unsigned archive is **not** an installable TestFlight package. Apple
-credentials, cloud signing/upload and testing-group availability still need live
-verification; no TestFlight upload is claimed by these local checks.
+passed. An unsigned archive is **not** an installable TestFlight package; these
+local checks did not upload a build.
 
 Hosted validation also passed on 2026-10-04:
 [GitHub Actions run #4](https://github.com/zchengb-tops/tops-mobile-app/actions/runs/37193377755)
 tested commit `63360cb` on Xcode 27, with six passing contract tests and a successful
 unsigned Release archive. Signing, upload and the legacy Expo job were skipped.
-App Store Connect and the local Expo CLI require login; the matching API issuer
-and personal-team distribution certificate still need to be resolved before upload.
+
+Signed publishing completed on 2026-10-04:
+[GitHub Actions run #7](https://github.com/zchengb-tops/tops-mobile-app/actions/runs/37214218153)
+published commit `966a868` as **1.3 (25)**. Six contract tests passed, the IPA was
+signed and uploaded, and Apple finished processing it with state `VALID`. The
+existing **内测用户** internal group automatically received the build; its
+App Store Connect status was verified as **Testing**. The signed IPA and dSYM are
+retained in the run's `InfoHub-native-7` artifact for 14 days. No public App Store
+review or external testing submission was made; the React Native job was skipped.
+
+With the owner's explicit approval, a dedicated **InfoHub GitHub Actions** team
+API key and a new personal-team distribution certificate were configured in the
+five repository secrets above. No existing keys or certificates were revoked.
+The team API key has Admin access across the team's apps, not just InfoHub;
+protect workflow write access accordingly. Credential backups are outside Git.
+The release lane resolves absolute project/output paths and changes only the
+native app's Release signing settings, without relying on optional Xcode project
+metadata. Debug and test-target settings remain unchanged.
 
 ## Validation on 2026-10-04
 
