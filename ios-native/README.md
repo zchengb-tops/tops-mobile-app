@@ -96,6 +96,13 @@ passed. An unsigned archive is **not** an installable TestFlight package. Apple
 credentials, cloud signing/upload and testing-group availability still need live
 verification; no TestFlight upload is claimed by these local checks.
 
+Hosted validation also passed on 2026-10-04:
+[GitHub Actions run #4](https://github.com/zchengb-tops/tops-mobile-app/actions/runs/37193377755)
+tested commit `63360cb` on Xcode 27, with six passing contract tests and a successful
+unsigned Release archive. Signing, upload and the legacy Expo job were skipped.
+App Store Connect and the local Expo CLI require login; the matching API issuer
+and personal-team distribution certificate still need to be resolved before upload.
+
 ## Validation on 2026-10-04
 
 - Login brand-background follow-up: three targeted UI cases passed (light/dark login, maximum accessibility text size and native navigation); the two login cases were rerun after contrast/artwork clipping polish and passed. Enlarged sun/horizon elements use one-shot native springs with reduced-motion support. Auth endpoints and consent/cooldown behavior are unchanged; no email or sign-in request was submitted.
