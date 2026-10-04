@@ -1,5 +1,7 @@
 default_platform(:ios)
 
+native_root = File.expand_path('..', __dir__)
+
 platform :ios do
   desc 'Archive the native app and upload to TestFlight (no public store submission)'
   lane :beta do
@@ -14,7 +16,8 @@ platform :ios do
     )
     identifier = 'cn.zchengb.infohub'
     team = 'UPDM24DCXU'
-    project = 'InfoHub.xcodeproj'
+    project = File.join(native_root, 'InfoHub.xcodeproj')
+    release_directory = File.join(native_root, 'build/release')
     app = Spaceship::ConnectAPI::App.find(identifier)
     UI.user_error!('The API key cannot access the existing InfoHub app (6739748229)') unless app&.id == '6739748229'
 
@@ -32,7 +35,7 @@ platform :ios do
       api_key: api_key, app_identifier: identifier, team_id: team,
       provisioning_name: 'InfoHub Native AppStore',
       ignore_profiles_with_different_name: true,
-      output_path: 'build/signing', filename: 'InfoHub.mobileprovision'
+      output_path: File.join(native_root, 'build/signing'), filename: 'InfoHub.mobileprovision'
     )
     profile = lane_context[SharedValues::SIGH_NAME]
     profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
@@ -50,7 +53,7 @@ platform :ios do
       project: project, scheme: 'InfoHub', configuration: 'Release',
       export_method: 'app-store', clean: true,
       xcargs: "CURRENT_PROJECT_VERSION=#{build}",
-      output_directory: 'build/release', output_name: 'InfoHub.ipa',
+      output_directory: release_directory, output_name: 'InfoHub.ipa',
       export_options: {
         method: 'app-store-connect', signingStyle: 'manual', teamID: team,
         provisioningProfiles: { identifier => profile }, uploadSymbols: true
@@ -58,7 +61,7 @@ platform :ios do
     )
     upload_to_testflight(
       api_key: api_key, app_identifier: identifier, apple_id: app.id,
-      ipa: 'build/release/InfoHub.ipa',
+      ipa: File.join(release_directory, 'InfoHub.ipa'),
       changelog: ENV['TESTFLIGHT_CHANGELOG'],
       skip_waiting_for_build_processing: false, wait_processing_timeout_duration: 1200,
       skip_submission: true, distribute_external: false, notify_external_testers: false
