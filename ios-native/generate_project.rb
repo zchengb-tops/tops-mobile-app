@@ -19,9 +19,16 @@ Dir.glob(File.join(root, 'InfoHub', '*.swift')).sort.each { |file| app.add_file_
 end
 assets = File.join(root, 'InfoHub/Assets.xcassets/AppIcon.appiconset')
 FileUtils.mkdir_p(assets)
-FileUtils.cp(File.join(root, '../assets/logo.png'), File.join(assets, 'AppIcon.png'))
+abort 'App icon conversion failed' unless system('xcrun', 'swift', File.join(root, 'prepare_app_icon.swift'), File.join(root, '../assets/logo.png'), File.join(assets, 'AppIcon.png'))
 File.write(File.join(assets, 'Contents.json'), JSON.pretty_generate({images: [{filename: 'AppIcon.png', idiom: 'universal', platform: 'ios', size: '1024x1024'}], info: {author: 'xcode', version: 1}}))
 app.resources_build_phase.add_file_reference(group.new_file('Assets.xcassets'))
+app.resources_build_phase.add_file_reference(group.new_file('PrivacyInfo.xcprivacy'))
+%w[Ionicons.ttf LICENSE].each do |source|
+  name = source == 'LICENSE' ? 'Ionicons-LICENSE.txt' : source
+  FileUtils.cp(File.join(root, '../node_modules/react-native-vector-icons', source == 'LICENSE' ? source : "Fonts/#{source}"), File.join(root, 'InfoHub', name))
+  File.write(File.join(root, 'InfoHub', name), File.read(File.join(root, 'InfoHub', name)).rstrip + "\n") if source == 'LICENSE'
+  app.resources_build_phase.add_file_reference(group.new_file(name))
+end
 {sina: 'weibo', zhihu: 'zhihu', sspai: 'sspai', arena: 'arena', xiaoyuzhou: 'xiaoyuzhou', stock: 'stock', doubanMovie: 'douban', bilibili: 'bilibili', nnGroup: 'nngroup', tiobe: 'tiobe', history: 'history'}.each do |code, source|
   directory = File.join(root, "InfoHub/Assets.xcassets/channel-#{code}.imageset")
   FileUtils.mkdir_p(directory)

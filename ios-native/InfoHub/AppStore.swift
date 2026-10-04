@@ -1,5 +1,19 @@
 import SwiftUI
 
+enum FeedDensity: String, CaseIterable, Identifiable {
+    case compact, standard, spacious
+    var id: String { rawValue }
+    var title: String {
+        switch self { case .compact: return "紧凑"; case .standard: return "标准"; case .spacious: return "舒展" }
+    }
+    /// One step per pinch. Font size remains an independent reading preference.
+    func adjusted(by magnification: CGFloat) -> Self {
+        let index = Self.allCases.firstIndex(of: self) ?? 1
+        let step = magnification > 1.22 ? 1 : magnification < 0.82 ? -1 : 0
+        return Self.allCases[max(0, min(Self.allCases.count - 1, index + step))]
+    }
+}
+
 @MainActor @Observable final class AppStore {
     var channels: [Channel] = []
     var news: JSON = .object([:])
@@ -18,6 +32,9 @@ import SwiftUI
     }
     var readingSize = UserDefaults.standard.string(forKey: "native.readingSize") ?? "system" {
         didSet { UserDefaults.standard.set(readingSize, forKey: "native.readingSize") }
+    }
+    var feedDensity = FeedDensity(rawValue: UserDefaults.standard.string(forKey: "native.feedDensity") ?? "") ?? .standard {
+        didSet { UserDefaults.standard.set(feedDensity.rawValue, forKey: "native.feedDensity") }
     }
     var syncEnabled = UserDefaults.standard.bool(forKey: "native.syncEnabled") {
         didSet { UserDefaults.standard.set(syncEnabled, forKey: "native.syncEnabled") }

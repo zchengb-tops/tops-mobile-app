@@ -18,6 +18,7 @@ struct SubscriptionsView: View {
                         Toggle("订阅 \(channel.title)", isOn: $channel.enabled).labelsHidden().disabled(!channel.supported)
                             .onChange(of: channel.enabled) { _, _ in store.channelsChanged() }
                     }.padding(.vertical, 6)
+                        .listRowBackground(Color.clear)
                         .swipeActions {
                             if channel.isRSS {
                                 Button("删除", role: .destructive) {
@@ -30,15 +31,24 @@ struct SubscriptionsView: View {
                     store.channels.move(fromOffsets: indices, toOffset: destination); store.channelsChanged()
                 }
             } header: { Text("我的频道 · \(store.enabledChannels.count) 个已订阅") }
-            footer: { Text("点编辑调整顺序；RSS 频道支持左滑编辑和删除。云端配置中的其他平台频道会保留。") }
+            footer: {
+                Text("点编辑调整顺序；RSS 频道支持左滑编辑和删除。云端配置中的其他平台频道会保留。")
+                    .accessibilityIdentifier("subscriptions-end")
+            }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        .avoidsAppFooter()
+        .ignoresSafeArea(.container, edges: .bottom)
+        .accessibilityIdentifier("subscriptions-scroll")
         .navigationTitle("订阅").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) { EditButton() }
             ToolbarItem(placement: .topBarTrailing) { Button("添加 RSS", systemImage: "plus") { adding = true } }
         }
-        .sheet(isPresented: $adding) { RSSEditor() }
-        .sheet(item: $editing) { channel in RSSEditor(editing: channel) }
+        .sheet(isPresented: $adding) { RSSEditor().environment(\.appFooterHeight, 0) }
+        .sheet(item: $editing) { channel in RSSEditor(editing: channel).environment(\.appFooterHeight, 0) }
     }
 }
 

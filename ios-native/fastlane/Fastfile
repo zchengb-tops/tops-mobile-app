@@ -1,0 +1,68 @@
+default_platform(:ios)
+
+platform :ios do
+  desc 'Archive the native app and upload to TestFlight (no public store submission)'
+  lane :beta do
+    %w[APPSTORE_KEY_ID APPSTORE_ISSUER_ID APPSTORE_PRIVATE_KEY].each do |name|
+      UI.user_error!("Missing release credential: #{name}") if ENV[name].to_s.strip.empty?
+    end
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch('APPSTORE_KEY_ID'),
+      issuer_id: ENV.fetch('APPSTORE_ISSUER_ID'),
+      key_content: ENV.fetch('APPSTORE_PRIVATE_KEY')
+    )
+    identifier = 'cn.zchengb.infohub'
+    team = 'UPDM24DCXU'
+    project = 'InfoHub.xcodeproj'
+    app = Spaceship::ConnectAPI::App.find(identifier)
+    UI.user_error!('The API key cannot access the existing InfoHub app (6739748229)') unless app&.id == '6739748229'
+
+    version = get_version_number(xcodeproj: project, target: 'InfoHub')
+    latest = latest_testflight_build_number(
+      api_key: api_key, app_identifier: identifier, version: version, initial_build_number: 0
+    )
+    target = Xcodeproj::Project.open(project).targets.find { |t| t.name == 'InfoHub' }
+    baseline = target.build_configurations.find { |c| c.name == 'Release' }.build_settings.fetch('CURRENT_PROJECT_VERSION').to_i
+    build = [latest.to_i, baseline].max + 1
+
+    # Reuse the imported distribution identity. Never create/revoke certificates on a run.
+    # This dedicated profile cannot overwrite Momento's or the legacy Expo app's profile.
+    sigh(
+      api_key: api_key, app_identifier: identifier, team_id: team,
+      provisioning_name: 'InfoHub Native AppStore',
+      ignore_profiles_with_different_name: true,
+      output_path: 'build/signing', filename: 'InfoHub.mobileprovision'
+    )
+    profile = lane_context[SharedValues::SIGH_NAME]
+    profile_path = lane_context[SharedValues::SIGH_PROFILE_PATH]
+    profile_data = FastlaneCore::ProvisioningProfile.parse(profile_path)
+    UI.user_error!('Provisioning profile belongs to a different Apple team') unless profile_data['TeamIdentifier'] == [team]
+    UI.user_error!('Provisioning profile belongs to a different app') unless profile_data.dig('Entitlements', 'application-identifier') == "#{team}.#{identifier}"
+
+    update_code_signing_settings(
+      path: project, use_automatic_signing: false, targets: ['InfoHub'],
+      build_configurations: ['Release'], team_id: team,
+      bundle_identifier: identifier, code_sign_identity: 'Apple Distribution',
+      profile_name: profile
+    )
+    build_app(
+      project: project, scheme: 'InfoHub', configuration: 'Release',
+      export_method: 'app-store', clean: true,
+      xcargs: "CURRENT_PROJECT_VERSION=#{build}",
+      output_directory: 'build/release', output_name: 'InfoHub.ipa',
+      export_options: {
+        method: 'app-store-connect', signingStyle: 'manual', teamID: team,
+        provisioningProfiles: { identifier => profile }, uploadSymbols: true
+      }
+    )
+    upload_to_testflight(
+      api_key: api_key, app_identifier: identifier, apple_id: app.id,
+      ipa: 'build/release/InfoHub.ipa',
+      changelog: ENV['TESTFLIGHT_CHANGELOG'],
+      skip_waiting_for_build_processing: false, wait_processing_timeout_duration: 1200,
+      skip_submission: true, distribute_external: false, notify_external_testers: false
+    )
+    UI.success("InfoHub #{version} (#{build}) has finished TestFlight processing. No App Store review was submitted.")
+  end
+end

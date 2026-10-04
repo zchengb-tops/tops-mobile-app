@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01A7728FA8E2CCAAA52F205C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */; };
+		01A7728FA8E2CCAAA52F204C /* Ionicons-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = F638B8A170E042190C5554E1 /* Ionicons-LICENSE.txt */; };
 		13A7516A5EE71C0F9A12B8EE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FC7159FCCE998CFFE0EDEBD /* Foundation.framework */; };
 		1DDCFCE9895C60302B4D06E5 /* privacy.txt in Resources */ = {isa = PBXBuildFile; fileRef = D4FD5CB6CCCD2EA9F6AAD99F /* privacy.txt */; };
 		37BE1A75A64DB78222A58670 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FC7159FCCE998CFFE0EDEBD /* Foundation.framework */; };
@@ -15,6 +17,7 @@
 		67CD539C779D680DDE3D0257 /* PodcastPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0ED6A33E8A712209C57CAB /* PodcastPlayer.swift */; };
 		80BDC1C32F7B3883346C3ACA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE242DD76213CB4B17544077 /* Assets.xcassets */; };
 		94AE4D9D7CBB95DBD34EB131 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC2024EF587EDB4B08814A22 /* ReaderView.swift */; };
+		B647AA60F5E9B86D850DB1DC /* Ionicons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3BE40B90E113216B352800BC /* Ionicons.ttf */; };
 		B7A47DB0E7927BFF2EF75F63 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FC7159FCCE998CFFE0EDEBD /* Foundation.framework */; };
 		C37A6FD48DF78B2357C9DAC2 /* DiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A778124F33DD979E05EA170 /* DiscoveryView.swift */; };
 		C513B11A33829EB2EB2094C4 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89E292790ED5F51195127315 /* SettingsView.swift */; };
@@ -44,8 +47,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1D16DF0666F1F77A0EAB72E9 /* InfoHubTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InfoHubTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		35A85558A10483B9F2CC0FCE /* API.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
+		3BE40B90E113216B352800BC /* Ionicons.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = Ionicons.ttf; sourceTree = "<group>"; };
 		438EC6A68FAD8536F3F1603A /* InfoHub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InfoHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A778124F33DD979E05EA170 /* DiscoveryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DiscoveryView.swift; sourceTree = "<group>"; };
 		4B0ED6A33E8A712209C57CAB /* PodcastPlayer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PodcastPlayer.swift; sourceTree = "<group>"; };
@@ -60,6 +65,7 @@
 		C9136061BE2C591CF24598A6 /* NavigationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NavigationTests.swift; sourceTree = "<group>"; };
 		D4FD5CB6CCCD2EA9F6AAD99F /* privacy.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = privacy.txt; sourceTree = "<group>"; };
 		DE242DD76213CB4B17544077 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F638B8A170E042190C5554E1 /* Ionicons-LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = "Ionicons-LICENSE.txt"; sourceTree = "<group>"; };
 		FAB025B852E386AFBEF3FD0E /* SubscriptionsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionsView.swift; sourceTree = "<group>"; };
 		FE8CE117BEFCF7F2BF7FFCBB /* terms.txt */ = {isa = PBXFileReference; includeInIndex = 1; path = terms.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -115,6 +121,9 @@
 				FE8CE117BEFCF7F2BF7FFCBB /* terms.txt */,
 				D4FD5CB6CCCD2EA9F6AAD99F /* privacy.txt */,
 				DE242DD76213CB4B17544077 /* Assets.xcassets */,
+				3BE40B90E113216B352800BC /* Ionicons.ttf */,
+				F638B8A170E042190C5554E1 /* Ionicons-LICENSE.txt */,
+				F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */,
 			);
 			name = InfoHub;
 			path = InfoHub;
@@ -262,6 +271,9 @@
 				C6BA20411BA179515DAA9C94 /* terms.txt in Resources */,
 				1DDCFCE9895C60302B4D06E5 /* privacy.txt in Resources */,
 				80BDC1C32F7B3883346C3ACA /* Assets.xcassets in Resources */,
+				B647AA60F5E9B86D850DB1DC /* Ionicons.ttf in Resources */,
+				01A7728FA8E2CCAAA52F204C /* Ionicons-LICENSE.txt in Resources */,
+				01A7728FA8E2CCAAA52F205C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -4,10 +4,17 @@ Native SwiftUI rewrite on `feature/ios-native-rebuild`. The React Native app and
 
 ## Platform and design
 
-- Minimum iOS 17; Liquid Glass via native tab/navigation bars, with the mini player in the system tab accessory on iOS 26.1+. Earlier systems use standard materials.
+- Minimum iOS 17; Liquid Glass navigation surfaces on iOS 26+. The bottom bar uses the original Ionicons with icon-left/text-right items; the mini player sits above it. Earlier systems use standard materials.
 - Three destinations: Discover, Subscriptions, and My Account. Native navigation stack, sheets, reordering and pull to refresh. Discover has a single compact channel bar, without an additional generic hero or search header.
+- Edge-to-edge editorial layouts: an inset glass channel rail above open hot lists/tables, article/video artwork, podcast rows with independent playback, and readable Arena metric cells. There are no enclosing rounded reading panels; glass is reserved for navigation and the mini player.
+- Two-finger pinch changes between compact, standard and spacious information density. Compact image feeds use thumbnails; spacious feeds expand artwork and summaries. Density is saved locally, separately from font size; the channel menu and My page provide a non-gesture alternative.
+- The bottom glass controls have no opaque tint or safe-area shelf. Content and semantic backgrounds continue behind them to the home-indicator region. Reduced transparency/high contrast retains a solid, legible fallback.
+- My page uses an open reading-space profile, real subscription counts/channel icons, and separated reading, sync and app settings. Login, confirmed cloud restore, legal documents and existing links remain available.
+- Sina's standard layout uses an open headline-first hot list: lightweight numbered ranks, up to two headline lines and secondary heat below, without repetitive rules or colored rank discs. Compact density keeps an inline metric; spacious density expands full headlines.
+- Email login uses a focused scrollable screen instead of a grouped Form: labeled fields, an inline resend action, explicit legal consent and a full-width primary action. Native focus, keyboard dismissal, one-time-code autofill, cooldown and the existing endpoints remain in place.
+- Scrollable feeds, subscriptions, settings, and legal documents reserve the measured floating footer height plus 16pt of reading clearance. The space adapts to the player and Dynamic Type; footer-free sheets retain native margins, and opening the reader does not shift the underlying feed.
 - Semantic colors, system fonts, Dynamic Type, dark/light/system appearance, VoiceOver labels, and system-managed reduced-motion/transparency behavior.
-- Debug bundle ID: `cn.zchengb.infohub.native`, allowing side-by-side development. Release retains `cn.zchengb.infohub`. Release signing team must be selected in Xcode.
+- Debug bundle ID: `cn.zchengb.infohub.native`, allowing side-by-side development. Release retains `cn.zchengb.infohub`. TestFlight signing is configured by the release lane, independently of Debug.
 - API base is configurable through `APIBaseURL` in `InfoHub/Info.plist`; defaults to the existing production endpoint. No credentials in the project.
 
 ## React Native feature migration
@@ -40,11 +47,63 @@ xcodebuild -project InfoHub.xcodeproj -scheme InfoHub \
   -derivedDataPath /tmp/infohub-native-derived CODE_SIGNING_ALLOWED=NO test
 ```
 
-Unit checks cover provider variants, unsafe links, lossless cross-platform subscription settings, and heatmap geometry. UI tests cover native tab navigation, RSS form, login consent and a discovery screenshot. They do not send verification email or write production subscriptions.
+Unit checks cover provider variants, unsafe links, lossless cross-platform subscription settings, heatmap geometry, and density thresholds/bounds. UI tests cover physical two-touch pinches, density persistence/selector, edge-to-edge scrolling surfaces, channel paging/scroll retention, reader back navigation, native navigation, subscription toggles, RSS form, login consent, playback, and all 12 channel layouts in light/dark and large reading text. End-of-page checks cover all channels, forms and legal documents, with/without the player, accessibility text sizes, and reader return. An accessibility-size check exercises the stacked table layout. They do not send verification email or write production subscriptions.
 
 The checked-in Xcode project is directly usable. `ruby generate_project.rb` regenerates it using the already-installed `xcodeproj` gem, copies the existing App icon, and extracts the original legal documents from the React Native sources. Do not edit generated legal text independently.
 
-No distribution archive or production package has been generated.
+## TestFlight release
+
+The existing **Deploy to TestFlight** GitHub Action retains its React Native/Expo
+push behavior on `main`. Native publishing is **manual only**: select
+`feature/ios-native-rebuild`, set `implementation` to `native`, and run it.
+`validate_only` builds and tests on the hosted Xcode 27 runner without credentials
+or an upload; leave it unchecked to actually publish.
+
+The native job uses the checked-in Xcode project, not Expo, Metro, CocoaPods or
+`generate_project.rb`. Fastlane is pinned by `Gemfile.lock`; it verifies the
+existing InfoHub App Store Connect ID `6739748229`, increments the build above
+the current TestFlight train and the local baseline, uses a dedicated
+`InfoHub Native AppStore` profile, then waits up to 20 minutes for Apple to process
+the upload. It never submits public App Store review or invites external testers.
+Internal testing-group access must be verified separately after processing.
+
+Required repository Actions secrets (do not commit them):
+
+| Secret | Value |
+| --- | --- |
+| `APPSTORE_KEY_ID` | Existing App Store Connect API Key ID |
+| `APPSTORE_ISSUER_ID` | Issuer ID for the InfoHub team |
+| `APPSTORE_PRIVATE_KEY` | Corresponding PEM `.p8` contents |
+| `P12_BASE64` | Base64 distribution certificate **and its private key** |
+| `P12_PASSWORD` | Password protecting that PKCS#12 archive |
+
+The expected team is `UPDM24DCXU`, as in Momento's existing personal-account
+release setup. Confirm that InfoHub's app belongs to this team before the first
+upload. A company-team distribution certificate cannot be substituted. Never
+revoke an existing certificate to work around a certificate limit. GitHub cannot
+return previously saved secret values; find their original authorized source or
+have the account owner configure them. Only copy credentials to this repository
+with the owner's approval, since maintainers can use Actions secrets.
+
+The native target bundles a required-reason UserDefaults privacy manifest and
+declares only OS-provided, exempt encryption. Review the backend's collected data
+and existing App Store privacy labels before a **public** release. The 1024px icon
+is an opaque, losslessly rendered copy of the original logo;
+`prepare_app_icon.swift` reproduces it when regenerating the project.
+
+Local validation on 2026-10-04: unsigned device Release archive and six unit tests
+passed. An unsigned archive is **not** an installable TestFlight package. Apple
+credentials, cloud signing/upload and testing-group availability still need live
+verification; no TestFlight upload is claimed by these local checks.
+
+## Validation on 2026-10-04
+
+- Login brand-background follow-up: three targeted UI cases passed (light/dark login, maximum accessibility text size and native navigation); the two login cases were rerun after contrast/artwork clipping polish and passed. Enlarged sun/horizon elements use one-shot native springs with reduced-motion support. Auth endpoints and consent/cooldown behavior are unchanged; no email or sign-in request was submitted.
+- Login/Sina follow-up: five unit tests and seven relevant UI cases passed across regression rounds, including real keyboard dismissal and reachable login actions at the maximum accessibility text size. Login consent/input/legal navigation, headline/heat hierarchy, density gestures, light/dark and large-text trailing content, reader return and native navigation were checked. No verification emails or sign-in requests were sent.
+- iPhone 18 Pro Max / iOS 27: five unit tests and sixteen UI tests passed across the design and follow-up regression rounds.
+- After replacing the inset page host with native scrolling pagination, affected checks were rerun: all twelve channels' visible layouts and trailing content, physical pinches, saved density after relaunch, light/dark paging and scroll retention, reader return, and all three primary surfaces reaching the bottom screen edge.
+- Final targeted run passed five unit tests and five UI tests; image-density/relaunch and twelve-channel visible-layout checks passed separately. Settings/subscription/legal bottom clearance and accessibility-size checks passed in the preceding rounds.
+- Tests did not send verification emails or upload production subscriptions. No commit or distribution package was created. See [UI-REVIEW.md](UI-REVIEW.md) for design changes and remaining acceptance gaps.
 
 ## Validation on 2026-09-27
 

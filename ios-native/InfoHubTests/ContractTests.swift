@@ -2,6 +2,27 @@ import XCTest
 @testable import InfoHub
 
 final class ContractTests: XCTestCase {
+    func testReleaseResourcesAreBundled() throws {
+        let bundle = Bundle.main
+        XCTAssertEqual(bundle.object(forInfoDictionaryKey: "ITSAppUsesNonExemptEncryption") as? Bool, false)
+        XCTAssertEqual(bundle.object(forInfoDictionaryKey: "UIAppFonts") as? [String], ["Ionicons.ttf"])
+        XCTAssertNotNil(bundle.url(forResource: "Ionicons", withExtension: "ttf"))
+        let url = try XCTUnwrap(bundle.url(forResource: "PrivacyInfo", withExtension: "xcprivacy"))
+        let privacy = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: Any])
+        XCTAssertEqual(privacy["NSPrivacyTracking"] as? Bool, false)
+        let accessed = try XCTUnwrap(privacy["NSPrivacyAccessedAPITypes"] as? [[String: Any]])
+        XCTAssertEqual(accessed.first?["NSPrivacyAccessedAPIType"] as? String, "NSPrivacyAccessedAPICategoryUserDefaults")
+        XCTAssertEqual(accessed.first?["NSPrivacyAccessedAPITypeReasons"] as? [String], ["CA92.1"])
+    }
+    func testDensityPinchHasThresholdsAndBounds() {
+        XCTAssertEqual(FeedDensity.standard.adjusted(by: 1.1), .standard)
+        XCTAssertEqual(FeedDensity.standard.adjusted(by: 0.9), .standard)
+        XCTAssertEqual(FeedDensity.standard.adjusted(by: 0.7), .compact)
+        XCTAssertEqual(FeedDensity.standard.adjusted(by: 1.5), .spacious)
+        XCTAssertEqual(FeedDensity.compact.adjusted(by: 0.5), .compact)
+        XCTAssertEqual(FeedDensity.spacious.adjusted(by: 2), .spacious)
+        XCTAssertEqual(FeedDensity.compact.adjusted(by: 2), .standard)
+    }
     func testServerChannelIsCompatibleWithExistingClients() {
         let channel = Channel(.object(["id": .number(1), "channelCode": .string("sina"), "name": .string("新浪微博"), "description": .string("热榜"), "isDefaultSubscribed": .bool(true)]))
         XCTAssertEqual(channel.raw["title"].text, "新浪微博")

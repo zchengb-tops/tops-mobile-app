@@ -35,3 +35,13 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 .idea/
+
+# Native iOS release outputs and local signing material
+ios-native/build/
+ios-native/.bundle/
+ios-native/vendor/
+ios-native/fastlane/report.xml
+ios-native/fastlane/README.md
+*.xcarchive
+*.ipa
+*.dSYM.zip

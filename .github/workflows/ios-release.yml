@@ -5,6 +5,25 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      implementation:
+        description: iOS implementation to publish
+        type: choice
+        options:
+          - react-native
+          - native
+        default: react-native
+      changelog:
+        description: TestFlight testing notes (native only)
+        type: string
+        default: 原生 iOS 测试版：全屏资讯、玻璃导航、信息密度手势及全新登录体验。旧版本机订阅尚未迁移，请先在旧版上传订阅，再登录同一账号恢复。
+      validate_only:
+        description: Compile and test native iOS without signing or uploading
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 concurrency:
   group: ios-release-${{ github.ref }}
@@ -13,6 +32,7 @@ concurrency:
 jobs:
   deploy:
     name: Build and Deploy iOS
+    if: github.event_name == 'push' || inputs.implementation == 'react-native'
     runs-on: ubuntu-latest
 
     steps:
@@ -36,3 +56,99 @@ jobs:
 
       - name: Build and submit to TestFlight
         run: eas build --platform ios --profile testflight --auto-submit --non-interactive --no-wait
+
+  native:
+    name: Native iOS TestFlight
+    if: github.event_name == 'workflow_dispatch' && inputs.implementation == 'native'
+    runs-on: xcode-27
+    timeout-minutes: 60
+    concurrency:
+      group: infohub-native-testflight
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ios-native
+        shell: bash
+    env:
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+      FASTLANE_HIDE_CHANGELOG: '1'
+      FASTLANE_OPT_OUT_USAGE: '1'
+      TESTFLIGHT_CHANGELOG: ${{ inputs.changelog }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check signing configuration
+        if: ${{ !inputs.validate_only }}
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          P12_BASE64: ${{ secrets.P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+        run: |
+          for name in APPSTORE_ISSUER_ID APPSTORE_KEY_ID APPSTORE_PRIVATE_KEY P12_BASE64 P12_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing release secret: $name"
+              exit 1
+            fi
+          done
+
+      - name: Verify Xcode
+        run: xcodebuild -version
+
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: ios-native
+
+      - name: Run contract tests
+        run: |
+          device_id=$(xcrun simctl list devices available -j | ruby -rjson -e '
+            devices = JSON.parse(STDIN.read).fetch("devices").values.flatten
+            device = devices.find { |d| d.fetch("name") == "iPhone 18 Pro Max" }
+            abort "iPhone 18 Pro Max simulator is unavailable" unless device
+            puts device.fetch("udid")')
+          xcodebuild -project InfoHub.xcodeproj -scheme InfoHub \
+            -destination "platform=iOS Simulator,id=$device_id" \
+            -derivedDataPath build/tests -parallel-testing-enabled NO \
+            -collect-test-diagnostics never -only-testing:InfoHubTests \
+            CODE_SIGNING_ALLOWED=NO test
+
+      - name: Import distribution certificate
+        if: ${{ !inputs.validate_only }}
+        uses: Apple-Actions/import-codesign-certs@v7
+        with:
+          p12-file-base64: ${{ secrets.P12_BASE64 }}
+          p12-password: ${{ secrets.P12_PASSWORD }}
+
+      - name: Archive and upload native app
+        if: ${{ !inputs.validate_only }}
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        run: bundle exec fastlane beta
+
+      - name: Validate native release archive (not installable)
+        if: inputs.validate_only
+        run: |
+          xcodebuild -project InfoHub.xcodeproj -scheme InfoHub -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/validation/InfoHub.xcarchive \
+            -derivedDataPath build/validation/DerivedData CODE_SIGNING_ALLOWED=NO archive
+
+      - name: Save signed build
+        if: ${{ success() && !inputs.validate_only }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: InfoHub-native-${{ github.run_number }}
+          path: |
+            ios-native/build/release/InfoHub.ipa
+            ios-native/build/release/InfoHub.app.dSYM.zip
+          if-no-files-found: error
+          retention-days: 14
