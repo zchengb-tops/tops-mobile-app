@@ -29,7 +29,7 @@ app.resources_build_phase.add_file_reference(group.new_file('PrivacyInfo.xcpriva
   File.write(File.join(root, 'InfoHub', name), File.read(File.join(root, 'InfoHub', name)).rstrip + "\n") if source == 'LICENSE'
   app.resources_build_phase.add_file_reference(group.new_file(name))
 end
-{sina: 'weibo', zhihu: 'zhihu', sspai: 'sspai', arena: 'arena', xiaoyuzhou: 'xiaoyuzhou', stock: 'stock', doubanMovie: 'douban', bilibili: 'bilibili', nnGroup: 'nngroup', tiobe: 'tiobe', history: 'history'}.each do |code, source|
+{sina: 'weibo', zhihu: 'zhihu', sspai: 'sspai', arena: 'arena', xiaoyuzhou: 'xiaoyuzhou', stock: 'stock', doubanMovie: 'douban', bilibili: 'bilibili', nnGroup: 'nngroup', tiobe: 'tiobe', history: 'history', github: 'github', artificialAnalysis: 'artificial-analysis'}.each do |code, source|
   directory = File.join(root, "InfoHub/Assets.xcassets/channel-#{code}.imageset")
   FileUtils.mkdir_p(directory)
   FileUtils.cp(File.join(root, "../assets/icons/#{source}.svg"), File.join(directory, 'logo.svg'))
@@ -46,8 +46,8 @@ app.build_configurations.each do |config|
     'INFOPLIST_FILE' => 'InfoHub/Info.plist',
     'SWIFT_VERSION' => '5.0',
     'TARGETED_DEVICE_FAMILY' => '1,2',
-    'MARKETING_VERSION' => '1.3',
-    'CURRENT_PROJECT_VERSION' => '24',
+    'MARKETING_VERSION' => '1.4',
+    'CURRENT_PROJECT_VERSION' => '26',
     'ASSETCATALOG_COMPILER_APPICON_NAME' => 'AppIcon',
     'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME' => '',
     'CODE_SIGN_STYLE' => 'Automatic',

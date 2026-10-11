@@ -1,6 +1,6 @@
 {
   "name": "InfoHub",
-  "version": "1.2",
+  "version": "1.4",
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
@@ -15,6 +15,7 @@
     "build-testflight:ios": "eas build --platform ios --profile testflight --auto-submit && git add . && git commit -m 'feat: update ios build number.'",
     "build-prod:android": "eas build --platform android --profile production",
     "ios": "expo run:ios",
+    "ios:native": "bash ios-native/run-simulator.sh",
     "postinstall": "patch-package"
   },
   "dependencies": {

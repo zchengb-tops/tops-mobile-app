@@ -6,12 +6,6 @@ enum FeedDensity: String, CaseIterable, Identifiable {
     var title: String {
         switch self { case .compact: return "紧凑"; case .standard: return "标准"; case .spacious: return "舒展" }
     }
-    /// One step per pinch. Font size remains an independent reading preference.
-    func adjusted(by magnification: CGFloat) -> Self {
-        let index = Self.allCases.firstIndex(of: self) ?? 1
-        let step = magnification > 1.22 ? 1 : magnification < 0.82 ? -1 : 0
-        return Self.allCases[max(0, min(Self.allCases.count - 1, index + step))]
-    }
 }
 
 @MainActor @Observable final class AppStore {
@@ -19,9 +13,11 @@ enum FeedDensity: String, CaseIterable, Identifiable {
     var news: JSON = .object([:])
     var rss: JSON = .object([:])
     var loading = false
+    var channelErrors: [String: String] = [:]
     var error: String?
     var message: String?
     var update: JSON?
+    var availableUpdate: JSON?
     var email = UserDefaults.standard.string(forKey: "native.email") ?? ""
     var loggedIn: Bool { Credential.token != nil }
     var selectedChannel = UserDefaults.standard.string(forKey: "native.selectedChannel") ?? "sina" {
@@ -52,14 +48,17 @@ enum FeedDensity: String, CaseIterable, Identifiable {
         if let data = try? Data(contentsOf: cacheURL), let cached = try? JSONDecoder().decode(JSON.self, from: data) {
             news = cached["news"]; rss = cached["rss"]
         }
+        if !channels.isEmpty { channels = Channel.mobileCatalog(existing: channels, remote: []) }
     }
     func start() async {
         do {
-            let defaults = try await api.request("news-channels/default").array
-                .filter { $0["isAppEnabled"].flag }.map(Channel.init)
-            for channel in defaults where !channels.contains(where: { $0.code == channel.code }) { channels.append(channel) }
+            let defaults = try await api.request("news-channels/default").array.map(Channel.init)
+            channels = Channel.mobileCatalog(existing: channels, remote: defaults)
             persistChannels()
-        } catch { self.error = error.localizedDescription }
+        } catch {
+            channels = Channel.mobileCatalog(existing: channels, remote: [])
+            self.error = error.localizedDescription
+        }
         await refresh()
         await checkUpdate(silent: true)
     }
@@ -67,12 +66,43 @@ enum FeedDensity: String, CaseIterable, Identifiable {
         guard !loading else { return }
         loading = true
         defer { loading = false }
+        async let normal = fetchNews("normal-news")
+        async let github = fetchNews("news/github")
+        async let analysis = fetchNews("news/artificial-analysis")
+        let results = await (normal, github, analysis)
+        if case .success(let payload) = results.0 {
+            // Special channels use separate endpoints and keep their last good payload on failure.
+            for (key, value) in payload.object { news[key] = value }
+        } else if case .failure(let failure) = results.0 { error = failure.localizedDescription }
+        applyChannelResult(results.1, code: "github")
+        applyChannelResult(results.2, code: "artificialAnalysis")
+        await refreshRSS()
         do {
-            news = try await api.request("normal-news")
-            await refreshRSS()
             try FileManager.default.createDirectory(at: cacheURL.deletingLastPathComponent(), withIntermediateDirectories: true)
             try JSONEncoder().encode(JSON.object(["news": news, "rss": rss])).write(to: cacheURL, options: .atomic)
         } catch { self.error = error.localizedDescription }
+    }
+    private func fetchNews(_ path: String) async -> Result<JSON, Error> {
+        do { return .success(try await api.request(path)) } catch { return .failure(error) }
+    }
+    func applyChannelResult(_ result: Result<JSON, Error>, code: String) {
+        do {
+            let payload = try result.get()
+            if code == "github" {
+                var valid = false
+                for period in GithubPeriod.allCases {
+                    if !period.items(in: payload).isEmpty {
+                        news[code][period.rawValue] = payload[period.rawValue]; valid = true
+                    } else if news[code][period.rawValue] == .null { news[code][period.rawValue] = payload[period.rawValue] }
+                }
+                guard valid else { throw APIError.message("GitHub 榜单暂时不可用，下拉重试") }
+                let failed = GithubPeriod.allCases.filter { $0.items(in: payload).isEmpty }
+                channelErrors[code] = failed.isEmpty ? nil : failed.map(\.title).joined(separator: "、") + "更新失败，保留上次内容"
+            } else {
+                guard !AnalysisChart.charts(in: payload).isEmpty else { throw APIError.message("AI Analysis 榜单暂时不可用，下拉重试") }
+                news[code] = payload; channelErrors[code] = nil
+            }
+        } catch { channelErrors[code] = error.localizedDescription }
     }
     func refreshRSS() async {
         let urls = enabledChannels.filter(\.isRSS).map { JSON.string($0.rssURL) }
@@ -83,6 +113,7 @@ enum FeedDensity: String, CaseIterable, Identifiable {
         } catch { self.error = error.localizedDescription }
     }
     func items(for channel: Channel) -> [NewsItem] {
+        if channel.code == "github", !channel.isRSS { return GithubPeriod.daily.items(in: news["github"]) }
         let rows = channel.isRSS ? rss[channel.rssURL]["items"].array : news[channel.code].array
         return rows.enumerated().map { NewsItem(raw: $0.element, index: $0.offset) }
     }
@@ -111,7 +142,7 @@ enum FeedDensity: String, CaseIterable, Identifiable {
         channel.raw["title"] = .string(name); channel.raw["tabTitle"] = .string(name)
         channel.raw["rssUrl"] = .string(parsed.absoluteString)
         channel.raw["desc"] = resource["description"]; channel.raw["iconUrl"] = resource["iconUrl"]
-        if let index = channels.firstIndex(where: { $0.id == channel.id }) { channels[index] = channel } else { channels.append(channel) }
+        if let index = channels.firstIndex(where: { $0.id == channel.id }) { channels[index] = channel } else { channels.insert(channel, at: 0) }
         channelsChanged()
     }
     func signIn(email: String, code: String) async throws {
@@ -144,7 +175,7 @@ enum FeedDensity: String, CaseIterable, Identifiable {
                 guard restored.allSatisfy({ !$0.id.isEmpty && !$0.title.isEmpty }), Set(restored.map(\.id)).count == restored.count else {
                     throw APIError.message("云端订阅格式无效，本机配置未更改")
                 }
-                channels = restored
+                channels = Channel.mobileCatalog(existing: restored, remote: [])
                 UserDefaults.standard.set(result["version"].text, forKey: "native.syncVersion")
                 persistChannels()
                 await refreshRSS()
@@ -160,12 +191,26 @@ enum FeedDensity: String, CaseIterable, Identifiable {
     }
     func checkUpdate(silent: Bool = false) async {
         do {
-            let result = try await api.request("app/versions")["versions"]["ios"]
-            let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
-            let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
-            guard !result["latestVersion"].text.isEmpty else { throw APIError.message("暂无 iOS 版本信息") }
-            if result["latestVersion"].text.compare(current, options: .numeric) == .orderedDescending || (result["latestVersion"].text == current && result["latestVersionCode"].number > (Double(build) ?? 0)) { update = result }
-            else if !silent { message = "已是最新版本" }
+            #if DEBUG
+            // Explicit UI-test metadata only; never changes the server or opens an update link.
+            if ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_UPDATE"] == "available" {
+                try applyUpdateInfo(.object(["latestVersion": .string("9999.0"), "latestVersionCode": .number(9999),
+                                            "isMandatory": .bool(false), "updateMessage": .string("版本更新测试"),
+                                            "updateUrl": .string("https://infohub.net.cn/")]), silent: silent)
+                return
+            }
+            #endif
+            try applyUpdateInfo(await api.request("app/versions")["versions"]["ios"], silent: silent)
         } catch { if !silent { self.error = error.localizedDescription } }
+    }
+    func applyUpdateInfo(_ result: JSON, silent: Bool) throws {
+        let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
+        guard !result["latestVersion"].text.isEmpty else { throw APIError.message("暂无 iOS 版本信息") }
+        let newer = result["latestVersion"].text.compare(current, options: .numeric) == .orderedDescending
+            || (result["latestVersion"].text == current && result["latestVersionCode"].number > (Double(build) ?? 0))
+        availableUpdate = newer ? result : nil
+        update = availableUpdate
+        if !newer && !silent { message = "已是最新版本" }
     }
 }

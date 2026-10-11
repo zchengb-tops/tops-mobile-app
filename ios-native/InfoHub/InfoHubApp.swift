@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 @main struct InfoHubApp: App {
     @State private var store = AppStore()
@@ -21,6 +22,7 @@ struct RootView: View {
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .subheadline) private var navigationSelectionWidth: CGFloat = 108
     @State private var selectedTab = 0
     @State private var discoveryPath: [NewsItem] = []
     @State private var playerPresented = false
@@ -29,7 +31,10 @@ struct RootView: View {
     private var footerVisible: Bool { selectedTab != 0 || discoveryPath.isEmpty }
     private var tabs: some View {
         TabView(selection: $selectedTab) {
-            NavigationStack(path: $discoveryPath) { DiscoveryView().toolbar(.hidden, for: .tabBar) }.tabItem { Text("发现") }.tag(0)
+            NavigationStack(path: $discoveryPath) {
+                DiscoveryView().toolbar(.hidden, for: .tabBar)
+                    .environment(\.newsPath, $discoveryPath)
+            }.tabItem { Text("发现") }.tag(0)
             NavigationStack { SubscriptionsView().toolbar(.hidden, for: .tabBar) }.tabItem { Text("订阅") }.tag(1)
             NavigationStack { SettingsView().toolbar(.hidden, for: .tabBar) }.tabItem { Text("我的") }.tag(2)
         }
@@ -54,7 +59,9 @@ struct RootView: View {
             GeometryReader { geometry in
                 let width = max(0, (geometry.size.width - 8) / 3)
                 // One persistent selection plate, like the original NavBar.js translateX.
-                Capsule().fill(Color.infoHubSelection).frame(width: width, height: geometry.size.height)
+                Capsule().fill(Color.infoHubSelection)
+                    .padding(.horizontal, max(4, (width - navigationSelectionWidth) / 2)).padding(.vertical, 3)
+                    .frame(width: width, height: geometry.size.height)
                     .offset(x: CGFloat(selectedTab) * (width + 4) * (layoutDirection == .rightToLeft ? -1 : 1))
                     .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 1), value: selectedTab)
             }.allowsHitTesting(false).accessibilityHidden(true)
@@ -72,7 +79,8 @@ struct RootView: View {
                             Artwork(url: item.image, symbol: "headphones").frame(width: 40, height: 40).clipShape(.rect(cornerRadius: 10))
                             VStack(alignment: .leading) {
                                 Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                                Text(player.isPlaying ? "正在播放" : "已暂停").font(.caption)
+                                Text(item.raw["author"].text.nilIfEmpty ?? (player.isPlaying ? "正在播放" : "已暂停"))
+                                    .font(.caption).lineLimit(1).accessibilityIdentifier("mini-player-metadata")
                                     .foregroundStyle(colorScheme == .dark ? Color(white: 170.0 / 255) : .secondary)
                             }
                             Spacer()
@@ -80,6 +88,7 @@ struct RootView: View {
                     }.buttonStyle(.plain).accessibilityIdentifier("mini-player")
                     Button { player.toggle() } label: { Image(systemName: player.isPlaying ? "pause.fill" : "play.fill").frame(width: 44, height: 44) }
                         .accessibilityLabel(player.isPlaying ? "暂停" : "播放")
+                        .accessibilityIdentifier("mini-player-toggle")
                 }.padding(.horizontal, 12).padding(.vertical, 6)
             }
         }
@@ -140,6 +149,10 @@ struct RootView: View {
             }
         }
     }
+}
+
+extension EnvironmentValues {
+    @Entry var newsPath: Binding<[NewsItem]>?
 }
 
 extension Color {
@@ -211,9 +224,22 @@ struct Artwork: View {
 
 struct ChannelIcon: View {
     let channel: Channel
+    static func menuImage(for channel: Channel) -> UIImage? {
+        guard let image = UIImage(named: channel.assetName) ?? (channel.isRSS ? UIImage(named: "RSSIcon") : UIImage(systemName: channel.symbol)?.withRenderingMode(.alwaysTemplate)) else { return nil }
+        // Native menus extract the UIImage, ignoring the SwiftUI icon's frame.
+        let size = CGSize(width: 20, height: 20)
+        return UIGraphicsImageRenderer(size: size).image { _ in
+            image.draw(in: AVMakeRect(aspectRatio: image.size, insideRect: CGRect(origin: .zero, size: size)))
+        }.withRenderingMode(image.renderingMode)
+    }
     var body: some View {
-        if UIImage(named: "channel-\(channel.code)") != nil {
-            Image("channel-\(channel.code)").resizable().scaledToFit()
+        if channel.isRSS {
+            AsyncImage(url: webURL(channel.raw["iconUrl"].text)) { phase in
+                if let image = phase.image { image.resizable().scaledToFit() }
+                else { Image("RSSIcon").resizable().scaledToFit() }
+            }.accessibilityHidden(true)
+        } else if UIImage(named: channel.assetName) != nil {
+            Image(channel.assetName).resizable().scaledToFit()
                 // NN/g's original black/red mark needs a light plate on a dark or selected rail.
                 .background(channel.code == "nnGroup" ? Color.white : .clear, in: Circle())
                 .accessibilityHidden(true)

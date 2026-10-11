@@ -111,38 +111,75 @@ import MediaPlayer
 struct PlayerView: View {
     @Environment(PodcastPlayer.self) private var player
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
     @State private var seeking = false
     @State private var sliderValue: Double = 0
     var body: some View {
         NavigationStack {
-            ScrollView {
-                if let item = player.item {
-                    VStack(spacing: 24) {
-                        Artwork(url: item.image, symbol: "headphones").aspectRatio(1, contentMode: .fit).clipShape(.rect(cornerRadius: 28)).shadow(radius: 12, y: 8)
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(item.title).font(.title2.bold())
-                            Text(item.raw["author"].text).foregroundStyle(.secondary)
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                        VStack {
-                            Slider(value: Binding(get: { seeking ? sliderValue : min(player.position, max(1, player.duration)) }, set: { sliderValue = $0 }), in: 0...max(1, player.duration)) { editing in
-                                seeking = editing
-                                if !editing { player.seek(sliderValue) }
-                            }.accessibilityLabel("播放进度")
-                            HStack { Text(time(player.position)); Spacer(); Text(time(player.duration)) }.font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                        }
-                        HStack(spacing: 44) {
-                            Button("后退 15 秒", systemImage: "gobackward.15") { player.skip(-15) }
-                            Button(player.isPlaying ? "暂停" : "播放", systemImage: player.isPlaying ? "pause.fill" : "play.fill") { player.toggle() }.font(.system(size: 44))
-                            Button("前进 30 秒", systemImage: "goforward.30") { player.skip(30) }
-                        }.font(.title).labelStyle(.iconOnly).frame(minHeight: 64)
-                        AirPlayPicker().frame(width: 44, height: 44).accessibilityLabel("AirPlay 音频输出")
-                        if let error = player.error { Text(error).foregroundStyle(.red); Button("重试") { player.play(item) } }
-                        Button("结束播放", role: .destructive) { player.stop(); dismiss() }
-                    }.padding(28).frame(maxWidth: 500)
-                }
-            }.frame(maxWidth: .infinity).navigationTitle("正在收听").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("收起", systemImage: "chevron.down") { dismiss() } } }
+            AsyncImage(url: player.item?.playerImage) { phase in
+                ScrollView {
+                    if let item = player.item {
+                        VStack(spacing: 24) {
+                            Group {
+                                if let image = phase.image { image.resizable().scaledToFill() }
+                                else { Artwork(url: item.image, symbol: "headphones") }
+                            }.clipped().accessibilityHidden(true)
+                                .aspectRatio(1, contentMode: .fit).clipShape(.rect(cornerRadius: 28)).shadow(radius: 12, y: 8)
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(item.title).font(.title2.bold())
+                                Text(item.raw["author"].text).foregroundStyle(.secondary)
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                            VStack {
+                                Slider(value: Binding(get: { seeking ? sliderValue : min(player.position, max(1, player.duration)) }, set: { sliderValue = $0 }), in: 0...max(1, player.duration)) { editing in
+                                    seeking = editing
+                                    if !editing { player.seek(sliderValue) }
+                                }.accessibilityLabel("播放进度")
+                                HStack { Text(time(player.position)); Spacer(); Text(time(player.duration)) }.font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                            }
+                            HStack(spacing: 28) {
+                                Button { player.skip(-15) } label: {
+                                    Image(systemName: "gobackward.15").frame(width: 44, height: 64).contentShape(Rectangle())
+                                }.accessibilityLabel("后退 15 秒")
+                                Button { player.toggle() } label: {
+                                    Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                                        .font(.system(size: 44)).frame(width: 64, height: 64).contentShape(Rectangle())
+                                }.accessibilityLabel(player.isPlaying ? "暂停" : "播放")
+                                    .accessibilityIdentifier("player-toggle")
+                                Button { player.skip(30) } label: {
+                                    Image(systemName: "goforward.30").frame(width: 44, height: 64).contentShape(Rectangle())
+                                }.accessibilityLabel("前进 30 秒")
+                            }.font(.title).labelStyle(.iconOnly).buttonStyle(.plain)
+                                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                                .padding(.horizontal, 20).padding(.vertical, 8).glassSurface(in: Capsule())
+                            AirPlayPicker().frame(width: 44, height: 44).accessibilityLabel("AirPlay 音频输出")
+                            if let error = player.error { Text(error).foregroundStyle(.red); Button("重试") { player.play(item) } }
+                            Button("结束播放", role: .destructive) { player.stop(); dismiss() }
+                        }.padding(28).frame(maxWidth: 500)
+                    }
+                }.frame(maxWidth: .infinity).navigationTitle("正在收听").navigationBarTitleDisplayMode(.inline)
+                    .accessibilityIdentifier("player-scroll")
+                    .background { backdrop(image: phase.image) }
+                    .toolbarBackground(.hidden, for: .navigationBar)
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("收起", systemImage: "chevron.down") { dismiss() } } }
+            }
         }
+    }
+    private func backdrop(image: Image?) -> some View {
+        GeometryReader { geometry in
+            ZStack {
+                Color(uiColor: .systemBackground)
+                if !reduceTransparency && contrast != .increased, let image {
+                    // Reuse the loaded HD cover; only the decorative layer is blurred.
+                    image.resizable().scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .blur(radius: 60, opaque: true)
+                    Rectangle().fill(.thinMaterial)
+                    Color(uiColor: .systemBackground).opacity(colorScheme == .dark ? 0.2 : 0.35)
+                }
+            }.clipped()
+        }.ignoresSafeArea().allowsHitTesting(false).accessibilityHidden(true)
     }
     private func time(_ seconds: Double) -> String { let s = Int(max(0, seconds)); return String(format: "%d:%02d", s / 60, s % 60) }
 }

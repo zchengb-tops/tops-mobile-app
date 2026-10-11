@@ -26,14 +26,15 @@ struct ReaderView: View {
             .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar)
             .toolbar {
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Button("网页后退", systemImage: "chevron.left") { state.webView.goBack() }.disabled(!state.canGoBack)
-                    Spacer()
-                    Button("刷新", systemImage: "arrow.clockwise") { state.webView.reload() }
-                    Spacer()
-                    ShareLink(item: state.url ?? url, subject: Text(title))
-                    Spacer()
-                    Link(destination: state.url ?? url) { Image(systemName: "safari") }.accessibilityLabel("在 Safari 打开")
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    ShareLink(item: state.url ?? url, subject: Text(title)) { Label("分享", systemImage: "square.and.arrow.up") }
+                        .accessibilityIdentifier("reader-share")
+                    Menu {
+                        Button("网页后退", systemImage: "chevron.left") { state.webView.goBack() }.disabled(!state.canGoBack)
+                        Button("刷新", systemImage: "arrow.clockwise") { state.webView.reload() }
+                        Link("在 Safari 打开", destination: state.url ?? url)
+                    } label: { Image(systemName: "ellipsis") }
+                        .accessibilityLabel("网页选项").accessibilityIdentifier("reader-actions")
                 }
             }
     }
