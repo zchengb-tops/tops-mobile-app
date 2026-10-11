@@ -29,9 +29,7 @@ enum FeedDensity: String, CaseIterable, Identifiable {
     var readingSize = UserDefaults.standard.string(forKey: "native.readingSize") ?? "system" {
         didSet { UserDefaults.standard.set(readingSize, forKey: "native.readingSize") }
     }
-    var feedDensity = FeedDensity(rawValue: UserDefaults.standard.string(forKey: "native.feedDensity") ?? "") ?? .standard {
-        didSet { UserDefaults.standard.set(feedDensity.rawValue, forKey: "native.feedDensity") }
-    }
+    let feedDensity: FeedDensity = .standard
     var syncEnabled = UserDefaults.standard.bool(forKey: "native.syncEnabled") {
         didSet { UserDefaults.standard.set(syncEnabled, forKey: "native.syncEnabled") }
     }

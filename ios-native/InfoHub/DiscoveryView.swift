@@ -84,7 +84,6 @@ struct DiscoveryView: View {
                 } label: { Image(systemName: "ellipsis").frame(width: 44, height: 44).contentShape(Rectangle()) }
                     .accessibilityLabel("选择频道")
                     .accessibilityIdentifier("channel-menu")
-                    .accessibilityValue(store.feedDensity.title)
                     .accessibilityHint("选择频道或查看频道总览；双指合拢也可进入总览")
           }.padding(4)
               .opacity(1 - overviewProgress).allowsHitTesting(overviewProgress == 0).accessibilityHidden(overviewProgress > 0)
@@ -162,80 +161,126 @@ struct ChannelPager: View {
 
 struct ChannelFeed: View {
     let channel: Channel
-    var preview = false
+    var previewHeight: CGFloat?
+    private var preview: Bool { previewHeight != nil }
     @Environment(AppStore.self) private var store
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.appFooterHeight) private var footerHeight
     @State private var arenaSection = "rank"
+    @State private var showsBackToTop = false
     private var density: FeedDensity { store.feedDensity }
+    private var previewItemLimit: Int? { previewHeight.map { Int(ceil(max(0, $0) / 44)) + 1 } }
+    @ViewBuilder
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                if channel.code == "featured", !channel.isRSS {
-                    FeaturedContent(preview: preview)
-                } else if channel.code == "github", !channel.isRSS {
-                    GithubContent(preview: preview)
-                } else if channel.code == "artificialAnalysis", !channel.isRSS {
-                    AnalysisContent(preview: preview)
-                } else {
-                if channel.code == "arena" {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ViewThatFits(in: .horizontal) {
-                            HStack { arenaTitle; Spacer(minLength: 8); methodology }
-                            VStack(alignment: .leading, spacing: 4) { arenaTitle; methodology }
-                        }
-                        Text("基于真实 Agent Mode 任务数据，模型通过随机分配参与评测；榜单综合任务成功、用户反馈、纠错能力与工具调用表现，衡量其在实际工作场景中的综合能力。").channelText(11, lineHeight: 16).foregroundStyle(.secondary)
-                        let models = store.items(for: channel).filter { $0.properties["section"].text == "rank" }
-                        let count = store.items(for: channel).filter { $0.properties["section"].text == arenaSection }.count
-                        let date = newsDate(models.first?.properties["publishDate"].text ?? "")
-                        Text("\(date?.formatted(.dateTime.month(.abbreviated).day().year().locale(Locale(identifier: "en_US"))) ?? "") · \(Int(models.reduce(0) { $0 + $1.properties["sessions"].number }).formatted()) sessions · \(count) \(arenaSection == "rank" ? "models" : "labs")")
-                            .channelText(11, lineHeight: 14).monospacedDigit().foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                        Picker("排行榜", selection: $arenaSection) {
-                            Text("Models").tag("rank"); Text("Labs").tag("lab")
-                        }.pickerStyle(.segmented).frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 148)
-                            .frame(maxWidth: .infinity, alignment: .trailing).padding(.top, 4)
-                    }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.top, 16)
+        if let previewHeight {
+            // Eager, viewport-bounded content avoids lazy scroll-view culling after scaling.
+            VStack(spacing: 0) { feedContent(viewportHeight: previewHeight) }
+                .padding(.top, channel.code == "history" ? 20 : 4).padding(.bottom, 24)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+                .frame(height: previewHeight, alignment: .top)
+                .clipped().background(Color(uiColor: .systemBackground))
+        } else {
+          GeometryReader { viewport in
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 0) { feedContent(viewportHeight: viewport.size.height) }
+                        .padding(.top, channel.code == "history" ? 20 : 4).padding(.bottom, 24)
+                        .id("feed-top-\(channel.id)")
+                        .onGeometryChange(for: Bool.self) { geometry in
+                            geometry.frame(in: .named("feed-scroll-\(channel.id)")).minY < -240
+                        } action: { showsBackToTop = $0 }
                 }
-                let allItems = store.items(for: channel).filter { channel.code != "arena" || $0.properties["section"].text == arenaSection }
-                let items = preview && channel.code != "stock" ? Array(allItems.prefix(6)) : allItems
-                if items.isEmpty {
-                    if store.loading { ProgressView("正在汇集最新资讯…").frame(maxWidth: .infinity, minHeight: 300) }
-                    else { ContentUnavailableView("暂无资讯", systemImage: "newspaper", description: Text("下拉刷新，或选择其他频道")) }
-                } else if channel.code == "stock" {
+                .coordinateSpace(name: "feed-scroll-\(channel.id)")
+                .avoidsAppFooter()
+                .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+                .refreshable { await store.refresh() }
+                .accessibilityIdentifier("feed-\(channel.id)")
+                .accessibilityValue(density.title)
+                .overlay(alignment: .bottomTrailing) {
+                    if showsBackToTop {
+                        Button {
+                            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) {
+                                proxy.scrollTo("feed-top-\(channel.id)", anchor: .top)
+                            }
+                        } label: {
+                            Image(systemName: "arrow.up.to.line")
+                                .font(.body.weight(.medium)).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Circle())
+                        }
+                        .buttonStyle(.plain).glassSurface(in: Circle())
+                        .accessibilityLabel("回到顶部")
+                        .accessibilityIdentifier("back-to-top-\(channel.id)")
+                        .padding(.trailing, 20).padding(.bottom, footerHeight + 12)
+                    }
+                }
+            }
+          }
+        }
+    }
+    @ViewBuilder private func feedContent(viewportHeight: CGFloat) -> some View {
+        if channel.code == "featured", !channel.isRSS {
+            FeaturedContent(previewHeight: previewHeight)
+        } else if channel.code == "github", !channel.isRSS {
+            GithubContent(previewItemLimit: previewItemLimit)
+        } else if channel.code == "artificialAnalysis", !channel.isRSS {
+            AnalysisContent(preview: preview)
+        } else {
+            if channel.code == "arena" {
+                VStack(alignment: .leading, spacing: 8) {
+                    ViewThatFits(in: .horizontal) {
+                        HStack { arenaTitle; Spacer(minLength: 8); methodology }
+                        VStack(alignment: .leading, spacing: 4) { arenaTitle; methodology }
+                    }
+                    Text("基于真实 Agent Mode 任务数据，模型通过随机分配参与评测；榜单综合任务成功、用户反馈、纠错能力与工具调用表现，衡量其在实际工作场景中的综合能力。").channelText(11, lineHeight: 16).foregroundStyle(.secondary)
+                    let models = store.items(for: channel).filter { $0.properties["section"].text == "rank" }
+                    let count = store.items(for: channel).filter { $0.properties["section"].text == arenaSection }.count
+                    let date = newsDate(models.first?.properties["publishDate"].text ?? "")
+                    Text("\(date?.formatted(.dateTime.month(.abbreviated).day().year().locale(Locale(identifier: "en_US"))) ?? "") · \(Int(models.reduce(0) { $0 + $1.properties["sessions"].number }).formatted()) sessions · \(count) \(arenaSection == "rank" ? "models" : "labs")")
+                        .channelText(11, lineHeight: 14).monospacedDigit().foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Picker("排行榜", selection: $arenaSection) {
+                        Text("Models").tag("rank"); Text("Labs").tag("lab")
+                    }.pickerStyle(.segmented).frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 148)
+                        .frame(maxWidth: .infinity, alignment: .trailing).padding(.top, 4)
+                }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.top, 16)
+            }
+            let allItems = store.items(for: channel).filter { channel.code != "arena" || $0.properties["section"].text == arenaSection }
+            let items = preview && channel.code != "stock" ? Array(allItems.prefix(previewItemLimit ?? allItems.count)) : allItems
+            if items.isEmpty {
+                if store.loading { ProgressView("正在汇集最新资讯…").frame(maxWidth: .infinity, minHeight: 300) }
+                else { ContentUnavailableView("暂无资讯", systemImage: "newspaper", description: Text("下拉刷新，或选择其他频道")) }
+            } else if channel.code == "stock" {
+                VStack(spacing: 0) {
                     Text("*更新于 \(items.first?.stockUpdateTime ?? "未知时间") 北京")
                         .channelText(12).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 20).padding(.vertical, 12).accessibilityIdentifier("stock-updated")
-                    StockMap(items: items, height: density == .compact ? 480 : density == .spacious ? 720 : 600).padding(.horizontal, 16)
-                    Text("面积代表市值 · 点击板块查看详情").channelText(12).foregroundStyle(.secondary).padding(20)
-                } else {
-                    if channel.code == "tiobe" {
-                        TiobeRow(item: nil).padding(.horizontal, 20).padding(.vertical, 12)
-                        Divider().padding(.horizontal, 20)
-                    }
-                    let dates = channel.isRSS ? items.compactMap(\.publicationDate) : []
-                    let sameDay = dates.count == items.count && dates.first.map { first in dates.allSatisfy { Calendar.current.isDate($0, inSameDayAs: first) } } == true
-                    ForEach(items) { item in
-                        NewsRow(item: item, channel: channel.isRSS ? "rss" : channel.code, density: density, rssShowsTime: sameDay)
-                            .accessibilityIdentifier("news-\(channel.code)-\(item.index)")
-                        if !channel.isRSS, ["zhihu", "sspai", "nnGroup", "tiobe", "arena"].contains(channel.code), item.id != items.last?.id {
-                            Divider().opacity(0.45).padding(.horizontal, 20)
-                        }
-                    }
-                    if channel.code == "arena" {
-                        Link("View on arena.ai", destination: URL(string: "https://arena.ai/leaderboard/agent")!)
-                            .channelText(12).foregroundStyle(.secondary).frame(minHeight: 44).padding(.top, 12)
+                    StockMap(items: items).padding(.horizontal, 16)
+                }
+                // Leave room for the shared footer, scroll margin and feed padding, even in short windows.
+                .frame(height: max(0, viewportHeight - footerHeight - 44))
+            } else {
+                if channel.code == "tiobe" {
+                    TiobeRow(item: nil).padding(.horizontal, 20).padding(.vertical, 12)
+                    Divider().padding(.horizontal, 20)
+                }
+                let dates = channel.isRSS ? items.compactMap(\.publicationDate) : []
+                let sameDay = dates.count == items.count && dates.first.map { first in dates.allSatisfy { Calendar.current.isDate($0, inSameDayAs: first) } } == true
+                ForEach(items) { item in
+                    NewsRow(item: item, channel: channel.isRSS ? "rss" : channel.code, density: density, rssShowsTime: sameDay)
+                        .frame(minHeight: preview ? 44 : nil)
+                        .accessibilityIdentifier("news-\(channel.code)-\(item.index)")
+                    if !channel.isRSS, ["zhihu", "sspai", "nnGroup", "tiobe", "arena"].contains(channel.code), item.id != items.last?.id {
+                        Divider().opacity(0.45).padding(.horizontal, 20)
                     }
                 }
+                if channel.code == "arena" {
+                    Link("View on arena.ai", destination: URL(string: "https://arena.ai/leaderboard/agent")!)
+                        .channelText(12).foregroundStyle(.secondary).frame(minHeight: 44).padding(.top, 12)
                 }
-            }.padding(.top, channel.code == "history" ? 20 : 4).padding(.bottom, 24)
-                .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 1), value: density)
+            }
         }
-        .avoidsAppFooter()
-        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
-        .scrollDisabled(preview)
-        .refreshable { await store.refresh() }
-        .accessibilityIdentifier("feed-\(channel.id)")
-        .accessibilityValue(density.title)
     }
     private var arenaTitle: some View { Text("Agent Arena").channelText(24, lineHeight: 28, family: "Georgia").tracking(-0.7).fixedSize(horizontal: true, vertical: false) }
     private var methodology: some View {
@@ -762,7 +807,7 @@ struct ArenaMetrics: View {
 
 struct StockMap: View {
     let items: [NewsItem]
-    var height: CGFloat = 600
+    var height: CGFloat?
     @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         GeometryReader { geometry in
@@ -776,10 +821,11 @@ struct StockMap: View {
                         VStack(spacing: 4) {
                             Text(item.title).channelText(12, weight: .medium, lineHeight: 14).lineLimit(1)
                             Text(change + "%").channelText(12, lineHeight: 14).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-                                .foregroundStyle(value == 0 ? Color.secondary : value < 0 ? (colorScheme == .dark ? .green : Color(red: 0.15, green: 0.43, blue: 0.23)) : (colorScheme == .dark ? .red : Color(red: 0.70, green: 0.17, blue: 0.16)))
+                                .foregroundStyle(stockChangeColor(value, colorScheme: colorScheme))
                         }.frame(width: max(0, rect.width - 3), height: max(0, rect.height - 3))
-                            .background(stockBackground(value).opacity(colorScheme == .dark ? 0.2 : 1), in: .rect(cornerRadius: 2)).clipped()
+                            .background(stockBackground(value, colorScheme: colorScheme), in: .rect(cornerRadius: 2)).clipped()
                     }.buttonStyle(.plain).offset(x: rect.minX, y: rect.minY)
+                        .accessibilityIdentifier("stock-sector-\(item.index)")
                 }
             }
         }.frame(height: height).accessibilityLabel("沪深板块热力图，面积代表市值，红涨绿跌")
@@ -793,18 +839,24 @@ func movieStarColor(_ rate: Double) -> Color {
     return Color(red: 1, green: 153.0 / 255, blue: 0)
 }
 
-func stockBackground(_ change: Double) -> Color {
+func stockBackground(_ change: Double, colorScheme: ColorScheme = .light) -> Color {
     let rgb: (Double, Double, Double)
     switch change {
-    case ..<(-3): rgb = (206, 234, 219)
-    case ..<(-1): rgb = (226, 242, 233)
-    case ..<0: rgb = (240, 249, 244)
-    case 0: rgb = (225, 229, 233)
-    case ...1: rgb = (255, 240, 242)
-    case ...3: rgb = (255, 228, 230)
-    default: rgb = (254, 208, 213)
+    case ..<(-3): rgb = colorScheme == .dark ? (44, 93, 73) : (206, 234, 219)
+    case ..<(-1): rgb = colorScheme == .dark ? (33, 68, 57) : (226, 242, 233)
+    case ..<0: rgb = colorScheme == .dark ? (29, 49, 44) : (240, 249, 244)
+    case 0: rgb = colorScheme == .dark ? (43, 45, 49) : (225, 229, 233)
+    case ...1: rgb = colorScheme == .dark ? (54, 33, 39) : (255, 240, 242)
+    case ...3: rgb = colorScheme == .dark ? (77, 40, 47) : (255, 228, 230)
+    default: rgb = colorScheme == .dark ? (109, 50, 60) : (254, 208, 213)
     }
     return Color(red: rgb.0 / 255, green: rgb.1 / 255, blue: rgb.2 / 255)
+}
+
+func stockChangeColor(_ change: Double, colorScheme: ColorScheme) -> Color {
+    if change == 0 { return Color(white: colorScheme == .dark ? 0.70 : 0.38) }
+    if change < 0 { return colorScheme == .dark ? Color(red: 0.49, green: 0.88, blue: 0.69) : Color(red: 0.15, green: 0.43, blue: 0.23) }
+    return colorScheme == .dark ? Color(red: 1, green: 0.60, blue: 0.58) : Color(red: 0.70, green: 0.17, blue: 0.16)
 }
 
 func stockRects(_ items: [NewsItem], in bounds: CGRect) -> [CGRect] {

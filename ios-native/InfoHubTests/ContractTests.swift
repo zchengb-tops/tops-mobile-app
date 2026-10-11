@@ -4,6 +4,74 @@ import UIKit
 @testable import InfoHub
 
 final class ContractTests: XCTestCase {
+    @MainActor func testChannelPreviewsRenderBothHalvesOfTallViewports() throws {
+        let store = AppStore()
+        let player = PodcastPlayer()
+        let originalSize = store.readingSize
+        defer { store.readingSize = originalSize }
+        store.readingSize = "system"
+        let items: [JSON] = (0..<40).map { index in
+            .object(["title": .string("Preview headline \(index)"), "rankNum": .string("\(index + 1)"),
+                     "url": .string("https://example.com/\(index)")])
+        }
+        store.news = .object(["sina": .array(items), "sspai": .array(items), "36kr": .array(items), "nnGroup": .array(items),
+                              "github": .object(["daily": .object(["items": .array(items)])])])
+        store.channels = ["sspai", "36kr", "nnGroup"].map { Channel(.object(["channelCode": .string($0), "enable": .bool(true)])) }
+        for code in ["sina", "github", "featured"] {
+            for height in [800, 1200] {
+                let channel = Channel(.object(["channelCode": .string(code)]))
+                let renderer = ImageRenderer(content: ChannelFeed(channel: channel, previewHeight: CGFloat(height))
+                    .environment(store).environment(player).environment(\.colorScheme, .light)
+                    .environment(\.dynamicTypeSize, .large).tint(.black)
+                    .frame(width: 400, height: CGFloat(height)))
+                renderer.scale = 1
+                let image = try XCTUnwrap(renderer.cgImage)
+                let attachment = XCTAttachment(image: UIImage(cgImage: image))
+                attachment.name = "Preview-\(code)-\(height)"
+                attachment.lifetime = .keepAlways
+                add(attachment)
+                var pixels = [UInt8](repeating: 255, count: 400 * height * 4)
+                try pixels.withUnsafeMutableBytes { bytes in
+                    let context = try XCTUnwrap(CGContext(data: bytes.baseAddress, width: 400, height: height,
+                        bitsPerComponent: 8, bytesPerRow: 400 * 4, space: CGColorSpaceCreateDeviceRGB(),
+                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+                    context.draw(image, in: CGRect(x: 0, y: 0, width: 400, height: height))
+                }
+                for band in [100..<300, (height - 300)..<(height - 100)] {
+                    let ink = band.reduce(0) { count, y in
+                        count + (100..<350).filter { x in
+                            let offset = (y * 400 + x) * 4
+                            return pixels[offset] < 160 && pixels[offset + 1] < 160 && pixels[offset + 2] < 160
+                        }.count
+                    }
+                    XCTAssertGreaterThan(ink, 100, "\(code) preview must render headlines in both halves at height \(height)")
+                }
+                if code == "sina" {
+                    // Standalone NavigationLinks are dimmed; compare hue rather than absolute brightness.
+                    let firstRankPixels = [0..<80, (height - 80)..<height].flatMap { Array($0) }.reduce(0) { count, y in
+                        count + (0..<60).filter { x in
+                            let offset = (y * 400 + x) * 4
+                            let red = Int(pixels[offset]), green = Int(pixels[offset + 1]), blue = Int(pixels[offset + 2])
+                            return red - green > 30 && red - blue > 30 && abs(green - blue) < 20
+                        }.count
+                    }
+                    XCTAssertGreaterThan(firstRankPixels, 5, "Preview must start at rank 1, not center-crop the list")
+                }
+            }
+        }
+    }
+    @MainActor func testListSpacingIgnoresLegacyPreference() {
+        let defaults = UserDefaults.standard
+        let original = defaults.object(forKey: "native.feedDensity")
+        defer {
+            if let original { defaults.set(original, forKey: "native.feedDensity") }
+            else { defaults.removeObject(forKey: "native.feedDensity") }
+        }
+        for legacy in ["compact", "standard", "spacious"] {
+            defaults.set(legacy, forKey: "native.feedDensity")
+            XCTAssertEqual(AppStore().feedDensity, .standard)
+        }
+    }
     @MainActor func testRSSSavePrependsAndPreservesEditedPosition() async throws {
         let defaults = UserDefaults.standard
         let keys = ["native.channels", "native.selectedChannel", "native.syncEnabled"]
@@ -455,11 +523,50 @@ final class ContractTests: XCTestCase {
     }
     func testTreemapPreservesAreaAndBounds() {
         let items = [10.0, 20, 30, 40].enumerated().map { NewsItem(raw: .object(["value": .array([.number($0.element)])]), index: $0.offset) }
-        let bounds = CGRect(x: 0, y: 0, width: 360, height: 600)
-        let rects = stockRects(items, in: bounds)
-        XCTAssertEqual(rects.count, items.count)
-        XCTAssertEqual(rects.reduce(0) { $0 + $1.width * $1.height }, bounds.width * bounds.height, accuracy: 0.1)
-        for rect in rects { XCTAssertTrue(bounds.contains(rect)) }
+        for size in [CGSize(width: 360, height: 600), CGSize(width: 360, height: 240), CGSize(width: 800, height: 280)] {
+            let bounds = CGRect(origin: .zero, size: size)
+            let rects = stockRects(items, in: bounds)
+            XCTAssertEqual(rects.count, items.count)
+            XCTAssertEqual(rects.reduce(0) { $0 + $1.width * $1.height }, bounds.width * bounds.height, accuracy: 0.1)
+            for rect in rects { XCTAssertTrue(bounds.contains(rect)) }
+        }
+    }
+    func testStockPaletteContrastAndDirectionInBothAppearances() {
+        func components(_ color: Color, _ traits: UITraitCollection) -> (CGFloat, CGFloat, CGFloat, CGFloat) {
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            XCTAssertTrue(UIColor(color).resolvedColor(with: traits).getRed(&r, green: &g, blue: &b, alpha: &a))
+            return (r, g, b, a)
+        }
+        func luminance(_ rgba: (CGFloat, CGFloat, CGFloat, CGFloat)) -> Double {
+            func linear(_ value: CGFloat) -> Double { value <= 0.04045 ? Double(value / 12.92) : pow(Double((value + 0.055) / 1.055), 2.4) }
+            return 0.2126 * linear(rgba.0) + 0.7152 * linear(rgba.1) + 0.0722 * linear(rgba.2)
+        }
+        for scheme in [ColorScheme.light, .dark] {
+            let traits = UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light)
+            for change in [-4.0, -3, -1, -0.1, 0, 0.1, 1, 3, 4] {
+                let background = components(stockBackground(change, colorScheme: scheme), traits)
+                XCTAssertEqual(background.3, 1, "Use opaque, scheme-specific fills rather than faded light colors")
+                if change < 0 { XCTAssertGreaterThan(background.1, background.0) }
+                if change > 0 { XCTAssertGreaterThan(background.0, background.1) }
+                for text in [Color.primary, stockChangeColor(change, colorScheme: scheme)] {
+                    let values = [luminance(background), luminance(components(text, traits))].sorted()
+                    XCTAssertGreaterThanOrEqual((values[1] + 0.05) / (values[0] + 0.05), 4.5, "\(scheme), \(change), \(text)")
+                }
+            }
+        }
+    }
+    @MainActor func testStockMapKeepsFeaturedHeight() throws {
+        let items = [-4.0, -0.1, 0, 4].enumerated().map {
+            NewsItem(raw: .object(["name": .string("板块 \($0.offset)"), "value": .array([.number(10), .number(1), .number($0.element)])]), index: $0.offset)
+        }
+        for scheme in [ColorScheme.light, .dark] {
+            let renderer = ImageRenderer(content: StockMap(items: items, height: 240).frame(width: 360)
+                .environment(AppStore()).environment(\.colorScheme, scheme).environment(\.dynamicTypeSize, .large))
+            let image = try XCTUnwrap(renderer.uiImage)
+            XCTAssertEqual(image.size, CGSize(width: 360, height: 240))
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "Featured-stock-\(scheme)"; attachment.lifetime = .keepAlways; add(attachment)
+        }
     }
 }
 

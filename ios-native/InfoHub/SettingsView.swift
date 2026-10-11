@@ -141,11 +141,6 @@ struct SettingsView: View {
                           selection: $store.readingSize, compact: compact) {
             Text("跟随系统").tag("system"); Text("小").tag("small"); Text("大").tag("large")
         }.accessibilityIdentifier("reading-size-picker")
-        ReadingPreference("列表间距", symbol: "rectangle.compress.vertical", value: store.feedDensity.title,
-                          selection: $store.feedDensity, compact: compact) {
-            ForEach(FeedDensity.allCases) { Text($0.title).tag($0) }
-        }.accessibilityIdentifier("density-picker")
-            .accessibilityHint("手动设置列表间距；在资讯页双指合拢可查看所有频道。")
     }
 }
 
@@ -503,8 +498,13 @@ struct LoginView: View {
             .onTapGesture { flow.agreed.toggle() }
     }
     @ViewBuilder private var legalLinks: some View {
-        NavigationLink("《服务协议》") { LegalView(kind: "terms") }.frame(minHeight: 44).accessibilityIdentifier("login-terms")
-        NavigationLink("《隐私政策》") { LegalView(kind: "privacy") }.frame(minHeight: 44).accessibilityIdentifier("login-privacy")
+        let orange = Color(red: 247 / 255.0, green: 111 / 255.0, blue: 0)
+        NavigationLink { LegalView(kind: "terms") } label: {
+            Text("《服务协议》、").foregroundStyle(orange).frame(minHeight: 44).contentShape(Rectangle())
+        }.accessibilityLabel("《服务协议》").accessibilityIdentifier("login-terms")
+        NavigationLink { LegalView(kind: "privacy") } label: {
+            Text("《隐私政策》").foregroundStyle(orange).frame(minHeight: 44).contentShape(Rectangle())
+        }.accessibilityIdentifier("login-privacy")
     }
     private func finishEditing() {
         emailFocused = false; codeFocused = false

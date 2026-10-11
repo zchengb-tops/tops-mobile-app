@@ -20,7 +20,6 @@ struct ChannelOverviewHost: View {
     @Binding var progress: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var frames: [String: CGRect] = [:]
     @State private var gestureStart: CGFloat?
     @State private var presentedProgress: CGFloat = 0
     private var settleAnimation: Animation { reduceMotion ? .easeOut(duration: 0.16) : .spring(response: 0.36, dampingFraction: 1) }
@@ -29,11 +28,15 @@ struct ChannelOverviewHost: View {
             let columns = typeSize.isAccessibilitySize ? 1 : geometry.size.width > 650 ? 3 : 2
             let thumbnailWidth = max(1, (geometry.size.width - 32 - CGFloat(columns - 1) * 16) / CGFloat(columns))
             let thumbnailScale = thumbnailWidth / max(1, geometry.size.width)
-            let target = frames[selection] ?? CGRect(x: 16, y: 8, width: thumbnailWidth, height: geometry.size.height * thumbnailScale)
             ZStack(alignment: .topLeading) {
                 Color(uiColor: .secondarySystemBackground).opacity(progress)
-                overview(size: geometry.size, columns: columns, thumbnailWidth: thumbnailWidth)
-                    .opacity(progress).allowsHitTesting(progress == 1).accessibilityHidden(progress < 1)
+                if progress > 0 || presentedProgress > 0 {
+                    overview(size: geometry.size, columns: columns, thumbnailWidth: thumbnailWidth)
+                        .opacity(progress).allowsHitTesting(progress == 1).accessibilityHidden(progress < 1)
+                }
+            }
+            .overlayPreferenceValue(OverviewFramePreference.self) { frames in
+                let target = frames[selection] ?? CGRect(x: 16, y: 8, width: thumbnailWidth, height: geometry.size.height * thumbnailScale)
                 // This is the original live pager, not a reconstructed page. Its scroll views stay alive.
                 ChannelPager(channels: channels, selection: $selection)
                     .frame(width: geometry.size.width, height: geometry.size.height)
@@ -53,7 +56,6 @@ struct ChannelOverviewHost: View {
                         gestureStart = nil
                         withAnimation(settleAnimation) { progress = ChannelZoom.destination(progress: progress, velocity: value.velocity) }
                     })
-                .onPreferenceChange(OverviewFramePreference.self) { frames = $0.filter { $0.value.isFiniteThumbnail } }
                 .onPreferenceChange(ZoomPresentationPreference.self) { presentedProgress = $0 }
                 .accessibilityAction(named: "查看所有频道") { withAnimation(settleAnimation) { progress = 1 } }
                 .accessibilityAction(.escape) { withAnimation(settleAnimation) { progress = 0 } }
@@ -93,7 +95,7 @@ struct ChannelOverviewHost: View {
     }
     private func thumbnail(_ channel: Channel, size: CGSize, width: CGFloat) -> some View {
         let scale = width / max(1, size.width)
-        return ChannelFeed(channel: channel, preview: true)
+        return ChannelFeed(channel: channel, previewHeight: size.height)
             .environment(\.appFooterHeight, 0)
             .frame(width: size.width, height: size.height)
             .scaleEffect(scale, anchor: .topLeading)
@@ -103,8 +105,11 @@ struct ChannelOverviewHost: View {
             .background(Color(uiColor: .systemBackground), in: .rect(cornerRadius: 16))
             .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(Color.primary.opacity(channel.id == selection ? 0.22 : 0.06), lineWidth: channel.id == selection ? 1.5 : 0.5) }
             .background {
-                GeometryReader { geometry in
-                    Color.clear.preference(key: OverviewFramePreference.self, value: [channel.id: geometry.frame(in: .named("channel-overview-host"))])
+                if channel.id == selection {
+                    GeometryReader { geometry in
+                        let frame = geometry.frame(in: .named("channel-overview-host"))
+                        Color.clear.preference(key: OverviewFramePreference.self, value: frame.isFiniteThumbnail ? [channel.id: frame] : [:])
+                    }
                 }
             }.allowsHitTesting(false).accessibilityHidden(true)
     }

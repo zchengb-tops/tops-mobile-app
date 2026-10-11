@@ -2,7 +2,8 @@ import SwiftUI
 import Charts
 
 struct GithubContent: View {
-    var preview = false
+    var previewItemLimit: Int?
+    private var preview: Bool { previewItemLimit != nil }
     @Environment(AppStore.self) private var store
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var period = GithubPeriod.daily
@@ -25,14 +26,16 @@ struct GithubContent: View {
             if items.isEmpty {
                 ChannelDataState(loading: store.loading, message: store.news["github"][period.rawValue]["errorMessage"].text)
             } else {
-                LazyVStack(spacing: 0) {
-                    ForEach(Array(items.prefix(preview ? 4 : items.count))) { item in
-                        GithubRow(item: item, period: period)
-                        if item.id != items.last?.id { Divider().opacity(0.4).padding(.vertical, 16) }
-                    }
-                }
+                if preview { VStack(spacing: 0) { rows(items) } }
+                else { LazyVStack(spacing: 0) { rows(items) } }
             }
         }.padding(.horizontal, 20).padding(.top, 16)
+    }
+    private func rows(_ items: [NewsItem]) -> some View {
+        ForEach(Array(items.prefix(previewItemLimit ?? items.count))) { item in
+            GithubRow(item: item, period: period)
+            if item.id != items.last?.id { Divider().opacity(0.4).padding(.vertical, 16) }
+        }
     }
     private var heading: some View {
         Link("GitHub Trending", destination: URL(string: "https://github.com/trending")!)
@@ -155,7 +158,7 @@ struct AnalysisContent: View {
             if let error = store.channelErrors["artificialAnalysis"], !preview { Text(error).font(.footnote).foregroundStyle(.secondary) }
             let charts = AnalysisChart.charts(in: store.news["artificialAnalysis"])
             if charts.isEmpty { ChannelDataState(loading: store.loading) }
-            ForEach(Array(charts.prefix(preview ? 1 : charts.count))) { chart in
+            ForEach(charts) { chart in
                 AnalysisChartView(chart: chart, limit: preview ? 4 : nil, preview: preview)
             }
         }.padding(.horizontal, 20).padding(.top, 16)
@@ -268,7 +271,7 @@ private struct ChannelDataState: View {
 }
 
 struct FeaturedContent: View {
-    var preview = false
+    var previewHeight: CGFloat?
     @Environment(AppStore.self) private var store
     private let groups: [[String]] = [
         ["sina", "zhihu", "stock"],
@@ -276,14 +279,28 @@ struct FeaturedContent: View {
         ["github", "tiobe", "arena", "artificialAnalysis"],
         ["xiaoyuzhou", "bilibili", "doubanMovie"]
     ]
+    private var visibleGroups: [[Channel]] {
+        let channelsByGroup = groups.map { codes in codes.compactMap { code in store.enabledChannels.first { !$0.isRSS && $0.code == code } } }
+            + [store.enabledChannels.filter(\.isRSS)]
+        guard let previewHeight else { return channelsByGroup }
+        // Minimum heights deliberately overfill rather than leave a partially populated thumbnail.
+        var height: CGFloat = 0
+        return Array(channelsByGroup.prefix { channels in
+            guard height < previewHeight else { return false }
+            for channel in channels {
+                let count = items(for: channel).count
+                if channel.code == "stock", count > 0 { height += 240 + 44 }
+                else if channel.code == "artificialAnalysis", !AnalysisChart.charts(in: store.news[channel.code]).isEmpty { height += 270 + 44 }
+                else { height += CGFloat(min(count, channel.code == "sina" ? 5 : 4)) * 44 + (isArticle(channel) ? 0 : 44) }
+            }
+            return true
+        })
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            ForEach(groups.prefix(preview ? 1 : groups.count), id: \.self) { codes in
-                let channels = codes.compactMap { code in store.enabledChannels.first { !$0.isRSS && $0.code == code } }
+            ForEach(Array(visibleGroups.enumerated()), id: \.offset) { _, channels in
                 if !channels.isEmpty { section(channels: channels) }
             }
-            let rss = store.enabledChannels.filter(\.isRSS)
-            if !preview, !rss.isEmpty { section(channels: rss) }
         }
     }
     private func section(channels: [Channel]) -> some View {
@@ -310,11 +327,14 @@ struct FeaturedContent: View {
     private func isArticle(_ channel: Channel) -> Bool {
         channel.isRSS || ["sspai", "36kr", "nnGroup"].contains(channel.code)
     }
-    @ViewBuilder private func featuredItems(_ channel: Channel) -> some View {
-        let items = store.items(for: channel).filter {
+    private func items(for channel: Channel) -> [NewsItem] {
+        store.items(for: channel).filter {
             (channel.code != "arena" || $0.properties["section"].text == "rank") &&
             (channel.code != "xiaoyuzhou" || $0.raw["trendType"].text == "最热榜")
         }
+    }
+    @ViewBuilder private func featuredItems(_ channel: Channel) -> some View {
+        let items = items(for: channel)
         if channel.code == "artificialAnalysis", let chart = AnalysisChart.charts(in: store.news["artificialAnalysis"]).first {
             AnalysisChartView(chart: chart).padding(.horizontal, 20).padding(.vertical, 8)
         } else if channel.code == "stock", !items.isEmpty {
