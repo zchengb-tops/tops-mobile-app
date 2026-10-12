@@ -23,6 +23,8 @@ abort 'App icon conversion failed' unless system('xcrun', 'swift', File.join(roo
 File.write(File.join(assets, 'Contents.json'), JSON.pretty_generate({images: [{filename: 'AppIcon.png', idiom: 'universal', platform: 'ios', size: '1024x1024'}], info: {author: 'xcode', version: 1}}))
 app.resources_build_phase.add_file_reference(group.new_file('Assets.xcassets'))
 app.resources_build_phase.add_file_reference(group.new_file('PrivacyInfo.xcprivacy'))
+app.resources_build_phase.add_file_reference(group.new_file('LaunchScreen.storyboard'))
+FileUtils.cp(File.join(root, '../assets/welcomePage.png'), File.join(root, 'InfoHub/Assets.xcassets/LaunchArtwork.imageset/welcomePage.png'))
 %w[Ionicons.ttf LICENSE].each do |source|
   name = source == 'LICENSE' ? 'Ionicons-LICENSE.txt' : source
   FileUtils.cp(File.join(root, '../node_modules/react-native-vector-icons', source == 'LICENSE' ? source : "Fonts/#{source}"), File.join(root, 'InfoHub', name))

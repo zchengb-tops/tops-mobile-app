@@ -4,6 +4,29 @@ import UIKit
 @testable import InfoHub
 
 final class ContractTests: XCTestCase {
+    @MainActor func testLaunchScreenUsesOriginalArtworkWithoutCropping() throws {
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "UILaunchStoryboardName") as? String, "LaunchScreen")
+        let controller = try XCTUnwrap(UIStoryboard(name: "LaunchScreen", bundle: .main).instantiateInitialViewController())
+        let view = try XCTUnwrap(controller.view)
+        let artwork = try XCTUnwrap(view.subviews.compactMap { $0 as? UIImageView }.first)
+        XCTAssertNotNil(artwork.image)
+        XCTAssertEqual(artwork.image?.size, CGSize(width: 390, height: 844))
+        XCTAssertEqual(artwork.contentMode, .scaleAspectFit)
+        for style in [UIUserInterfaceStyle.light, .dark] {
+            controller.overrideUserInterfaceStyle = style
+            for size in [CGSize(width: 440, height: 956), CGSize(width: 956, height: 440), CGSize(width: 1024, height: 1366)] {
+                view.frame = CGRect(origin: .zero, size: size)
+                view.setNeedsLayout(); view.layoutIfNeeded()
+                XCTAssertEqual(artwork.frame, view.bounds)
+                XCTAssertEqual(view.backgroundColor?.resolvedColor(with: view.traitCollection), UIColor.white)
+                let image = UIGraphicsImageRenderer(size: size).image { context in view.layer.render(in: context.cgContext) }
+                let attachment = XCTAttachment(image: image)
+                attachment.name = "Launch-\(style.rawValue)-\(Int(size.width))x\(Int(size.height))"
+                attachment.lifetime = .keepAlways
+                add(attachment)
+            }
+        }
+    }
     @MainActor func testChannelPreviewsRenderBothHalvesOfTallViewports() throws {
         let store = AppStore()
         let player = PodcastPlayer()

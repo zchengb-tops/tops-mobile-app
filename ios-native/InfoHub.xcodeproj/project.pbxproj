@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9100A0000000000000000020 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9100A0000000000000000021 /* LaunchScreen.storyboard */; };
 		9100A0000000000000000001 /* ChannelOverview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9100A0000000000000000011 /* ChannelOverview.swift */; };
 		9100A0000000000000000002 /* NewChannelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9100A0000000000000000012 /* NewChannelsView.swift */; };
 		01A7728FA8E2CCAAA52F205C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */; };
@@ -49,6 +50,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9100A0000000000000000021 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9100A0000000000000000011 /* ChannelOverview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelOverview.swift; sourceTree = "<group>"; };
 		9100A0000000000000000012 /* NewChannelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChannelsView.swift; sourceTree = "<group>"; };
 		F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -127,6 +129,7 @@
 				FE8CE117BEFCF7F2BF7FFCBB /* terms.txt */,
 				D4FD5CB6CCCD2EA9F6AAD99F /* privacy.txt */,
 				DE242DD76213CB4B17544077 /* Assets.xcassets */,
+				9100A0000000000000000021 /* LaunchScreen.storyboard */,
 				3BE40B90E113216B352800BC /* Ionicons.ttf */,
 				F638B8A170E042190C5554E1 /* Ionicons-LICENSE.txt */,
 				F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */,
@@ -277,6 +280,7 @@
 				C6BA20411BA179515DAA9C94 /* terms.txt in Resources */,
 				1DDCFCE9895C60302B4D06E5 /* privacy.txt in Resources */,
 				80BDC1C32F7B3883346C3ACA /* Assets.xcassets in Resources */,
+				9100A0000000000000000020 /* LaunchScreen.storyboard in Resources */,
 				B647AA60F5E9B86D850DB1DC /* Ionicons.ttf in Resources */,
 				01A7728FA8E2CCAAA52F204C /* Ionicons-LICENSE.txt in Resources */,
 				01A7728FA8E2CCAAA52F205C /* PrivacyInfo.xcprivacy in Resources */,
