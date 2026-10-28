@@ -32,6 +32,13 @@ struct API {
     let baseURL: URL
     init() { baseURL = URL(string: Bundle.main.object(forInfoDictionaryKey: "APIBaseURL") as? String ?? "https://zchengb.top/api")! }
     func request(_ path: String, body: JSON? = nil, query: [URLQueryItem] = []) async throws -> JSON {
+        #if DEBUG
+        // Explicit subscription UI fixtures intercept every request, including writes and cloud sync.
+        if let scenario = ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_RSS"],
+           ["success", "subscribe-error", "load-error", "empty"].contains(scenario) {
+            return try await RSSUITestAPI.shared.request(path, scenario: scenario)
+        }
+        #endif
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
         var request = URLRequest(url: components.url!, timeoutInterval: 30)
@@ -52,3 +59,34 @@ struct API {
         return data.isEmpty ? .null : try JSONDecoder().decode(JSON.self, from: data)
     }
 }
+
+#if DEBUG
+private actor RSSUITestAPI {
+    static let shared = RSSUITestAPI()
+    private var resourceAttempts = 0
+    private var recommendationAttempts = 0
+    func request(_ path: String, scenario: String) async throws -> JSON {
+        let response: String
+        switch path {
+        case "rss-recommendations":
+            recommendationAttempts += 1
+            if scenario == "load-error", recommendationAttempts == 1 { throw APIError.message("测试推荐加载失败") }
+            response = scenario == "empty" ? "[]" : #"[{"id":"fixture-one","title":"测试来源一","rssUrl":"https://example.org/one.xml","description":"独立推荐列表，点击即可订阅","iconUrl":""},{"id":"fixture-two","title":"测试来源二","rssUrl":"https://example.org/two.xml","description":"无需填写 RSS 创建表单","iconUrl":""}]"#
+        case "rss-resource":
+            resourceAttempts += 1
+            let shouldFail = scenario == "subscribe-error" && resourceAttempts == 1
+            try await Task.sleep(for: .milliseconds(500))
+            if shouldFail { throw APIError.message("测试订阅失败，请重试") }
+            response = #"{"description":"Fixture RSS metadata","iconUrl":""}"#
+        case "rss-resource/title": response = #""自定义测试来源""#
+        case "news-channels/default": response = #"[{"channelCode":"sina","title":"微博","isAppEnabled":true,"enable":true}]"#
+        case "rss-news": response = "[]"
+        case "normal-news", "news/github", "news/artificial-analysis", "app/versions": response = "{}"
+        default: throw APIError.message("订阅测试未配置此请求")
+        }
+        let run = ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_RSS_RUN"] ?? "default"
+        let isolated = response.replacingOccurrences(of: "https://example.org/", with: "https://example.org/\(run)/")
+        return try JSONDecoder().decode(JSON.self, from: Data(isolated.utf8))
+    }
+}
+#endif

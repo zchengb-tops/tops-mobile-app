@@ -1,0 +1,918 @@
+{
+  "device": "iPhone 18 Pro Max · iOS 27.0",
+  "reviewed": "2026-10-28",
+  "groups": [
+    {
+      "id": "discover",
+      "title": "发现与阅读",
+      "en": "DISCOVER",
+      "description": "总览和不同来源的内容，以各自适合的方式呈现。",
+      "items": [
+        {
+          "id": "featured",
+          "code": "D01",
+          "title": "总览",
+          "description": "聚合已订阅频道的精选内容。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Featured-no-headings-light-standard",
+              "src": "screens/featured-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeaturedStartsWithChannelsWithoutRepeatedHeadings()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:02:04.580000+00:00",
+              "sha256": "f9fe6842ae8f134ff2f2370ec90fc140ec956eafeed90130553f29034e5711f6"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Featured-no-headings-dark-standard",
+              "src": "screens/featured-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeaturedStartsWithChannelsWithoutRepeatedHeadings()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:02:40.208000+00:00",
+              "sha256": "28ce9aef346236c7fb7ac41eeafe6366f1aa3865b33b1d2b88ad63e7ecdb21a5"
+            }
+          ]
+        },
+        {
+          "id": "channel-overview",
+          "code": "D02",
+          "title": "频道总览",
+          "description": "以缩览方式切换已订阅频道。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Featured-no-headings-thumbnails",
+              "src": "screens/channel-overview-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeaturedStartsWithChannelsWithoutRepeatedHeadings()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:02:13.682000+00:00",
+              "sha256": "6cffd03e86f9cf23097d8536f5ba1d7d51577147c368f52bacfa45b5efc65632"
+            }
+          ]
+        },
+        {
+          "id": "weibo",
+          "code": "D03",
+          "title": "微博热搜",
+          "description": "紧凑的排名、话题与热度。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-sina",
+              "src": "screens/weibo-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:22.721000+00:00",
+              "sha256": "6ec3e695a9f7832bef60cf762207b7040bae9ce78f62d17fe2351acd24216ff4"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-sina",
+              "src": "screens/weibo-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T09:59:55.359000+00:00",
+              "sha256": "8bc1c7470eb9ecbd447fdb06764639e3a700641932ca2abf7fa9a425ce3ff8f6"
+            }
+          ]
+        },
+        {
+          "id": "zhihu",
+          "code": "D04",
+          "title": "知乎热榜",
+          "description": "问题、热度与缩略图。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-zhihu",
+              "src": "screens/zhihu-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:27.888000+00:00",
+              "sha256": "6f5622d41a17643c04b3f67da119b4d8c94506883103973b29d7f6301af3a2d7"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-zhihu",
+              "src": "screens/zhihu-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T09:59:59.712000+00:00",
+              "sha256": "43f646b40aa1d64c9a49e5a1ad4931744c66e6af928db4a3d9e66416719d4cbb"
+            }
+          ]
+        },
+        {
+          "id": "sspai",
+          "code": "D05",
+          "title": "少数派",
+          "description": "文章封面、标题与互动数据。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-sspai",
+              "src": "screens/sspai-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:33.015000+00:00",
+              "sha256": "dec2aa75b79ce58d17a98458164a9bdd56bea026a7e807acf9d19b69b2903eb0"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-sspai",
+              "src": "screens/sspai-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:04.335000+00:00",
+              "sha256": "821e8c6984b24514c5c7ad69f1956b3d3cba65c21f21ad28cad9e8e950dc1886"
+            }
+          ]
+        },
+        {
+          "id": "36kr",
+          "code": "D06",
+          "title": "36 氪",
+          "description": "新闻封面、摘要与发布时间。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-36kr",
+              "src": "screens/36kr-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:04:14.190000+00:00",
+              "sha256": "11ae426b27c2ada57ed0e0d2ad2157a75a5bfa7287c16d0d7efe2392d0a16fbb"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-36kr",
+              "src": "screens/36kr-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:35.239000+00:00",
+              "sha256": "8df96b0cd99be32ee022080f91bfe88653176b4cb1be060dda549533e0c4715f"
+            }
+          ]
+        },
+        {
+          "id": "nngroup",
+          "code": "D07",
+          "title": "NN/g",
+          "description": "研究文章与阅读时间。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-nnGroup",
+              "src": "screens/nngroup-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:59.750000+00:00",
+              "sha256": "1979a56458be92ab8e05b74099b725423853eef497f3ae849caaf0ef75248ddb"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-nnGroup",
+              "src": "screens/nngroup-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:26.448000+00:00",
+              "sha256": "e467ace56aec9dabc80c0c7e74cc1f2c043285fc173118318cd2a6c69eaef859"
+            }
+          ]
+        },
+        {
+          "id": "bilibili",
+          "code": "D08",
+          "title": "哔哩哔哩",
+          "description": "视频封面与榜单信息。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-bilibili",
+              "src": "screens/bilibili-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:04:06.061000+00:00",
+              "sha256": "bfb7b02e92286460dc12d1924ef4ebf26b575841b1e45d3190498fcd43543df1"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-bilibili",
+              "src": "screens/bilibili-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:30.906000+00:00",
+              "sha256": "50004477659006447032f5ddfb735ec6312e3a53dc488e990ca12afe087728f4"
+            }
+          ]
+        },
+        {
+          "id": "history",
+          "code": "D09",
+          "title": "历史上的今天",
+          "description": "按年份展开的历史时间线。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-history",
+              "src": "screens/history-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:04:20.760000+00:00",
+              "sha256": "873f7778d164f55251f3ce2d583c03d539afe64298f72e485de2130496ceb84e"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-history",
+              "src": "screens/history-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:39.934000+00:00",
+              "sha256": "e5e708e35f1465a2c7bd0d3240d2ab917561998a65502f8dab3e2680d4260919"
+            }
+          ]
+        },
+        {
+          "id": "reader",
+          "code": "D10",
+          "title": "网页阅读器",
+          "description": "应用内打开来源文章；网页内容由来源站点决定。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Reader-live-light",
+              "src": "screens/reader-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "Manual read-only navigation to a loaded 36kr article",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:12:24+00:00",
+              "sha256": "17620bc642fb90a4893d5dbc3c57d1a5ce0c298bfa2799f91e3e613bb53e2c69"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Reader-live-dark",
+              "src": "screens/reader-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "Manual read-only navigation to a loaded 36kr article",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:13:04+00:00",
+              "sha256": "dad9542d849bb62154351b78c95e092d6cc8fd07c9a0de7a51e982385af12a2f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rankings",
+      "title": "榜单与数据",
+      "en": "RANKINGS & DATA",
+      "description": "从电影、语言排行到模型与市场数据。",
+      "items": [
+        {
+          "id": "douban",
+          "code": "R01",
+          "title": "豆瓣电影",
+          "description": "海报、元信息与星级评分。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-doubanMovie",
+              "src": "screens/douban-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:54.321000+00:00",
+              "sha256": "f53ee20e6e696bdd8a6d7b9c35eea4a78d60f0c9ba38ce9708d027d150650f55"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-doubanMovie",
+              "src": "screens/douban-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:21.967000+00:00",
+              "sha256": "14180371aa5c28979b80af07a86bb12fa25451b9d654437258e075bdceff6ce8"
+            }
+          ]
+        },
+        {
+          "id": "tiobe",
+          "code": "R02",
+          "title": "TIOBE",
+          "description": "编程语言排名、占比与变化。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-tiobe",
+              "src": "screens/tiobe-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:48.927000+00:00",
+              "sha256": "aa83a9072abfc8e91e5eca078ef35b396163553c0cea89bb4850ebe24819546c"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-tiobe",
+              "src": "screens/tiobe-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:17.511000+00:00",
+              "sha256": "b94af901a50b305f33b296337ac411717e0b11c06350d360ecd5e179bee0558b"
+            }
+          ]
+        },
+        {
+          "id": "arena",
+          "code": "R03",
+          "title": "Agent Arena",
+          "description": "模型排行与四项指标。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-arena",
+              "src": "screens/arena-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:38.183000+00:00",
+              "sha256": "78c409130f181d187f468f8c7a00901735e21ecf3882e1a2b69de1eadf6131e5"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-arena",
+              "src": "screens/arena-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:08.722000+00:00",
+              "sha256": "05b1e522302b8d76263320473d29c98755bd1dcb4dd39eee8cfb4973a4332606"
+            }
+          ]
+        },
+        {
+          "id": "arena-labs",
+          "code": "R04",
+          "title": "Arena · Labs",
+          "description": "按实验室查看排行榜。",
+          "frames": [
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Dark Arena labs",
+              "src": "screens/arena-labs-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testDarkModeArenaAndPodcast()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T09:59:38.374000+00:00",
+              "sha256": "f1b28ba3fe51f00ffdd0b2e6db1fd0a9da91d179e814f3f6baf6453a6d955b03"
+            }
+          ]
+        },
+        {
+          "id": "stock",
+          "code": "R05",
+          "title": "实时沪深",
+          "description": "行业涨跌热力图与更新时间。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-stock",
+              "src": "screens/stock-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:04:25.472000+00:00",
+              "sha256": "cd623d3e62819cf7fedc8bfe9e026a61a4a25a7b2aad0b75e732c9830fe69d9c"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-stock",
+              "src": "screens/stock-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:43.078000+00:00",
+              "sha256": "7146acb50f04e1f40a4416e1e23af53156cdb429c7bd1873f8bf120d2f7f7e16"
+            }
+          ]
+        },
+        {
+          "id": "github",
+          "code": "R06",
+          "title": "GitHub Trending",
+          "description": "开源项目排行与日、周、月新增星标。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "GitHub-light-daily",
+              "src": "screens/github-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testNewChannelsLiveDataAndRadarExclusion()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:06:33.267000+00:00",
+              "sha256": "314de9aff8a36c0e981ebd94b0a61ae99c7f478298896aabc76ed9c548ddfd0b"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "GitHub-dark-daily",
+              "src": "screens/github-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testNewChannelsLiveDataAndRadarExclusion()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:07:26.877000+00:00",
+              "sha256": "2c4f1f31a38e45bad9782b6ab896c53440fcb13db924b816b85d031b90d6a73c"
+            }
+          ]
+        },
+        {
+          "id": "analysis",
+          "code": "R07",
+          "title": "AI Model Benchmark",
+          "description": "模型智能、速度与成本的图表。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "AI-Analysis-light",
+              "src": "screens/analysis-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testNewChannelsLiveDataAndRadarExclusion()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:06:52.010000+00:00",
+              "sha256": "e9b42a7b5e5aeb5629c94955d300456a11ae1cfccac90815b217d164fe1b2504"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "AI-Analysis-dark",
+              "src": "screens/analysis-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testNewChannelsLiveDataAndRadarExclusion()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:07:42.701000+00:00",
+              "sha256": "a7073b4a22f1de0f53ca5495ea712044f7f37003ceb1b6e89b03d6b8e1de8951"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "audio",
+      "title": "播客与播放",
+      "en": "LISTEN",
+      "description": "发现播客、保留进度并展开完整播放器。",
+      "items": [
+        {
+          "id": "podcasts",
+          "code": "P01",
+          "title": "小宇宙 FM",
+          "description": "单集封面、节目和时长。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Parity-xiaoyuzhou",
+              "src": "screens/podcasts-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testFeedLayoutParity()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:03:43.603000+00:00",
+              "sha256": "289942af74a3c1b15ba67db1cd69225e9dee1f8c8e810baec0ae386fbb72244d"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Editorial-dark-system-xiaoyuzhou",
+              "src": "screens/podcasts-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testEditorialLayoutsInDarkModeAndLargeType()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:00:13.112000+00:00",
+              "sha256": "99117b862b4a955a8a74fcf91aa0eb7ec7cef7836d79610c96a64fee74dc69e8"
+            }
+          ]
+        },
+        {
+          "id": "mini-player",
+          "code": "P02",
+          "title": "迷你播放器",
+          "description": "跨页面保留播放入口。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Mini-player-without-stop-light",
+              "src": "screens/mini-player-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testStopPlaybackIsOnlyInAudioDetailAndDoesNotRestore()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:08:53.650000+00:00",
+              "sha256": "bb38abc209178faa3678244d02c7261c2948fe9977e9ff2cf943c1fcae4ed5f5"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Mini-player-without-stop-dark",
+              "src": "screens/mini-player-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testStopPlaybackIsOnlyInAudioDetailAndDoesNotRestore()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:09:33.519000+00:00",
+              "sha256": "3641fe0362e416d3ebdd967584a62857bcfb77d428ba09067f3f1e32416d30c1"
+            }
+          ]
+        },
+        {
+          "id": "full-player",
+          "code": "P03",
+          "title": "完整播放器",
+          "description": "封面色背景、播放控制与结束播放入口。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Audio-detail-stop-visible-on-open-light",
+              "src": "screens/full-player-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testStopPlaybackIsOnlyInAudioDetailAndDoesNotRestore()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:08:58.265000+00:00",
+              "sha256": "76882982363e8781ef58f8766632eb3979a35c9a2818b902f5beb823da903b29"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Audio-detail-stop-visible-on-open-dark",
+              "src": "screens/full-player-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testStopPlaybackIsOnlyInAudioDetailAndDoesNotRestore()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:09:38.491000+00:00",
+              "sha256": "a9d494f5398c2baf929e3bebf495554c8596a40ebfbee0b797694e25ee46078d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subscriptions",
+      "title": "订阅与 RSS",
+      "en": "YOUR SOURCES",
+      "description": "管理频道，或从精选来源和自定义地址添加 RSS。",
+      "items": [
+        {
+          "id": "subscriptions-list",
+          "code": "S01",
+          "title": "资讯订阅",
+          "description": "管理已订阅频道与频道顺序。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Subscriptions-light-restored",
+              "src": "screens/subscriptions-list-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testSubscriptionSwitchesInBothAppearances()",
+              "device": "InfoHub RSS Catalog QA",
+              "captured": "2026-10-28T10:06:23.434000+00:00",
+              "sha256": "231c097783ccc0a098377fb1b6856879827d7f5c683d321b043ae2164ced1a29"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Subscriptions-dark-restored",
+              "src": "screens/subscriptions-list-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testSubscriptionSwitchesInBothAppearances()",
+              "device": "InfoHub RSS Catalog QA",
+              "captured": "2026-10-28T10:06:02.682000+00:00",
+              "sha256": "ee104d8d34a12f8ac361ba7b3a0954f12fa40f4aa16e3a2c410f75d2c90c043c"
+            }
+          ]
+        },
+        {
+          "id": "rss-recommendations",
+          "code": "S02",
+          "title": "精选推荐",
+          "description": "独立的推荐列表、来源图标与直接订阅操作。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "RSS-live-light",
+              "src": "screens/rss-recommendations-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "Manual read-only navigation to RSS recommendations",
+              "device": "InfoHub RSS Catalog QA",
+              "captured": "2026-10-28T10:08:14+00:00",
+              "sha256": "5b64cc789412ebe2d60c7837c36522bd5e8e40fec129018f531d58deb444455b"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "RSS-live-dark",
+              "src": "screens/rss-recommendations-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "Manual read-only navigation to RSS recommendations",
+              "device": "InfoHub RSS Catalog QA",
+              "captured": "2026-10-28T10:09:00+00:00",
+              "sha256": "da70891195457274be66e4d1ec21ec1b4f2107a6b97e4214169ae0ece5b6fd67"
+            }
+          ]
+        },
+        {
+          "id": "rss-subscribed",
+          "code": "S03",
+          "title": "订阅完成",
+          "description": "订阅后保留在推荐列表，继续选择其他来源；使用隔离测试数据。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT · 测试数据",
+              "capture": "RSS-recommendations-subscribed-light",
+              "src": "screens/rss-subscribed-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testRSSRecommendationDirectSubscriptionAndLayout()",
+              "device": "InfoHub RSS Catalog QA",
+              "captured": "2026-10-28T10:11:01.117000+00:00",
+              "sha256": "c352d967027de48caf9e3f67448fa4734f5a6baebd37acad8bf54ff6ef680dbb"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK · 测试数据",
+              "capture": "RSS-recommendations-subscribed-dark",
+              "src": "screens/rss-subscribed-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testRSSRecommendationDirectSubscriptionAndLayout()",
+              "device": "InfoHub RSS Catalog QA",
+              "captured": "2026-10-28T10:11:30.035000+00:00",
+              "sha256": "c290bfe653ce8cff815be0f731cb849999d7d4c0a89a16546b3101c0df8b4854"
+            }
+          ]
+        },
+        {
+          "id": "rss-editor",
+          "code": "S04",
+          "title": "添加 RSS",
+          "description": "先填写链接，再填写或解析名称；输入时展开弹窗。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT · 测试数据",
+              "capture": "RSS-editor-compact-light",
+              "src": "screens/rss-editor-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testRSSEditorUsesCompactExpandableSheet()",
+              "device": "InfoHub RSS Editor QA",
+              "captured": "2026-10-28T11:21:54.844000+00:00",
+              "sha256": "b9300d81ef4c5050d92b64b86190c8ab211e5ac0b17228cadefafd120fa858a1"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK · 测试数据",
+              "capture": "RSS-editor-compact-dark",
+              "src": "screens/rss-editor-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testRSSEditorUsesCompactExpandableSheet()",
+              "device": "InfoHub RSS Editor QA",
+              "captured": "2026-10-28T11:22:16.503000+00:00",
+              "sha256": "6a2de3eee957db0914b42e68f70feffa457cb7ffcad4dff1d43e5392d06240c0"
+            }
+          ]
+        },
+        {
+          "id": "rss-editor-keyboard",
+          "code": "S05",
+          "title": "RSS 地址输入",
+          "description": "输入时展开表单，保留键盘上方的操作空间。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT · 测试数据",
+              "capture": "RSS-editor-keyboard-light",
+              "src": "screens/rss-editor-keyboard-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testRSSEditorUsesCompactExpandableSheet()",
+              "device": "InfoHub RSS Editor QA",
+              "captured": "2026-10-28T11:21:59.696000+00:00",
+              "sha256": "0216eeb0a9324f098736efbce1c3dccb11f91e7d3de084f13ac2e50b828453b3"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK · 测试数据",
+              "capture": "RSS-editor-keyboard-dark",
+              "src": "screens/rss-editor-keyboard-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testRSSEditorUsesCompactExpandableSheet()",
+              "device": "InfoHub RSS Editor QA",
+              "captured": "2026-10-28T11:22:20.880000+00:00",
+              "sha256": "8ca6f51ee59b89581c6682fe7fff21e60b6041b4265247d2538951c09b0fec6a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "account",
+      "title": "我的与账号",
+      "en": "YOUR PREFERENCES",
+      "description": "阅读偏好、登录与订阅同步入口。",
+      "items": [
+        {
+          "id": "settings",
+          "code": "M01",
+          "title": "我的",
+          "description": "外观、阅读字号、同步和其他设置。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "My-concise-light",
+              "src": "screens/settings-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testConciseSettingsAndSecondaryPages()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T09:58:01.615000+00:00",
+              "sha256": "4d75ed5594757b9b65b52f409bfe9c6c6c1f340da6b37f7f9922bed4c18aa9b5"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "My-concise-dark",
+              "src": "screens/settings-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testConciseSettingsAndSecondaryPages()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T09:58:49.218000+00:00",
+              "sha256": "a2fd9b70d2200d04a992a39c847bf408ec217d3c1d524e48b48d3bd2baf7ce7a"
+            }
+          ]
+        },
+        {
+          "id": "login",
+          "code": "M02",
+          "title": "邮箱登录",
+          "description": "输入邮箱并阅读协议后获取验证码。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "Login-light-initial",
+              "src": "screens/login-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testLoginLayoutKeyboardConsentAndLegalNavigation()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:05:05.458000+00:00",
+              "sha256": "68cfb24926369394fef9b55a067ac56bce1fc91f08101c1320f9e116e58bea6b"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "Login-dark-initial",
+              "src": "screens/login-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testLoginLayoutKeyboardConsentAndLegalNavigation()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T10:05:56.777000+00:00",
+              "sha256": "d903a6b25b3423500a78ad58e2a2ac34c5496f4c2bbe7ec2bccc08c0c36853eb"
+            }
+          ]
+        },
+        {
+          "id": "sync-login",
+          "code": "M03",
+          "title": "订阅同步提示",
+          "description": "未登录时先提示，再进入登录流程。",
+          "frames": [
+            {
+              "theme": "light",
+              "label": "LIGHT",
+              "capture": "My-sync-login-confirm-light",
+              "src": "screens/sync-login-light.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testConciseSettingsAndSecondaryPages()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T09:58:20.516000+00:00",
+              "sha256": "85e9f60f349cad6eab23fb39742aa3bfaae77b25dc6661f3ab2cdf04e33ae3ed"
+            },
+            {
+              "theme": "dark",
+              "label": "DARK",
+              "capture": "My-sync-login-confirm-dark",
+              "src": "screens/sync-login-dark.webp",
+              "width": 1320,
+              "height": 2868,
+              "test": "NavigationTests/testConciseSettingsAndSecondaryPages()",
+              "device": "InfoHub Design Catalog QA",
+              "captured": "2026-10-28T09:59:05.579000+00:00",
+              "sha256": "aa3d197a26c0a5a9bf2d6bc780dea5baa3866e05ec5c6489be72220ce6ddc855"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -130,12 +130,24 @@ enum FeedDensity: String, CaseIterable, Identifiable {
             }
         }
     }
+    func subscribeRSS(_ recommendation: JSON) async throws {
+        guard let url = webURL(recommendation["rssUrl"].text), !recommendation["title"].text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw APIError.message("推荐来源的名称或订阅地址无效")
+        }
+        if let index = channels.firstIndex(where: { $0.isRSS && $0.rssURL == url.absoluteString }) {
+            if !channels[index].enabled { channels[index].enabled = true; channelsChanged() }
+            return
+        }
+        try await saveRSS(name: recommendation["title"].text, url: url.absoluteString, editing: nil, recommendation: recommendation)
+    }
     func saveRSS(name: String, url: String, editing: Channel?, recommendation: JSON?) async throws {
         guard let parsed = webURL(url), !name.trimmingCharacters(in: .whitespaces).isEmpty else { throw APIError.message("请输入名称和有效的 HTTP / HTTPS 订阅地址") }
         guard !channels.contains(where: { $0.isRSS && $0.rssURL == parsed.absoluteString && $0.id != editing?.id }) else { throw APIError.message("已订阅此 RSS") }
         var body = JSON.object(["rssUrl": .string(parsed.absoluteString)])
         if let recommendation, recommendation["id"] != .null { body["recommendationId"] = recommendation["id"] }
         let resource = try await api.request("rss-resource", body: body)
+        // A second save or a restore may have changed subscriptions while the request was in flight.
+        guard !channels.contains(where: { $0.isRSS && $0.rssURL == parsed.absoluteString && $0.id != editing?.id }) else { throw APIError.message("已订阅此 RSS") }
         var channel = editing ?? Channel(.object(["id": .string(UUID().uuidString), "isRss": .bool(true), "enable": .bool(true)]))
         channel.raw["title"] = .string(name); channel.raw["tabTitle"] = .string(name)
         channel.raw["rssUrl"] = .string(parsed.absoluteString)

@@ -189,58 +189,193 @@ final class NavigationTests: XCTestCase {
             assertAboveFooter(v2ex, in: app, name: "RSS-V2EX-branding-\(appearance)")
             let originalY = v2ex.frame.minY
             app.buttons["添加 RSS 频道"].tap()
-            XCTAssertTrue(app.textFields["名称"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.textFields["rss-editor-name"].waitForExistence(timeout: 5))
             app.buttons["取消"].tap()
             waitUntilHittable(v2ex)
             XCTAssertEqual(v2ex.frame.minY, originalY, accuracy: 2, "Cancelling must not scroll the subscription list")
             app.terminate()
         }
     }
-    func testRSSRecommendationSelectionAndLayout() {
-        let app = XCUIApplication()
+    func testRSSRecommendationDirectSubscriptionAndLayout() {
         for appearance in ["light", "dark", "accessibility"] {
-            app.launchArguments = ["-native.appearance", appearance == "dark" ? "dark" : "light", "-native.selectedChannel", "sina", "-native.readingSize", "system", "-native.syncEnabled", "NO"]
-            if appearance == "accessibility" {
-                app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+            let app = launchRSSFixture(appearance: appearance)
+            app.buttons["添加 RSS 频道"].tap()
+            XCTAssertTrue(app.textFields["rss-editor-name"].waitForExistence(timeout: 5))
+            XCTAssertFalse(app.staticTexts["精选订阅"].exists)
+            XCTAssertFalse(app.buttons["rss-subscribe-fixture-one"].exists)
+            app.buttons["取消"].tap()
+            app.buttons["rss-recommendations-entry"].tap()
+            let first = app.buttons["rss-subscribe-fixture-one"]
+            waitUntilHittable(first)
+            XCTAssertFalse(app.textFields["rss-editor-name"].exists)
+            XCTAssertFalse(app.buttons["保存"].exists)
+            XCTAssertGreaterThanOrEqual(first.frame.height, 44)
+            XCTAssertGreaterThanOrEqual(first.frame.width, 44)
+            XCTAssertEqual(first.frame.height, 44, accuracy: 0.5, "Keep the touch target without native bordered-button padding")
+            XCTAssertEqual(first.frame.width, 76, accuracy: 0.5)
+            let second = app.buttons["rss-subscribe-fixture-two"]
+            XCTAssertGreaterThanOrEqual(second.frame.minY - first.frame.minY, 64)
+            let title = app.staticTexts["测试来源一"]
+            let description = app.staticTexts["独立推荐列表，点击即可订阅"]
+            if title.frame.height <= 30 {
+                XCTAssertLessThanOrEqual(second.frame.minY - first.frame.minY, 76, "Standard-size recommendation rows should remain compact")
             }
+            XCTAssertLessThanOrEqual(title.frame.maxX, first.frame.minX - 8)
+            XCTAssertLessThanOrEqual(description.frame.maxY, app.staticTexts["测试来源二"].frame.minY - 8,
+                                     "Larger descriptions must not overlap the next recommendation")
+            let originalSize = first.frame.size
+            capture(app, "RSS-independent-recommendations-\(appearance)")
+            first.doubleTap()
+            waitForRSSSubscription(first, title: "测试来源一")
+            XCTAssertFalse(first.isEnabled)
+            XCTAssertEqual(first.frame.size, originalSize, "Subscribed state must not resize the action")
+            second.tap()
+            waitForRSSSubscription(second, title: "测试来源二")
+            XCTAssertTrue(app.navigationBars["精选推荐"].exists, "Stay in recommendations to add more sources")
+            capture(app, "RSS-recommendations-subscribed-\(appearance)")
+            app.navigationBars["精选推荐"].buttons.firstMatch.tap()
+            let added = app.switches.matching(identifier: "订阅 测试来源二").firstMatch
+            waitUntilHittable(added)
+            XCTAssertEqual(added.value as? String, "1")
+            capture(app, "RSS-new-subscription-revealed-\(appearance)")
+            app.terminate()
             app.launch()
             waitUntilHittable(app.buttons["nav-1"])
             app.buttons["nav-1"].tap()
-            app.buttons["添加 RSS 频道"].tap()
-            let name = app.textFields["名称"]
-            let address = app.textFields["https://example.com/feed.xml"]
-            let form = app.descendants(matching: .any)["rss-editor-form"].firstMatch
-            XCTAssertTrue(name.waitForExistence(timeout: 5))
-            XCTAssertFalse(app.buttons["保存"].isEnabled)
-            let first = app.buttons["rss-recommendation-2"]
-            XCTAssertTrue(first.waitForExistence(timeout: 30))
-            for _ in 0..<6 where !first.isHittable { form.swipeUp() }
-            XCTAssertTrue(first.isHittable)
-            XCTAssertTrue(first.label.contains("V2EX"))
-            XCTAssertTrue(first.label.contains("创意工作者的社区讨论"))
-            XCTAssertGreaterThanOrEqual(first.frame.height, 44)
-            XCTAssertLessThanOrEqual(first.frame.maxX, app.frame.maxX - 16)
-            XCTAssertFalse(first.isSelected)
-            first.tap()
-            XCTAssertTrue(first.isSelected)
-            for _ in 0..<6 where !name.isHittable { form.swipeDown() }
-            XCTAssertEqual(name.value as? String, "V2EX")
-            XCTAssertEqual(address.value as? String, "https://www.v2ex.com/index.xml")
-            XCTAssertTrue(app.buttons["保存"].isEnabled)
-            let second = app.buttons["rss-recommendation-4"]
-            for _ in 0..<6 where !second.isHittable { form.swipeUp() }
-            second.tap()
-            XCTAssertTrue(second.isSelected)
-            capture(app, "RSS-recommendations-\(appearance)")
-            for _ in 0..<6 where !name.isHittable { form.swipeDown() }
-            XCTAssertEqual(name.value as? String, "中国新闻网")
-            XCTAssertEqual(address.value as? String, "https://www.chinanews.com.cn/rss/world.xml")
-            for _ in 0..<6 where !first.isHittable { form.swipeUp() }
-            XCTAssertFalse(first.isSelected, "Only the feed currently entered in the form is selected")
-            app.buttons["取消"].tap()
-            XCTAssertTrue(app.navigationBars["资讯订阅"].exists)
+            app.buttons["rss-recommendations-entry"].tap()
+            waitForRSSSubscription(first, title: "测试来源一")
+            XCTAssertFalse(first.isEnabled, "Keep subscribed state after relaunch, without duplicate channels")
             app.terminate()
         }
+    }
+    func testRSSRecommendationFailureCanRetryWithoutOpeningEditor() {
+        let app = launchRSSFixture(scenario: "subscribe-error")
+        app.buttons["rss-recommendations-entry"].tap()
+        let subscribe = app.buttons["rss-subscribe-fixture-one"]
+        waitUntilHittable(subscribe)
+        subscribe.tap()
+        let error = app.staticTexts["rss-subscribe-error-fixture-one"]
+        XCTAssertTrue(error.waitForExistence(timeout: 5))
+        XCTAssertTrue(subscribe.isEnabled)
+        XCTAssertEqual(subscribe.label, "订阅 测试来源一")
+        XCTAssertFalse(app.textFields["rss-editor-name"].exists)
+        capture(app, "RSS-inline-subscription-error")
+        subscribe.tap()
+        waitForRSSSubscription(subscribe, title: "测试来源一")
+        XCTAssertFalse(error.exists)
+        XCTAssertFalse(subscribe.isEnabled)
+        capture(app, "RSS-subscription-retry-success")
+    }
+    func testRSSRecommendationLoadingErrorAndEmptyStateDoNotBlockCustomRSS() {
+        let app = launchRSSFixture(scenario: "load-error")
+        app.buttons["rss-recommendations-entry"].tap()
+        let retry = app.buttons["rss-recommendations-retry"]
+        waitUntilHittable(retry)
+        capture(app, "RSS-recommendations-loading-error")
+        retry.tap()
+        waitUntilHittable(app.buttons["rss-subscribe-fixture-one"])
+        app.terminate()
+        let empty = launchRSSFixture(scenario: "empty")
+        empty.buttons["rss-recommendations-entry"].tap()
+        XCTAssertTrue(empty.staticTexts["暂无精选推荐"].waitForExistence(timeout: 5))
+        capture(empty, "RSS-recommendations-empty")
+        empty.navigationBars["精选推荐"].buttons.firstMatch.tap()
+        empty.buttons["添加 RSS 频道"].tap()
+        let name = empty.textFields["rss-editor-name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        XCTAssertFalse(empty.buttons["保存"].isEnabled)
+        let address = empty.textFields["rss-editor-address"]
+        address.tap()
+        address.typeText("https://example.org/\(UUID().uuidString)/manual.xml")
+        empty.buttons["rss-editor-parse"].tap()
+        let fetched = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "自定义测试来源"), object: name)
+        XCTAssertEqual(XCTWaiter.wait(for: [fetched], timeout: 5), .completed)
+        XCTAssertTrue(empty.buttons["保存"].isEnabled)
+        empty.buttons["保存"].tap()
+        XCTAssertTrue(name.waitForNonExistence(timeout: 5))
+        let added = empty.switches.matching(identifier: "订阅 自定义测试来源").firstMatch
+        waitUntilHittable(added)
+        capture(empty, "RSS-independent-custom-feed-saved")
+        added.swipeLeft()
+        let edit = empty.buttons["编辑"].firstMatch
+        waitUntilHittable(edit)
+        edit.tap()
+        waitUntilHittable(name)
+        XCTAssertTrue(empty.navigationBars["编辑 RSS 订阅"].exists)
+        XCTAssertEqual(name.value as? String, "自定义测试来源")
+        XCTAssertTrue((address.value as? String)?.hasSuffix("/manual.xml") == true)
+        XCTAssertLessThan(address.frame.minY, name.frame.minY)
+        capture(empty, "RSS-editor-edit-light")
+        empty.buttons["保存"].tap()
+        XCTAssertTrue(name.waitForNonExistence(timeout: 5))
+        waitUntilHittable(added)
+    }
+    func testRSSEditorUsesCompactExpandableSheet() {
+        for appearance in ["light", "dark", "accessibility"] {
+            let app = launchRSSFixture(appearance: appearance)
+            app.buttons["添加 RSS 频道"].tap()
+            let name = app.textFields["rss-editor-name"]
+            let address = app.textFields["rss-editor-address"]
+            waitUntilHittable(name)
+            let navigationBar = app.navigationBars["添加 RSS 订阅"]
+            XCTAssertGreaterThan(navigationBar.frame.minY, app.frame.midY, "Creation should open as a compact bottom sheet")
+            XCTAssertTrue(address.isHittable)
+            let lookup = app.buttons["rss-editor-parse"]
+            XCTAssertTrue(lookup.exists)
+            XCTAssertLessThan(address.frame.minY, name.frame.minY, "The RSS link precedes the feed name")
+            XCTAssertGreaterThanOrEqual(lookup.frame.height, 44)
+            XCTAssertLessThanOrEqual(lookup.frame.maxY, app.frame.maxY - 28)
+            XCTAssertFalse(app.buttons["保存"].isEnabled)
+            capture(app, "RSS-editor-compact-\(appearance)")
+            name.tap()
+            name.typeText("未保存的来源")
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+            XCTAssertLessThanOrEqual(name.frame.maxY, app.keyboards.firstMatch.frame.minY - 8)
+            address.tap()
+            address.typeText("invalid")
+            XCTAssertLessThanOrEqual(address.frame.maxY, app.keyboards.firstMatch.frame.minY - 8)
+            XCTAssertLessThan(navigationBar.frame.minY, app.frame.midY, "Focusing a field should expand the sheet for the keyboard")
+            XCTAssertLessThanOrEqual(lookup.frame.maxY, app.keyboards.firstMatch.frame.minY - 8)
+            XCTAssertFalse(app.buttons["保存"].isEnabled)
+            XCTAssertTrue(app.buttons["取消"].isHittable)
+            capture(app, "RSS-editor-keyboard-\(appearance)")
+            app.buttons["取消"].tap()
+            XCTAssertTrue(name.waitForNonExistence(timeout: 5))
+            app.buttons["添加 RSS 频道"].tap()
+            waitUntilHittable(name)
+            XCTAssertEqual(name.value as? String, "资讯名称", "Cancelling must discard the unsaved form")
+            XCTAssertEqual(address.value as? String, "https://example.com/feed.xml")
+            XCTAssertGreaterThan(navigationBar.frame.minY, app.frame.midY)
+            let handle = navigationBar.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0))
+            handle.press(forDuration: 0.05, thenDragTo: handle.withOffset(CGVector(dx: 0, dy: -420)))
+            let expanded = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                navigationBar.frame.minY < app.frame.midY
+            }, object: navigationBar)
+            XCTAssertEqual(XCTWaiter.wait(for: [expanded], timeout: 5), .completed)
+            XCTAssertTrue(name.isHittable)
+            XCTAssertTrue(address.isHittable)
+            capture(app, "RSS-editor-expanded-\(appearance)")
+            app.buttons["取消"].tap()
+            app.terminate()
+        }
+    }
+    private func launchRSSFixture(scenario: String = "success", appearance: String = "light") -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = scenario
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS_RUN"] = UUID().uuidString
+        app.launchArguments = ["-native.appearance", appearance == "dark" ? "dark" : "light", "-native.selectedChannel", "sina",
+                               "-native.readingSize", "system", "-native.syncEnabled", "NO"]
+        if appearance == "accessibility" {
+            app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        }
+        app.launch()
+        waitUntilHittable(app.buttons["nav-1"])
+        app.buttons["nav-1"].tap()
+        return app
+    }
+    private func waitForRSSSubscription(_ button: XCUIElement, title: String) {
+        let subscribed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "已订阅 \(title)"), object: button)
+        XCTAssertEqual(XCTWaiter.wait(for: [subscribed], timeout: 5), .completed)
     }
     func testAnalysisHeaderChannelLogo() {
         let app = XCUIApplication()
@@ -1876,7 +2011,7 @@ final class NavigationTests: XCTestCase {
         let subscriptions = XCTAttachment(screenshot: app.screenshot())
         subscriptions.name = "Parity-subscriptions"; subscriptions.lifetime = .keepAlways; add(subscriptions)
         app.buttons["添加 RSS 频道"].tap()
-        XCTAssertTrue(app.textFields["名称"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["rss-editor-name"].waitForExistence(timeout: 5))
         app.buttons["取消"].tap()
         app.buttons["nav-2"].tap()
         XCTAssertTrue(app.buttons["使用邮箱登录"].exists)

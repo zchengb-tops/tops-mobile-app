@@ -1,0 +1,74 @@
+{
+  "device": "iPhone 18 Pro Max · iOS 27.0",
+  "reviewed": "2026-10-28",
+  "groups": [
+    {
+      "id": "discover",
+      "title": "发现与阅读",
+      "en": "DISCOVER",
+      "description": "总览和不同来源的内容，以各自适合的方式呈现。",
+      "items": [
+        {"id":"featured","code":"D01","title":"总览","description":"聚合已订阅频道的精选内容。","frames":[{"theme":"light","label":"LIGHT","capture":"Featured-no-headings-light-standard"},{"theme":"dark","label":"DARK","capture":"Featured-no-headings-dark-standard"}]},
+        {"id":"channel-overview","code":"D02","title":"频道总览","description":"以缩览方式切换已订阅频道。","frames":[{"theme":"light","label":"LIGHT","capture":"Featured-no-headings-thumbnails"}]},
+        {"id":"weibo","code":"D03","title":"微博热搜","description":"紧凑的排名、话题与热度。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-sina"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-sina"}]},
+        {"id":"zhihu","code":"D04","title":"知乎热榜","description":"问题、热度与缩略图。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-zhihu"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-zhihu"}]},
+        {"id":"sspai","code":"D05","title":"少数派","description":"文章封面、标题与互动数据。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-sspai"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-sspai"}]},
+        {"id":"36kr","code":"D06","title":"36 氪","description":"新闻封面、摘要与发布时间。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-36kr"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-36kr"}]},
+        {"id":"nngroup","code":"D07","title":"NN/g","description":"研究文章与阅读时间。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-nnGroup"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-nnGroup"}]},
+        {"id":"bilibili","code":"D08","title":"哔哩哔哩","description":"视频封面与榜单信息。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-bilibili"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-bilibili"}]},
+        {"id":"history","code":"D09","title":"历史上的今天","description":"按年份展开的历史时间线。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-history"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-history"}]},
+        {"id":"reader","code":"D10","title":"网页阅读器","description":"应用内打开来源文章；网页内容由来源站点决定。","frames":[{"theme":"light","label":"LIGHT","capture":"Reader-live-light"},{"theme":"dark","label":"DARK","capture":"Reader-live-dark"}]}
+      ]
+    },
+    {
+      "id": "rankings",
+      "title": "榜单与数据",
+      "en": "RANKINGS & DATA",
+      "description": "从电影、语言排行到模型与市场数据。",
+      "items": [
+        {"id":"douban","code":"R01","title":"豆瓣电影","description":"海报、元信息与星级评分。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-doubanMovie"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-doubanMovie"}]},
+        {"id":"tiobe","code":"R02","title":"TIOBE","description":"编程语言排名、占比与变化。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-tiobe"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-tiobe"}]},
+        {"id":"arena","code":"R03","title":"Agent Arena","description":"模型排行与四项指标。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-arena"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-arena"}]},
+        {"id":"arena-labs","code":"R04","title":"Arena · Labs","description":"按实验室查看排行榜。","frames":[{"theme":"dark","label":"DARK","capture":"Dark Arena labs"}]},
+        {"id":"stock","code":"R05","title":"实时沪深","description":"行业涨跌热力图与更新时间。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-stock"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-stock"}]},
+        {"id":"github","code":"R06","title":"GitHub Trending","description":"开源项目排行与日、周、月新增星标。","frames":[{"theme":"light","label":"LIGHT","capture":"GitHub-light-daily"},{"theme":"dark","label":"DARK","capture":"GitHub-dark-daily"}]},
+        {"id":"analysis","code":"R07","title":"AI Model Benchmark","description":"模型智能、速度与成本的图表。","frames":[{"theme":"light","label":"LIGHT","capture":"AI-Analysis-light"},{"theme":"dark","label":"DARK","capture":"AI-Analysis-dark"}]}
+      ]
+    },
+    {
+      "id": "audio",
+      "title": "播客与播放",
+      "en": "LISTEN",
+      "description": "发现播客、保留进度并展开完整播放器。",
+      "items": [
+        {"id":"podcasts","code":"P01","title":"小宇宙 FM","description":"单集封面、节目和时长。","frames":[{"theme":"light","label":"LIGHT","capture":"Parity-xiaoyuzhou"},{"theme":"dark","label":"DARK","capture":"Editorial-dark-system-xiaoyuzhou"}]},
+        {"id":"mini-player","code":"P02","title":"迷你播放器","description":"跨页面保留播放入口。","frames":[{"theme":"light","label":"LIGHT","capture":"Mini-player-without-stop-light"},{"theme":"dark","label":"DARK","capture":"Mini-player-without-stop-dark"}]},
+        {"id":"full-player","code":"P03","title":"完整播放器","description":"封面色背景、播放控制与结束播放入口。","frames":[{"theme":"light","label":"LIGHT","capture":"Audio-detail-stop-visible-on-open-light"},{"theme":"dark","label":"DARK","capture":"Audio-detail-stop-visible-on-open-dark"}]}
+      ]
+    },
+    {
+      "id": "subscriptions",
+      "title": "订阅与 RSS",
+      "en": "YOUR SOURCES",
+      "description": "管理频道，或从精选来源和自定义地址添加 RSS。",
+      "items": [
+        {"id":"subscriptions-list","code":"S01","title":"资讯订阅","description":"管理已订阅频道与频道顺序。","frames":[{"theme":"light","label":"LIGHT","capture":"Subscriptions-light-restored"},{"theme":"dark","label":"DARK","capture":"Subscriptions-dark-restored"}]},
+        {"id":"rss-recommendations","code":"S02","title":"精选推荐","description":"独立的推荐列表、来源图标与直接订阅操作。","frames":[{"theme":"light","label":"LIGHT","capture":"RSS-live-light"},{"theme":"dark","label":"DARK","capture":"RSS-live-dark"}]},
+        {"id":"rss-subscribed","code":"S03","title":"订阅完成","description":"订阅后保留在推荐列表，继续选择其他来源；使用隔离测试数据。","frames":[{"theme":"light","label":"LIGHT · 测试数据","capture":"RSS-recommendations-subscribed-light"},{"theme":"dark","label":"DARK · 测试数据","capture":"RSS-recommendations-subscribed-dark"}]},
+        {"id":"rss-editor","code":"S04","title":"添加 RSS","description":"先填写链接，再填写或解析名称；输入时展开弹窗。","frames":[{"theme":"light","label":"LIGHT · 测试数据","capture":"RSS-editor-compact-light"},{"theme":"dark","label":"DARK · 测试数据","capture":"RSS-editor-compact-dark"}]},
+        {"id":"rss-editor-keyboard","code":"S05","title":"RSS 地址输入","description":"输入时展开表单，保留键盘上方的操作空间。","frames":[{"theme":"light","label":"LIGHT · 测试数据","capture":"RSS-editor-keyboard-light"},{"theme":"dark","label":"DARK · 测试数据","capture":"RSS-editor-keyboard-dark"}]}
+      ]
+    },
+    {
+      "id": "account",
+      "title": "我的与账号",
+      "en": "YOUR PREFERENCES",
+      "description": "阅读偏好、登录与订阅同步入口。",
+      "items": [
+        {"id":"settings","code":"M01","title":"我的","description":"外观、阅读字号、同步和其他设置。","frames":[{"theme":"light","label":"LIGHT","capture":"My-concise-light"},{"theme":"dark","label":"DARK","capture":"My-concise-dark"}]},
+        {"id":"login","code":"M02","title":"邮箱登录","description":"输入邮箱并阅读协议后获取验证码。","frames":[{"theme":"light","label":"LIGHT","capture":"Login-light-initial"},{"theme":"dark","label":"DARK","capture":"Login-dark-initial"}]},
+        {"id":"sync-login","code":"M03","title":"订阅同步提示","description":"未登录时先提示，再进入登录流程。","frames":[{"theme":"light","label":"LIGHT","capture":"My-sync-login-confirm-light"},{"theme":"dark","label":"DARK","capture":"My-sync-login-confirm-dark"}]}
+      ]
+    }
+  ]
+}

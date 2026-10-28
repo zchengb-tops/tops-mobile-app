@@ -138,6 +138,74 @@ final class ContractTests: XCTestCase {
         XCTAssertEqual(store.channels.count, 4)
         await store.refreshRSS()
     }
+    @MainActor func testRSSRecommendationSubscribesOnceAndReenablesExistingFeed() async throws {
+        let defaults = UserDefaults.standard
+        let keys = ["native.channels", "native.selectedChannel", "native.syncEnabled"]
+        let original = keys.map { defaults.object(forKey: $0) }
+        XCTAssertTrue(URLProtocol.registerClass(RSSResourceProtocol.self))
+        defer {
+            URLProtocol.unregisterClass(RSSResourceProtocol.self)
+            for (key, value) in zip(keys, original) {
+                if let value { defaults.set(value, forKey: key) } else { defaults.removeObject(forKey: key) }
+            }
+        }
+        let store = AppStore()
+        store.syncEnabled = false
+        let existing = Channel(.object(["id": .string("existing-recommendation"), "title": .string("My renamed feed"),
+            "isRss": .bool(true), "enable": .bool(false), "rssUrl": .string("https://example.org/existing.xml"),
+            "iconUrl": .string("https://example.org/existing.png"), "customField": .string("keep")]))
+        store.channels = [Channel(.object(["channelCode": .string("sina"), "enable": .bool(true)])), existing]
+        let recommendation = JSON.object(["id": .number(42), "title": .string("Recommended feed"), "rssUrl": .string("https://example.org/new.xml")])
+        try await store.subscribeRSS(recommendation)
+        let added = try XCTUnwrap(store.channels.first)
+        XCTAssertEqual(added.title, "Recommended feed")
+        XCTAssertTrue(added.enabled)
+        XCTAssertEqual(added.raw["iconUrl"].text, "https://example.org/feed-icon.png")
+        try await store.subscribeRSS(recommendation)
+        XCTAssertEqual(store.channels.count, 3)
+        try await store.subscribeRSS(.object(["title": .string("Server name"), "rssUrl": .string(existing.rssURL)]))
+        XCTAssertEqual(store.channels.map(\.id), [added.id, "sina", existing.id])
+        XCTAssertTrue(store.channels[2].enabled)
+        XCTAssertEqual(store.channels[2].title, "My renamed feed")
+        XCTAssertEqual(store.channels[2].raw["iconUrl"], existing.raw["iconUrl"])
+        XCTAssertEqual(store.channels[2].raw["customField"].text, "keep")
+        let persisted = try JSONDecoder().decode([JSON].self, from: XCTUnwrap(defaults.data(forKey: "native.channels")))
+        XCTAssertEqual(persisted.map { $0["id"].text }, store.channels.map { $0.raw["id"].text })
+        for invalid in [JSON.object(["title": .string("Unsafe"), "rssUrl": .string("javascript:alert(1)")]),
+                        .object(["title": .string(" \n"), "rssUrl": .string("https://example.org/empty.xml")])] {
+            do { try await store.subscribeRSS(invalid); XCTFail("Invalid recommendations must not be saved") }
+            catch { XCTAssertEqual(error.localizedDescription, "推荐来源的名称或订阅地址无效") }
+        }
+        XCTAssertEqual(store.channels.count, 3)
+        await store.refreshRSS()
+    }
+    @MainActor func testConcurrentRSSRecommendationSavesDoNotCreateDuplicates() async throws {
+        let defaults = UserDefaults.standard
+        let keys = ["native.channels", "native.selectedChannel", "native.syncEnabled"]
+        let original = keys.map { defaults.object(forKey: $0) }
+        XCTAssertTrue(URLProtocol.registerClass(RSSResourceProtocol.self))
+        defer {
+            URLProtocol.unregisterClass(RSSResourceProtocol.self)
+            for (key, value) in zip(keys, original) {
+                if let value { defaults.set(value, forKey: key) } else { defaults.removeObject(forKey: key) }
+            }
+        }
+        let store = AppStore()
+        store.syncEnabled = false
+        store.channels = []
+        let recommendation = JSON.object(["id": .number(42), "title": .string("Concurrent feed"), "rssUrl": .string("https://example.org/concurrent.xml")])
+        let first = Task { try await store.subscribeRSS(recommendation) }
+        let second = Task { try await store.subscribeRSS(recommendation) }
+        var successes = 0
+        for task in [first, second] {
+            do { try await task.value; successes += 1 }
+            catch { XCTAssertEqual(error.localizedDescription, "已订阅此 RSS") }
+        }
+        XCTAssertGreaterThanOrEqual(successes, 1)
+        XCTAssertEqual(store.channels.count, 1)
+        XCTAssertEqual(store.channels.first?.rssURL, "https://example.org/concurrent.xml")
+        await store.refreshRSS()
+    }
     func testRSSMarkKeepsExtensionOriginalColors() throws {
         let image = try XCTUnwrap(UIImage(named: "RSSIcon"))
         XCTAssertNotEqual(image.renderingMode, .alwaysTemplate)
