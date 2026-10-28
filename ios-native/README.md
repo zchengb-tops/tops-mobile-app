@@ -89,11 +89,13 @@ RSS direct-subscription UI tests run on an isolated simulator with explicit Debu
 
 ## TestFlight release
 
-The existing **Deploy to TestFlight** GitHub Action retains its React Native/Expo
-push behavior on `main`. Native publishing is **manual only**: select
-`feature/ios-native-rebuild`, set `implementation` to `native`, and run it.
-`validate_only` builds and tests on the hosted Xcode 27 runner without credentials
-or an upload; leave it unchecked to actually publish.
+The **Deploy to TestFlight** GitHub Action publishes the native app automatically
+on every push to `feature/ios-native-rebuild`; pushes to `main` retain the React
+Native/Expo release. Native runs can also be triggered manually by selecting the
+feature branch and `implementation: native`. The `validate_only` input runs tests
+and an unsigned archive without uploading; leave it unchecked to publish.
+Release runs queue rather than canceling earlier pending runs (up to GitHub's
+100-run queue limit). Automatic runs use the existing default TestFlight notes.
 
 The native job uses the checked-in Xcode project, not Expo, Metro, CocoaPods or
 `generate_project.rb`. Fastlane is pinned by `Gemfile.lock`; it verifies the
