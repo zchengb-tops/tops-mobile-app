@@ -89,15 +89,44 @@ RSS direct-subscription UI tests run on an isolated simulator with explicit Debu
 
 ## TestFlight release
 
-The **Deploy to TestFlight** GitHub Action publishes the native app automatically
-on every push to `feature/ios-native-rebuild`; pushes to `main` retain the React
-Native/Expo release. Native runs can also be triggered manually by selecting the
-feature branch and `implementation: native`. The `validate_only` input runs tests
-and an unsigned archive without uploading; leave it unchecked to publish.
-Release runs queue rather than canceling earlier pending runs (up to GitHub's
-100-run queue limit). Automatic runs use the existing default TestFlight notes.
+On this Mac, install the worktree-specific hooks once, then push the native branch:
 
-The native job uses the checked-in Xcode project, not Expo, Metro, CocoaPods or
+```sh
+python3 ios-native/tool/local_testflight.py install
+git push origin feature/ios-native-rebuild
+python3 ios-native/tool/local_testflight.py status
+```
+
+After an accepted push, the hooks queue a local TestFlight release in the
+background. Git has no post-push hook, so this pairs `pre-push` with the
+committed update of the local tracking ref. The push prints the log path.
+Failed pushes, other branches, other remotes and `--no-verify` do not start a
+release. Install the hooks separately in each worktree; pushes from another
+computer do not start this Mac's release. Existing hooks are not overwritten.
+If needed, installation adds an `origin` fetch refspec for this branch so Git
+updates its tracking ref after a successful push; other refspecs are retained.
+
+The local release tests and builds the exact pushed commit, excluding uncommitted
+changes. Contract tests run on a temporary simulator that is deleted afterward.
+Releases run one at a time; Xcode automatically signs the existing InfoHub app
+and manages the TestFlight build number using team `UPDM24DCXU`. Xcode must be
+signed in to that team; keep the Mac awake and online during the build. A
+successful upload still needs Apple processing, and internal testing-group access
+must be checked separately. Xcode's local upload does not update the manual
+Fastlane job's TestFlight testing notes. Local logs are under
+`ios-native/build/local-testflight`.
+An upload failure does not undo the push. Run
+`python3 ios-native/tool/local_testflight.py retry [commit]` to retry a pushed
+commit, or `verify [commit]` to test and export without uploading. The archive
+and export are temporary; only logs and upload markers are retained. Already
+uploaded commits are skipped. `uninstall` removes this worktree's hook setting;
+it leaves the added tracking refspec in place.
+
+Pushes to `main` retain the React Native/Expo GitHub release. The native GitHub
+job remains available through manual dispatch: select `implementation: native`;
+`validate_only` runs tests and an unsigned archive without uploading.
+
+The manual native job uses the checked-in Xcode project, not Expo, Metro, CocoaPods or
 `generate_project.rb`. Fastlane is pinned by `Gemfile.lock`; it verifies the
 existing InfoHub App Store Connect ID `6739748229`, increments the build above
 the current TestFlight train and the local baseline, uses a dedicated
