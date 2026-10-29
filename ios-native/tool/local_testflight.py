@@ -22,6 +22,8 @@ APP_ID = "cn.zchengb.infohub"
 TEAM_ID = "UPDM24DCXU"
 HOOKS = ROOT / "ios-native/tool/git-hooks"
 WORKFLOW = ".github/workflows/ios-release.yml"
+# The last GitHub-published InfoHub 1.4 build confirmed before migration.
+BUILD_NUMBER_FLOOR = 30
 
 
 def clean_environment():
@@ -191,13 +193,45 @@ def run_contract_tests(source, directory):
         subprocess.run(["xcrun", "simctl", "delete", simulator], env=clean_environment(), check=True, timeout=60)
 
 
-def verify_archive(archive):
+def reserve_build_number(source):
+    project = (source / "ios-native/InfoHub.xcodeproj/project.pbxproj").read_text()
+    project_numbers = [int(value) for value in re.findall(r"CURRENT_PROJECT_VERSION\s*=\s*(\d+)\s*;", project)]
+    if not project_numbers:
+        raise RuntimeError("Cannot read the project's build number")
+    state_file = STATE / "last-build-number"
+    stored = int(state_file.read_text().strip()) if state_file.exists() else 0
+    number = max(BUILD_NUMBER_FLOOR, stored, *project_numbers) + 1
+    temporary = state_file.with_suffix(".tmp")
+    temporary.write_text(f"{number}\n")
+    temporary.replace(state_file)
+    return number
+
+
+def seed_build_number(number):
+    if number < 0:
+        raise RuntimeError("The build number must not be negative")
+    STATE.mkdir(parents=True, exist_ok=True)
+    with (STATE / "release.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        state_file = STATE / "last-build-number"
+        stored = int(state_file.read_text().strip()) if state_file.exists() else 0
+        if number < max(stored, BUILD_NUMBER_FLOOR):
+            raise RuntimeError("The build number cannot be lower than the current local value")
+        temporary = state_file.with_suffix(".tmp")
+        temporary.write_text(f"{number}\n")
+        temporary.replace(state_file)
+        print(f"Local build number updated to {number}; the next release will use a higher number.")
+
+
+def verify_archive(archive, expected_build=None):
     app = archive / "Products/Applications/InfoHub.app"
     with (app / "Info.plist").open("rb") as file:
         info = plistlib.load(file)
     if info.get("CFBundleIdentifier") != APP_ID:
         raise RuntimeError("Archive is not the existing InfoHub app")
-    print(f"Verified {APP_ID} {info.get('CFBundleShortVersionString')}.", flush=True)
+    if expected_build is not None and info.get("CFBundleVersion") != str(expected_build):
+        raise RuntimeError("Archive does not contain the reserved build number")
+    print(f"Verified {APP_ID} {info.get('CFBundleShortVersionString')} ({info.get('CFBundleVersion')}).", flush=True)
 
 
 def release(commit, export_only=False):
@@ -226,15 +260,19 @@ def release(commit, export_only=False):
             if extracted.returncode or archive_status:
                 raise RuntimeError("Could not create the committed source snapshot")
             run_contract_tests(source, directory)
+            build = None if export_only else reserve_build_number(source)
             archive = directory / "InfoHub.xcarchive"
-            run_command([
+            command = [
                 "xcodebuild", "-project", str(source / "ios-native/InfoHub.xcodeproj"),
                 "-scheme", "InfoHub", "-configuration", "Release", "-destination", "generic/platform=iOS",
                 "-archivePath", str(archive), "-derivedDataPath", str(directory / "DerivedData"),
                 "-allowProvisioningUpdates", "-hideShellScriptEnvironment", f"DEVELOPMENT_TEAM={TEAM_ID}",
-                "archive", "-quiet",
-            ])
-            verify_archive(archive)
+            ]
+            if build is not None:
+                command.append(f"CURRENT_PROJECT_VERSION={build}")
+                print(f"Reserved local build number {build}.", flush=True)
+            run_command(command + ["archive", "-quiet"])
+            verify_archive(archive, expected_build=build)
             options = directory / "ExportOptions.plist"
             with options.open("wb") as file:
                 plistlib.dump({
@@ -320,6 +358,8 @@ def main():
         install()
     elif action == "uninstall":
         uninstall()
+    elif action == "seed-build-number" and len(sys.argv) == 3:
+        seed_build_number(int(sys.argv[2]))
     elif action in ("run", "retry", "verify"):
         default = TRACKING if action == "retry" else "HEAD"
         commit = sys.argv[2] if len(sys.argv) > 2 else default
@@ -346,7 +386,7 @@ def main():
                     status = "incomplete; check log"
                 print(f"{status}: {path}")
     else:
-        raise RuntimeError("Usage: local_testflight.py install|uninstall|status|verify [commit]|retry [commit]")
+        raise RuntimeError("Usage: local_testflight.py install|uninstall|status|verify [commit]|retry [commit]|seed-build-number <number>")
 
 
 if __name__ == "__main__":

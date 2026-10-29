@@ -109,8 +109,18 @@ updates its tracking ref after a successful push; other refspecs are retained.
 The local release tests and builds the exact pushed commit, excluding uncommitted
 changes. Contract tests run on a temporary simulator that is deleted afterward.
 Releases run one at a time; Xcode automatically signs the existing InfoHub app
-and manages the TestFlight build number using team `UPDM24DCXU`. Xcode must be
-signed in to that team; keep the Mac awake and online during the build. A
+using team `UPDM24DCXU`. The local build counter starts above both the project
+number and the last confirmed GitHub TestFlight build, 1.4 (30), and increases
+for each attempted archive. Xcode may adjust a conflicting number during upload.
+If a different Mac or the manual GitHub job uploads a build, synchronize this
+counter to at least the latest TestFlight build number before the next push.
+Do not run releases from multiple machines at the same time:
+
+```sh
+python3 ios-native/tool/local_testflight.py seed-build-number <latest-number>
+```
+
+Xcode must be signed in to the team; keep the Mac awake and online during the build. A
 successful upload still needs Apple processing, and internal testing-group access
 must be checked separately. Xcode's local upload does not update the manual
 Fastlane job's TestFlight testing notes. Local logs are under

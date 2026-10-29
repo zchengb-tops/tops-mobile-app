@@ -39,6 +39,7 @@ class LocalTestFlightTests(unittest.TestCase):
         for hook in (tool / "git-hooks").iterdir():
             hook.chmod(0o755)
         (self.main_repo / "ios-native/InfoHub.xcodeproj").mkdir()
+        (self.main_repo / "ios-native/InfoHub.xcodeproj/project.pbxproj").write_text("CURRENT_PROJECT_VERSION = 26;\n")
         (self.main_repo / "ios-native/snapshot.txt").write_text("committed\n")
         workflow = self.main_repo / ".github/workflows/ios-release.yml"
         workflow.parent.mkdir(parents=True)
@@ -95,9 +96,10 @@ else:
     app = archive / "Products/Applications/InfoHub.app"
     app.mkdir(parents=True)
     app_id = "wrong.app" if os.environ.get("FAKE_BAD_ID") else "cn.zchengb.infohub"
+    build = next((arg.split("=", 1)[1] for arg in args if arg.startswith("CURRENT_PROJECT_VERSION=")), "26")
     with (app / "Info.plist").open("wb") as f:
-        plistlib.dump({"CFBundleIdentifier": app_id, "CFBundleShortVersionString": "1.1.0"}, f)
-    event = {"action": "archive", "snapshot": (source / "snapshot.txt").read_text()}
+        plistlib.dump({"CFBundleIdentifier": app_id, "CFBundleShortVersionString": "1.1.0", "CFBundleVersion": build}, f)
+    event = {"action": "archive", "snapshot": (source / "snapshot.txt").read_text(), "build": build}
 with record.open("a") as f:
     f.write(json.dumps(event) + "\\n")
 if event["action"] == "archive" and os.environ.get("FAKE_XCODE_DELAY"):
@@ -134,7 +136,7 @@ print("Fake xcodebuild completed")
         self.assertIn("Local TestFlight queued", result.stderr)
         self.wait_for_log("Upload completed")
         self.assertEqual(self.events()[0], {"action": "test", "snapshot": "committed\n"})
-        self.assertEqual(self.events()[1], {"action": "archive", "snapshot": "committed\n"})
+        self.assertEqual(self.events()[1], {"action": "archive", "snapshot": "committed\n", "build": "31"})
         options = self.events()[2]["options"]
         self.assertEqual(options["destination"], "upload")
         self.assertEqual(options["teamID"], "UPDM24DCXU")
@@ -193,6 +195,17 @@ print("Fake xcodebuild completed")
         self.assertIn("nothing was uploaded", result.stdout)
         self.assertEqual(self.events()[2]["options"]["destination"], "export")
         self.assertFalse(self.events()[2]["options"]["manageAppVersionAndBuildNumber"])
+        self.assertFalse((self.repo / "ios-native/build/local-testflight/last-build-number").exists())
+
+    def test_can_seed_build_number_after_an_external_release(self):
+        script = self.repo / "ios-native/tool/local_testflight.py"
+        self.command("python3", str(script), "seed-build-number", "45", cwd=self.repo)
+        self.assertEqual(self.push().returncode, 0)
+        self.wait_for_log("Upload completed")
+        self.assertEqual(self.events()[1]["build"], "46")
+        result = self.command("python3", str(script), "seed-build-number", "44", cwd=self.repo, check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("cannot be lower", result.stderr)
 
     def test_no_verify_does_not_release(self):
         result = self.command("git", "push", "--no-verify", "origin",
@@ -224,6 +237,7 @@ print("Fake xcodebuild completed")
         self.assertEqual(len(list(completed.glob("*"))), 2)
         self.assertEqual([event["action"] for event in self.events()], ["test", "archive", "export", "test", "archive", "export"])
         self.assertEqual([event["snapshot"] for event in self.events() if event["action"] == "archive"], ["committed\n", "second\n"])
+        self.assertEqual([event["build"] for event in self.events() if event["action"] == "archive"], ["31", "32"])
 
     def test_failed_upload_can_be_retried(self):
         self.env["FAKE_EXPORT_FAIL"] = "1"
