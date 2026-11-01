@@ -1,10 +1,98 @@
 import XCTest
 import SwiftUI
 import UIKit
+import ImageIO
 import Observation
 @testable import InfoHub
 
 final class ContractTests: XCTestCase {
+    @MainActor func testProfileUpdatesValidateAndRespectCurrentAccount() async throws {
+        setenv("INFOHUB_TEST_FAKE_CREDENTIALS", "1", 1)
+        let defaults = UserDefaults.standard
+        let originalEmail = defaults.object(forKey: "native.email")
+        let originalToken = Credential.shared.token
+        defer {
+            Credential.shared.clear()
+            if let originalToken { try? Credential.shared.save(originalToken) }
+            if let originalEmail { defaults.set(originalEmail, forKey: "native.email") }
+            else { defaults.removeObject(forKey: "native.email") }
+            ProfileFixtureProtocol.handler = nil
+            unsetenv("INFOHUB_TEST_FAKE_CREDENTIALS")
+        }
+        try Credential.shared.save("fixture-a")
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [ProfileFixtureProtocol.self]
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+        let store = AppStore(api: API(baseURL: URL(string: "https://profile.invalid/api")!, session: session))
+        store.userInfo = .object(["name": .string("Before"), "email": .string("a@example.invalid")])
+
+        let lock = NSLock()
+        var requests: [URLRequest] = []
+        let response = #"{"name":"Updated","email":"a@example.invalid","avatar":"https://example.invalid/avatar.png"}"#
+        var delayed: XCTestExpectation?
+        ProfileFixtureProtocol.handler = { request in
+            lock.lock(); requests.append(request); lock.unlock()
+            let text = String(decoding: request.httpBody ?? Data(), as: UTF8.self)
+            if text.contains("Delayed") { delayed?.fulfill(); return (200, response, 0.3) }
+            if text.contains("Failure") { return (500, #"{"message":"测试保存失败"}"#, 0) }
+            return (200, response, 0)
+        }
+        for invalid in ["A", String(repeating: "a", count: 31), "a\nb", "a\u{2028}b", "Alice\u{2028}"] {
+            do { try await store.updateUserInfo(name: invalid, avatar: nil, sessionToken: "fixture-a"); XCTFail("Expected invalid name") }
+            catch { XCTAssertEqual(store.userInfo?["name"].text, "Before") }
+        }
+        XCTAssertTrue(requests.isEmpty, "Invalid names must not reach the network")
+
+        try await store.updateUserInfo(name: "  新名字  ", avatar: nil, sessionToken: "fixture-a")
+        XCTAssertEqual(store.userInfo?["name"].text, "Updated")
+        let nameRequest = try XCTUnwrap(requests.last)
+        XCTAssertEqual(nameRequest.url?.path, "/api/user/me")
+        XCTAssertEqual(nameRequest.httpMethod, "PATCH")
+        XCTAssertEqual(nameRequest.value(forHTTPHeaderField: "Authorization"), "Bearer fixture-a")
+        let contentType = try XCTUnwrap(nameRequest.value(forHTTPHeaderField: "Content-Type"))
+        XCTAssertTrue(contentType.hasPrefix("multipart/form-data; boundary="))
+        let boundary = String(contentType.dropFirst("multipart/form-data; boundary=".count))
+        let nameBody = String(decoding: try XCTUnwrap(nameRequest.httpBody), as: UTF8.self)
+        XCTAssertTrue(nameBody.contains("name=\"name\"\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n新名字\r\n"))
+        XCTAssertFalse(nameBody.contains("name=\"avatar\""))
+        XCTAssertTrue(nameBody.hasSuffix("--\(boundary)--\r\n"))
+
+        let avatar = Data([137, 80, 78, 71, 0, 255])
+        try await store.updateUserInfo(name: "👩‍💻 User", avatar: avatar, sessionToken: "fixture-a")
+        let avatarBody = try XCTUnwrap(requests.last?.httpBody)
+        XCTAssertNotNil(avatarBody.range(of: Data("name=\"avatar\"; filename=\"avatar.png\"\r\nContent-Type: image/png\r\n\r\n".utf8)))
+        XCTAssertNotNil(avatarBody.range(of: avatar))
+
+        do { try await store.updateUserInfo(name: "Failure", avatar: nil, sessionToken: "fixture-a"); XCTFail("Expected error") }
+        catch { XCTAssertEqual(store.userInfo?["name"].text, "Updated") }
+        let started = expectation(description: "Old account update started")
+        delayed = started
+        let oldAccount = Task { try await store.updateUserInfo(name: "Delayed", avatar: nil, sessionToken: "fixture-a") }
+        await fulfillment(of: [started], timeout: 2)
+        try Credential.shared.save("fixture-b")
+        store.userInfo = .object(["name": .string("Account B"), "email": .string("b@example.invalid")])
+        do { try await oldAccount.value; XCTFail("A stale response must not update the new account") }
+        catch is CancellationError {} catch { XCTFail("Unexpected error: \(error)") }
+        XCTAssertEqual(store.userInfo?["name"].text, "Account B")
+    }
+
+    @MainActor func testProfileAvatarConvertsToBoundedPNG() throws {
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 2200, height: 1100), format: format).image { context in
+            UIColor.orange.setFill(); context.fill(CGRect(x: 0, y: 0, width: 2200, height: 1100))
+        }
+        let encoded = try XCTUnwrap(image.jpegData(compressionQuality: 0.9))
+        let png = try profileAvatarPNG(from: encoded)
+        XCTAssertEqual(Array(png.prefix(8)), [137, 80, 78, 71, 13, 10, 26, 10])
+        let source = try XCTUnwrap(CGImageSourceCreateWithData(png as CFData, nil))
+        let properties = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any])
+        XCTAssertEqual(properties[kCGImagePropertyPixelWidth] as? Int, 1024)
+        XCTAssertEqual(properties[kCGImagePropertyPixelHeight] as? Int, 512)
+        XCTAssertThrowsError(try profileAvatarPNG(from: Data([0, 1, 2])))
+        XCTAssertThrowsError(try profileAvatarPNG(from: Data()))
+    }
+
     @MainActor func testLoginUpdatesObservationAndIsolatesAccountChanges() async throws {
         setenv("INFOHUB_TEST_FAKE_CREDENTIALS", "1", 1)
         let defaults = UserDefaults.standard
@@ -751,6 +839,33 @@ final class ContractTests: XCTestCase {
             attachment.name = "Featured-stock-\(scheme)"; attachment.lifetime = .keepAlways; add(attachment)
         }
     }
+}
+
+private final class ProfileFixtureProtocol: URLProtocol {
+    static var handler: ((URLRequest) -> (Int, String, TimeInterval))?
+    override class func canInit(with request: URLRequest) -> Bool { request.url?.host == "profile.invalid" }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        var captured = request
+        if captured.httpBody == nil, let stream = captured.httpBodyStream {
+            stream.open(); defer { stream.close() }
+            var data = Data(), buffer = [UInt8](repeating: 0, count: 4096)
+            while stream.hasBytesAvailable {
+                let count = stream.read(&buffer, maxLength: buffer.count)
+                if count <= 0 { break }
+                data.append(contentsOf: buffer.prefix(count))
+            }
+            captured.httpBody = data
+        }
+        guard let url = request.url, let (status, body, delay) = Self.handler?(captured) else { return }
+        DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [self] in
+            guard let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: ["Content-Type": "application/json"]) else { return }
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: Data(body.utf8))
+            client?.urlProtocolDidFinishLoading(self)
+        }
+    }
+    override func stopLoading() {}
 }
 
 private final class AuthFixtureProtocol: URLProtocol {

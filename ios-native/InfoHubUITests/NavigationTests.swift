@@ -1,6 +1,121 @@
 import XCTest
 
 final class NavigationTests: XCTestCase {
+    func testLoginPromptIconActionsRemainAccessible() {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
+        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
+        app.launch()
+        app.buttons["nav-2"].tap()
+        app.buttons["settings-sync"].tap()
+        let prompt = app.alerts["请先登录"]
+        XCTAssertTrue(prompt.waitForExistence(timeout: 5))
+        XCTAssertTrue(prompt.buttons["取消"].exists)
+        XCTAssertTrue(prompt.buttons["去登录"].exists)
+        capture(app, "Login-prompt-icon-actions")
+        prompt.buttons["取消"].tap()
+        XCTAssertTrue(prompt.waitForNonExistence(timeout: 5))
+        app.buttons["settings-sync"].tap()
+        prompt.buttons["去登录"].tap()
+        XCTAssertTrue(app.textFields["login-email"].waitForExistence(timeout: 5))
+        capture(app, "Login-icon-action")
+        app.buttons["login-close"].tap()
+    }
+
+    func testEditProfileNameAndRestore() {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS_RUN"] = UUID().uuidString
+        app.launchEnvironment["INFOHUB_UI_TEST_LOGIN"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_LOGIN_STATE"] = "1"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
+        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
+        app.launch()
+        app.buttons["nav-2"].tap()
+        if app.buttons["account-details-entry"].waitForExistence(timeout: 2) {
+            app.buttons["account-details-entry"].tap()
+            app.buttons["account-sign-out"].tap()
+        }
+        app.buttons["使用邮箱登录"].tap()
+        let email = app.textFields["login-email"]
+        waitUntilHittable(email)
+        email.tap(); email.typeText("preview@example.invalid")
+        app.buttons["login-consent"].tap(); app.buttons["login-send-code"].tap()
+        let code = app.textFields["login-code-0"]
+        waitUntilHittable(code)
+        code.tap(); app.typeText("123456"); app.buttons["login-submit"].tap()
+        let account = app.buttons["account-details-entry"]
+        waitUntilHittable(account); account.tap()
+        let name = app.textFields["profile-name"]
+        waitUntilHittable(name)
+        XCTAssertFalse(app.navigationBars["用户详情"].exists)
+        XCTAssertEqual(app.buttons["profile-cancel"].label, "取消")
+        XCTAssertEqual(app.buttons["profile-save"].label, "保存")
+        XCTAssertTrue(app.buttons["profile-avatar-picker"].exists)
+        capture(app, "Profile-editor-light")
+        app.buttons["profile-avatar-picker"].tap()
+        let photos = app.navigationBars["Photos"]
+        XCTAssertTrue(photos.waitForExistence(timeout: 10))
+        photos.buttons["Cancel"].tap()
+        waitUntilHittable(name)
+        XCTAssertFalse(app.buttons["profile-save"].isEnabled)
+        name.tap()
+        app.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 4))
+        app.typeText("A")
+        app.buttons["profile-save"].tap()
+        XCTAssertTrue(app.staticTexts["profile-error"].waitForExistence(timeout: 5))
+        name.tap(); app.typeText(XCUIKeyboardKey.delete.rawValue); app.typeText("Profile Tester")
+        app.buttons["profile-save"].tap()
+        XCTAssertTrue(app.staticTexts["Profile Tester"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["profile-name"].exists)
+        app.terminate()
+        app.launch()
+        app.buttons["nav-2"].tap()
+        XCTAssertTrue(app.staticTexts["Profile Tester"].waitForExistence(timeout: 5))
+        app.buttons["account-details-entry"].tap()
+        app.buttons["account-sign-out"].tap()
+        XCTAssertTrue(app.buttons["使用邮箱登录"].waitForExistence(timeout: 5))
+        app.terminate()
+    }
+
+    func testProfileCanSignOutWhenLoadingFails() {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_LOGIN"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_LOGIN_STATE"] = "1"
+        app.launchEnvironment["INFOHUB_UI_TEST_PROFILE_LOAD_ERROR"] = "1"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
+        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
+        app.launch()
+        app.buttons["nav-2"].tap()
+        let error = app.alerts["无法完成操作"]
+        if error.waitForExistence(timeout: 3) { error.buttons["好"].tap() }
+        if app.buttons["account-details-entry"].waitForExistence(timeout: 2) {
+            app.buttons["account-details-entry"].tap()
+            app.buttons["account-sign-out"].tap()
+        }
+        app.buttons["使用邮箱登录"].tap()
+        let email = app.textFields["login-email"]
+        waitUntilHittable(email)
+        email.tap(); email.typeText("preview@example.invalid")
+        app.buttons["login-consent"].tap(); app.buttons["login-send-code"].tap()
+        let code = app.textFields["login-code-0"]
+        waitUntilHittable(code)
+        code.tap(); app.typeText("123456"); app.buttons["login-submit"].tap()
+        if error.waitForExistence(timeout: 3) { error.buttons["好"].tap() }
+        let account = app.buttons["account-details-entry"]
+        waitUntilHittable(account); account.tap()
+        XCTAssertTrue(app.staticTexts["用户资料暂不可用"].waitForExistence(timeout: 5))
+        let retry = app.buttons["重新加载用户资料"]
+        XCTAssertTrue(retry.exists)
+        retry.tap()
+        XCTAssertTrue(retry.isHittable)
+        if error.exists { error.buttons["好"].tap() }
+        app.buttons["account-sign-out"].tap()
+        XCTAssertTrue(app.buttons["使用邮箱登录"].waitForExistence(timeout: 5))
+    }
+
     func testRSSListAndCardViewsPersistPerFeed() {
         let app = XCUIApplication()
         let run = UUID().uuidString
@@ -53,6 +168,10 @@ final class NavigationTests: XCTestCase {
         app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
         app.launch()
         app.buttons["nav-2"].tap()
+        if app.buttons["account-details-entry"].waitForExistence(timeout: 2) {
+            app.buttons["account-details-entry"].tap()
+            app.buttons["account-sign-out"].tap()
+        }
         XCTAssertFalse(app.staticTexts["阅读"].exists)
         XCTAssertFalse(app.staticTexts["更多"].exists)
         capture(app, "My-generated-illustrations-light")
@@ -68,15 +187,42 @@ final class NavigationTests: XCTestCase {
         app.buttons["login-submit"].tap()
         XCTAssertTrue(app.staticTexts["preview@example.invalid"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["预览用户"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["退出登录"].exists)
+        let accountEntry = app.buttons["account-details-entry"]
+        waitUntilHittable(accountEntry)
+        XCTAssertFalse(app.buttons["account-sign-out"].exists)
+        accountEntry.tap()
+        XCTAssertTrue(app.textFields["profile-name"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.navigationBars["用户详情"].exists)
+        XCTAssertTrue(app.buttons["account-sign-out"].exists)
+        capture(app, "Account-editor-light")
+        app.buttons["profile-cancel"].tap()
+        waitUntilHittable(accountEntry)
+        XCTAssertFalse(app.buttons["account-sign-out"].exists)
+        app.buttons["settings-sync"].tap()
+        waitUntilHittable(app.buttons["sync-restore"])
+        app.buttons["sync-restore"].tap()
+        XCTAssertTrue(app.buttons["恢复订阅"].waitForExistence(timeout: 5))
+        capture(app, "Restore-confirmation-icon-actions")
+        if app.buttons["取消"].exists { app.buttons["取消"].tap() }
+        else { app.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.65)).tap() }
+        XCTAssertFalse(app.buttons["恢复订阅"].exists)
+        app.navigationBars["订阅同步"].buttons.firstMatch.tap()
+        waitUntilHittable(accountEntry)
         app.terminate()
         app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
         app.launch()
         app.buttons["nav-2"].tap()
         XCTAssertTrue(app.staticTexts["preview@example.invalid"].waitForExistence(timeout: 5))
         capture(app, "My-generated-illustrations-dark")
-        app.buttons["退出登录"].tap()
+        waitUntilHittable(accountEntry)
+        XCTAssertFalse(app.buttons["account-sign-out"].exists)
+        accountEntry.tap()
+        XCTAssertTrue(app.textFields["profile-name"].waitForExistence(timeout: 5))
+        capture(app, "Account-editor-dark")
+        app.buttons["account-sign-out"].tap()
         XCTAssertTrue(app.buttons["使用邮箱登录"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["profile-name"].waitForNonExistence(timeout: 5))
+        waitUntilHittable(app.buttons["使用邮箱登录"])
         app.terminate()
     }
     func testStockFitsAvailableViewportAfterRotation() {
@@ -565,6 +711,8 @@ final class NavigationTests: XCTestCase {
     func testVersionBadgeReopensUpdateAfterDismissal() {
         let app = XCUIApplication()
         app.launchEnvironment["INFOHUB_UI_TEST_UPDATE"] = "available"
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
         for appearance in ["light", "dark"] {
             app.launchArguments = ["-native.appearance", appearance, "-native.selectedChannel", "sina", "-native.readingSize", "system"]
             app.launch()
@@ -780,6 +928,8 @@ final class NavigationTests: XCTestCase {
     func testLoginTwoStepCodeAndBackNavigation() {
         let app = XCUIApplication()
         app.launchEnvironment["INFOHUB_UI_TEST_LOGIN"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
         for appearance in ["light", "dark"] {
             app.launchArguments = ["-native.appearance", appearance, "-native.selectedChannel", "sina", "-native.readingSize", "system"]
             app.launch()
@@ -803,7 +953,8 @@ final class NavigationTests: XCTestCase {
             app.typeText("123")
             XCTAssertFalse(app.buttons["login-submit"].isEnabled, "Require all six digits")
             app.typeText("456")
-            XCTAssertTrue(app.buttons["login-submit"].isEnabled)
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: app.buttons["login-submit"])
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
             for index in 0..<6 {
                 XCTAssertEqual(app.textFields["login-code-\(index)"].value as? String, String(index + 1))
             }
@@ -1604,9 +1755,14 @@ final class NavigationTests: XCTestCase {
         // A small upward scroll dismisses either native keyboard without dragging the sheet closed.
         let visibleBottom = min(form.frame.maxY, keyboard.frame.minY)
         let start = form.coordinate(withNormalizedOffset: .zero)
-            .withOffset(CGVector(dx: form.frame.width - 12, dy: visibleBottom - form.frame.minY - 32))
+            .withOffset(CGVector(dx: form.frame.width - 36, dy: visibleBottom - form.frame.minY - 32))
         start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 0, dy: -44)))
-        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: keyboard)
+        // The simulator can retain an off-screen keyboard accessibility node after dismissal.
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let hidden = !keyboard.exists || keyboard.frame.minY >= app.frame.maxY
+            let focusedFields = app.textFields.matching(NSPredicate(format: "hasKeyboardFocus == true"))
+            return hidden && focusedFields.count == 0
+        }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed)
         XCTAssertTrue(form.exists, "Dismissing the keyboard should keep the login sheet open")
     }
@@ -1614,7 +1770,7 @@ final class NavigationTests: XCTestCase {
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
-    func testPlayerCoverBackdropAndGlassControls() {
+    func testPlayerCoverBackdropAndUnwrappedControls() {
         let app = XCUIApplication()
         for appearance in ["light", "dark", "accessibility"] {
             app.launchArguments = ["-native.appearance", appearance == "dark" ? "dark" : "light", "-native.selectedChannel", "xiaoyuzhou", "-native.readingSize", "system"]
@@ -1624,7 +1780,12 @@ final class NavigationTests: XCTestCase {
             app.launch()
             ensureMiniPlayer(app)
             let miniToggle = app.buttons["mini-player-toggle"]
-            if miniToggle.label == "暂停" { miniToggle.tap() }
+            if miniToggle.label == "播放" { miniToggle.tap() }
+            let playing = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "暂停"), object: miniToggle)
+            XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 20), .completed)
+            miniToggle.tap()
+            let paused = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "播放"), object: miniToggle)
+            XCTAssertEqual(XCTWaiter.wait(for: [paused], timeout: 5), .completed)
             let author = app.staticTexts["mini-player-metadata"].label
             app.buttons["mini-player"].tap()
             let scroll = app.scrollViews["player-scroll"]
@@ -1644,11 +1805,78 @@ final class NavigationTests: XCTestCase {
                 XCTAssertLessThanOrEqual(button.frame.maxY, scroll.frame.maxY, "Scroll large-text controls fully into view")
             }
             XCTAssertTrue(app.sliders["播放进度"].exists)
-            capture(app, "Player-glass-controls-\(appearance)")
+            capture(app, "Player-unwrapped-controls-\(appearance)")
             app.buttons["收起"].tap()
             XCTAssertTrue(scroll.waitForNonExistence(timeout: 5))
             XCTAssertEqual(miniToggle.label, "播放")
             XCTAssertEqual(app.staticTexts["mini-player-metadata"].label, author)
+            app.terminate()
+        }
+    }
+    func testStopPlaybackIsOnlyInAudioDetailAndDoesNotRestore() {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_PLAYER"] = "1"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
+        for appearance in ["light", "dark"] {
+            app.launchArguments = ["-native.appearance", appearance, "-native.selectedChannel", "xiaoyuzhou",
+                                   "-native.readingSize", "system", "-native.syncEnabled", "NO"]
+            app.launch()
+            ensureMiniPlayer(app)
+            let toggle = app.buttons["mini-player-toggle"]
+            if toggle.label == "暂停" { toggle.tap() }
+            XCTAssertFalse(app.buttons["mini-player-stop"].exists)
+            XCTAssertFalse(app.buttons["player-stop"].exists)
+            XCTAssertGreaterThanOrEqual(toggle.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(toggle.frame.height, 44)
+            XCTAssertLessThanOrEqual(app.buttons["mini-player"].frame.maxX, toggle.frame.minX)
+            XCTAssertLessThanOrEqual(toggle.frame.maxX, app.frame.maxX - 16)
+            for tab in [1, 2, 0] {
+                app.buttons["nav-\(tab)"].tap()
+                waitUntilHittable(toggle)
+                XCTAssertFalse(app.buttons["mini-player-stop"].exists)
+            }
+            capture(app, "Mini-player-without-stop-\(appearance)")
+            app.buttons["mini-player"].tap()
+            let scroll = app.scrollViews["player-scroll"]
+            XCTAssertTrue(scroll.waitForExistence(timeout: 5))
+            let stop = app.buttons["player-stop"]
+            XCTAssertTrue(stop.waitForExistence(timeout: 5))
+            waitUntilHittable(stop)
+            XCTAssertGreaterThanOrEqual(stop.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(stop.frame.height, 44)
+            let navigationBar = app.navigationBars["正在收听"]
+            XCTAssertEqual(app.buttons.matching(identifier: "player-stop").count, 1)
+            XCTAssertFalse(navigationBar.buttons["player-stop"].exists)
+            XCTAssertEqual(stop.frame.midX, app.frame.midX, accuracy: 1)
+            XCTAssertGreaterThan(stop.frame.minY, app.frame.maxY - 110)
+            XCTAssertLessThanOrEqual(stop.frame.maxY, app.frame.maxY - 28,
+                                     "The stop button must clear the home-indicator safe area")
+            XCTAssertEqual(stop.label, "结束播放")
+            capture(app, "Audio-detail-stop-visible-on-open-\(appearance)")
+            let stopFrame = stop.frame
+            scroll.swipeUp()
+            XCTAssertTrue(stop.isHittable, "Stopping must remain available while browsing the detail page")
+            XCTAssertEqual(stop.frame.minY, stopFrame.minY, accuracy: 1)
+            let transport = app.buttons["player-toggle"]
+            for _ in 0..<5 where !transport.isHittable || transport.frame.maxY > stop.frame.minY - 12 {
+                scroll.swipeUp()
+            }
+            XCTAssertTrue(transport.isHittable)
+            XCTAssertLessThanOrEqual(transport.frame.maxY, stop.frame.minY - 12,
+                                     "Playback controls must scroll clear of the fixed stop action")
+            capture(app, "Audio-detail-stop-pinned-\(appearance)")
+            stop.tap()
+            XCTAssertTrue(scroll.waitForNonExistence(timeout: 5))
+            XCTAssertTrue(app.buttons["mini-player"].waitForNonExistence(timeout: 5))
+            XCTAssertFalse(toggle.exists)
+            XCTAssertFalse(stop.exists)
+            XCTAssertTrue(app.buttons["nav-0"].isHittable)
+            capture(app, "Audio-detail-stopped-\(appearance)")
+            app.terminate()
+            app.launch()
+            waitUntilHittable(app.buttons["channel-menu"])
+            XCTAssertFalse(app.buttons["mini-player"].exists, "A stopped episode must not restore the audio bar")
             app.terminate()
         }
     }

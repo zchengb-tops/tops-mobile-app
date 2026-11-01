@@ -152,17 +152,32 @@ struct PlayerView: View {
                                 }.accessibilityLabel("前进 30 秒")
                             }.font(.title).labelStyle(.iconOnly).buttonStyle(.plain)
                                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-                                .padding(.horizontal, 20).padding(.vertical, 8).glassSurface(in: Capsule())
+                                .padding(.horizontal, 20).padding(.vertical, 8)
                             AirPlayPicker().frame(width: 44, height: 44).accessibilityLabel("AirPlay 音频输出")
-                            if let error = player.error { Text(error).foregroundStyle(.red); Button("重试") { player.play(item) } }
-                            Button("结束播放", role: .destructive) { player.stop(); dismiss() }
+                            if let error = player.error {
+                                Text(error).foregroundStyle(.red)
+                                Button { player.play(item) } label: { Image(systemName: "arrow.clockwise").frame(width: 44, height: 44) }
+                                    .accessibilityLabel("重试")
+                            }
                         }.padding(28).frame(maxWidth: 500)
                     }
                 }.frame(maxWidth: .infinity).navigationTitle("正在收听").navigationBarTitleDisplayMode(.inline)
                     .accessibilityIdentifier("player-scroll")
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        Button(role: .destructive) { player.stop(); dismiss() } label: {
+                            Image(systemName: "stop.fill").font(.subheadline)
+                                .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                        }.buttonStyle(.plain).foregroundStyle(.red).accessibilityIdentifier("player-stop")
+                            .accessibilityLabel("结束播放").accessibilityHint("停止音频并关闭播放器")
+                            .padding(.bottom, 8).frame(maxWidth: .infinity)
+                    }
                     .background { backdrop(image: phase.image) }
                     .toolbarBackground(.hidden, for: .navigationBar)
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("收起", systemImage: "chevron.down") { dismiss() } } }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button { dismiss() } label: { Image(systemName: "chevron.down") }.accessibilityLabel("收起")
+                        }
+                    }
             }
         }
     }

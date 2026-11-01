@@ -191,7 +191,7 @@ enum FeedDensity: String, CaseIterable, Identifiable {
         UserDefaults.standard.removeObject(forKey: "native.syncVersion")
         UserDefaults.standard.removeObject(forKey: "native.lastSync")
     }
-    private func refreshUserInfo() {
+    func refreshUserInfo(showError: Bool = true) {
         profileTask?.cancel()
         guard let token = Credential.shared.token else { userInfo = nil; return }
         profileTask = Task {
@@ -204,9 +204,29 @@ enum FeedDensity: String, CaseIterable, Identifiable {
                 userInfo = info
             } catch is CancellationError { return }
             catch {
-                if Credential.shared.token == token { self.error = error.localizedDescription }
+                if showError, Credential.shared.token == token { self.error = error.localizedDescription }
             }
         }
+    }
+    func updateUserInfo(name: String, avatar: Data?, sessionToken: String?) async throws {
+        guard let token = sessionToken else { throw APIError.message("请先登录") }
+        let normalized = name.trimmingCharacters(in: CharacterSet(charactersIn: "\u{0}"..."\u{20}"))
+        guard (2...30).contains(normalized.unicodeScalars.count) else {
+            throw APIError.message("名字长度需为2-30个字符")
+        }
+        guard !normalized.unicodeScalars.contains(where: {
+            (0...0x1F).contains($0.value) || (0x7F...0x9F).contains($0.value) || $0.value == 0x2028 || $0.value == 0x2029
+        }) else { throw APIError.message("名字不能包含换行或控制字符") }
+        try requireCurrentSession(token)
+        profileTask?.cancel()
+        let info = try await api.updateUserInfo(name: normalized, avatar: avatar, requiredToken: token)
+        try requireCurrentSession(token)
+        guard !info["name"].text.isEmpty, let address = info["email"].text.nilIfEmpty else {
+            throw APIError.message("服务器返回的用户资料无效")
+        }
+        email = address
+        UserDefaults.standard.set(address, forKey: "native.email")
+        userInfo = info
     }
     func sync(download: Bool, automatic: Bool = false) async {
         guard let token = Credential.shared.token else { error = "请先登录"; return }

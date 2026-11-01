@@ -75,19 +75,49 @@ struct API {
            ["success", "subscribe-error", "load-error", "empty", "feed"].contains(scenario) {
             return try await RSSUITestAPI.shared.request(path, scenario: scenario)
         }
-        if ProcessInfo.processInfo.environment["INFOHUB_TEST_FAKE_CREDENTIALS"] == "1", baseURL.host?.hasSuffix(".invalid") != true {
-            throw APIError.message("测试请求必须使用隔离服务")
-        }
         #endif
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { components.queryItems = query }
         var request = URLRequest(url: components.url!, timeoutInterval: 30)
         request.httpMethod = body == nil ? "GET" : "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let body { request.httpBody = try JSONEncoder().encode(body) }
+        return try await send(request, path: path, requiredToken: requiredToken)
+    }
+    func updateUserInfo(name: String, avatar: Data?, requiredToken: String) async throws -> JSON {
+        #if DEBUG
+        if let scenario = ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_RSS"],
+           ["success", "subscribe-error", "load-error", "empty", "feed"].contains(scenario) {
+            guard await Credential.shared.token == requiredToken else { throw CancellationError() }
+            return try await RSSUITestAPI.shared.updateUserInfo(name: name, avatar: avatar, scenario: scenario)
+        }
+        #endif
+        let boundary = "InfoHub-\(UUID().uuidString)"
+        var body = Data()
+        func append(_ text: String) { body.append(contentsOf: text.utf8) }
+        append("--\(boundary)\r\nContent-Disposition: form-data; name=\"name\"\r\nContent-Type: text/plain; charset=utf-8\r\n\r\n\(name)\r\n")
+        if let avatar {
+            append("--\(boundary)\r\nContent-Disposition: form-data; name=\"avatar\"; filename=\"avatar.png\"\r\nContent-Type: image/png\r\n\r\n")
+            body.append(avatar)
+            append("\r\n")
+        }
+        append("--\(boundary)--\r\n")
+        var request = URLRequest(url: baseURL.appendingPathComponent("user/me"), timeoutInterval: 30)
+        request.httpMethod = "PATCH"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        return try await send(request, path: "user/me", requiredToken: requiredToken)
+    }
+    private func send(_ input: URLRequest, path: String, requiredToken: String?) async throws -> JSON {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["INFOHUB_TEST_FAKE_CREDENTIALS"] == "1", baseURL.host?.hasSuffix(".invalid") != true {
+            throw APIError.message("测试请求必须使用隔离服务")
+        }
+        #endif
+        var request = input
         let token = await Credential.shared.token
         if let requiredToken, token != requiredToken { throw CancellationError() }
         if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
-        if let body { request.httpBody = try JSONEncoder().encode(body) }
         let (data, response) = try await session.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw APIError.message("服务器响应无效") }
         if response.statusCode == 401 {
@@ -123,13 +153,21 @@ private actor RSSUITestAPI {
             if shouldFail { throw APIError.message("测试订阅失败，请重试") }
             response = #"{"description":"Fixture RSS metadata","iconUrl":""}"#
         case "rss-resource/title": response = #""自定义测试来源""#
-        case "news-channels/default": response = #"[{"channelCode":"sina","title":"微博","isAppEnabled":true,"enable":true}]"#
+        case "news-channels/default":
+            response = ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_PLAYER"] == "1"
+                ? #"[{"channelCode":"xiaoyuzhou","title":"小宇宙","isAppEnabled":true,"enable":true}]"#
+                : #"[{"channelCode":"sina","title":"微博","isAppEnabled":true,"enable":true}]"#
         case "rss-news":
             response = scenario == "feed" ? #"[{"rssUrl":"https://example.org/a.xml","originLink":"https://example.org/","items":[{"title":"第一篇测试新闻，较长的标题也应该完整展示","link":"https://example.org/article-1","description":"<p>这是一段用于卡片视图的测试摘要。</p>","publishDate":"2026-10-29T10:00:00Z"},{"title":"第二篇测试新闻","link":"https://example.org/article-2","publishDate":"2026-10-29T09:00:00Z"}]},{"rssUrl":"https://example.org/b.xml","items":[{"title":"另一个频道的测试新闻","link":"https://example.org/article-3","publishDate":"2026-10-29T08:00:00Z"}]}]"# : "[]"
         case "user/sign-in" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_LOGIN_STATE"] == "1":
             response = #"{"accessToken":"fixture-token"}"#
         case "user/me" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_LOGIN_STATE"] == "1":
-            response = #"{"name":"预览用户","email":"preview@example.invalid","avatar":""}"#
+            if ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_PROFILE_LOAD_ERROR"] == "1" {
+                throw APIError.message("测试资料加载失败")
+            }
+            return fixtureUserInfo()
+        case "normal-news" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_PLAYER"] == "1":
+            response = #"{"xiaoyuzhou":[{"title":"测试播客","author":"测试频道","mediaUrl":"https://audio.invalid/episode.mp3","duration":3600}]}"#
         case "normal-news", "news/github", "news/artificial-analysis", "app/versions": response = "{}"
         default: throw APIError.message("订阅测试未配置此请求")
         }
@@ -137,6 +175,25 @@ private actor RSSUITestAPI {
         let isolated = response.replacingOccurrences(of: "https://example.org/", with: "https://example.org/\(run)/")
             .replacingOccurrences(of: "fixture-feed-", with: "fixture-\(run)-feed-")
         return try JSONDecoder().decode(JSON.self, from: Data(isolated.utf8))
+    }
+    func updateUserInfo(name: String, avatar: Data?, scenario: String) throws -> JSON {
+        guard scenario == "success", ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_LOGIN_STATE"] == "1" else {
+            throw APIError.message("资料测试未配置此请求")
+        }
+        if ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_PROFILE_ERROR"] == "1" {
+            throw APIError.message("测试资料保存失败")
+        }
+        UserDefaults.standard.set(name, forKey: "\(profileKey).name")
+        if avatar != nil { UserDefaults.standard.set("https://avatar.invalid/profile.png", forKey: "\(profileKey).avatar") }
+        return fixtureUserInfo()
+    }
+    private var profileKey: String {
+        "fixture.profile.\(ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_RSS_RUN"] ?? "default")"
+    }
+    private func fixtureUserInfo() -> JSON {
+        .object(["name": .string(UserDefaults.standard.string(forKey: "\(profileKey).name") ?? "预览用户"),
+                 "email": .string("preview@example.invalid"),
+                 "avatar": .string(UserDefaults.standard.string(forKey: "\(profileKey).avatar") ?? "")])
     }
 }
 #endif

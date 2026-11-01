@@ -131,16 +131,24 @@ struct RootView: View {
                 Image(systemName: "arrow.down.app").font(.largeTitle).foregroundStyle(.secondary)
                 Text("新版本 \(store.update?["latestVersion"].text ?? "")").font(.title.bold())
                 Text(store.update?["updateMessage"].text ?? "")
-                if let url = webURL(store.update?["updateUrl"].text ?? "") { Link("前往更新", destination: url).buttonStyle(.borderedProminent) }
-                if store.update?["isMandatory"].flag != true { Button("稍后") { store.update = nil } }
+                HStack(spacing: 24) {
+                    if store.update?["isMandatory"].flag != true {
+                        Button { store.update = nil } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
+                            .accessibilityLabel("稍后")
+                    }
+                    if let url = webURL(store.update?["updateUrl"].text ?? "") {
+                        Link(destination: url) { Image(systemName: "arrow.down.app").frame(width: 44, height: 44) }
+                            .accessibilityLabel("前往更新")
+                    }
+                }.font(.headline)
             }.padding(28).presentationDetents([.medium])
                 .interactiveDismissDisabled(store.update?["isMandatory"].flag == true)
         }
         .alert("无法完成操作", isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })) {
-            Button("好") { store.error = nil }
+            Button { store.error = nil } label: { Text("✓").accessibilityLabel("好") }.accessibilityLabel("好")
         } message: { Text(store.error ?? "") }
         .alert("InfoHub", isPresented: Binding(get: { store.message != nil }, set: { if !$0 { store.message = nil } })) {
-            Button("好") { store.message = nil }
+            Button { store.message = nil } label: { Text("✓").accessibilityLabel("好") }.accessibilityLabel("好")
         } message: { Text(store.message ?? "") }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active && Date.now.timeIntervalSince(lastActive) > 600 {

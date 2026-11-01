@@ -1,4 +1,7 @@
 import SwiftUI
+import PhotosUI
+import ImageIO
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(AppStore.self) private var store
@@ -8,6 +11,7 @@ struct SettingsView: View {
     @State private var login = false
     @State private var confirmLogin = false
     @State private var syncPresented = false
+    @State private var editProfile = false
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
@@ -64,21 +68,32 @@ struct SettingsView: View {
             .background(Color(uiColor: .systemBackground).ignoresSafeArea())
             .navigationTitle("我的").toolbar(.hidden, for: .navigationBar)
             .navigationDestination(isPresented: $syncPresented) { SubscriptionSyncView() }
+            .onChange(of: store.loggedIn) { _, loggedIn in
+                if !loggedIn { editProfile = false }
+            }
             .sheet(isPresented: $login) { LoginView().environment(\.appFooterHeight, 0) }
+            .sheet(isPresented: $editProfile) {
+                ProfileEditorView(profile: store.userInfo, sessionToken: Credential.shared.token)
+                    .environment(\.appFooterHeight, 0)
+            }
             .alert("请先登录", isPresented: $confirmLogin) {
-                Button("取消", role: .cancel) {}
-                Button("去登录") { login = true }
+                Button(role: .cancel) {} label: { Text("×").accessibilityLabel("取消") }.accessibilityLabel("取消")
+                Button { login = true } label: { Text("→").accessibilityLabel("去登录") }.accessibilityLabel("去登录")
             } message: {
                 Text("登录后即可管理云端订阅，同时在不同设备间保持同步")
             }
     }
     @ViewBuilder private var account: some View {
         if store.loggedIn {
-            VStack(alignment: .leading, spacing: 8) {
-                accountLabel
-                Button("退出登录", role: .destructive) { store.signOut() }
-                    .font(.subheadline).frame(minHeight: 44)
-            }
+            Button {
+                if store.userInfo == nil { store.refreshUserInfo(showError: false) }
+                editProfile = true
+            } label: {
+                HStack(spacing: 12) {
+                    accountLabel
+                    chevron
+                }.contentShape(Rectangle())
+            }.accessibilityIdentifier("account-details-entry").accessibilityHint("编辑个人资料")
         } else {
             Button { login = true } label: {
                 HStack(spacing: 12) {
@@ -150,6 +165,158 @@ struct SettingsView: View {
             Text("跟随系统").tag("system"); Text("小").tag("small"); Text("大").tag("large")
         }.accessibilityIdentifier("reading-size-picker")
     }
+}
+
+private struct ProfileEditorView: View {
+    @Environment(AppStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+    @State private var name: String
+    @State private var initialName: String
+    @State private var initialAvatar: URL?
+    @State private var sessionToken: String?
+    @State private var hasProfile: Bool
+    @State private var photo: PhotosPickerItem?
+    @State private var avatarPNG: Data?
+    @State private var avatarPreview: UIImage?
+    @State private var photoLoadID: UUID?
+    @State private var loadingPhoto = false
+    @State private var saving = false
+    @State private var error: String?
+    @State private var saveTask: Task<Void, Never>?
+
+    init(profile: JSON?, sessionToken: String?) {
+        let profile = profile ?? .null
+        _name = State(initialValue: profile["name"].text)
+        _initialName = State(initialValue: profile["name"].text)
+        _initialAvatar = State(initialValue: webURL(profile["avatar"].text))
+        _sessionToken = State(initialValue: sessionToken)
+        _hasProfile = State(initialValue: profile != .null)
+    }
+    var body: some View {
+        NavigationStack {
+            Form {
+                if hasProfile {
+                    HStack(spacing: 14) {
+                        Text("头像")
+                        Spacer()
+                        PhotosPicker(selection: $photo, matching: .images) {
+                            HStack(spacing: 10) {
+                                avatar.frame(width: 56, height: 56).clipShape(Circle())
+                                if loadingPhoto { ProgressView() }
+                                else { Image(systemName: "pencil").font(.subheadline).foregroundStyle(.secondary) }
+                            }.frame(minHeight: 56).contentShape(Rectangle())
+                        }.disabled(loadingPhoto || saving).accessibilityLabel("更换头像")
+                            .accessibilityIdentifier("profile-avatar-picker")
+                    }
+                    Section("用户名") {
+                        TextField("用户名", text: $name).disabled(saving).accessibilityIdentifier("profile-name")
+                    }
+                } else {
+                    HStack {
+                        Text("用户资料暂不可用")
+                        Spacer()
+                        Button { store.refreshUserInfo(showError: false) } label: {
+                            Image(systemName: "arrow.clockwise").frame(minWidth: 44, minHeight: 44)
+                        }.accessibilityLabel("重新加载用户资料")
+                    }
+                }
+                if let error {
+                    Text(error).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("profile-error")
+                }
+                HStack {
+                    Text("退出登录").foregroundStyle(.red)
+                    Spacer()
+                    Button(role: .destructive) {
+                        store.signOut()
+                        if store.loggedIn, let message = store.error { error = message; store.error = nil }
+                    } label: {
+                        Image(systemName: "rectangle.portrait.and.arrow.right").frame(minWidth: 44, minHeight: 44)
+                    }.disabled(saving || loadingPhoto).accessibilityLabel("退出登录")
+                        .accessibilityIdentifier("account-sign-out")
+                }
+            }
+            .navigationTitle("编辑资料").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { Image(systemName: "xmark") }
+                        .disabled(saving).accessibilityLabel("取消").accessibilityIdentifier("profile-cancel")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { save() } label: { Image(systemName: "checkmark") }
+                        .disabled(!hasProfile || saving || loadingPhoto || (name == initialName && avatarPNG == nil))
+                        .accessibilityLabel("保存").accessibilityIdentifier("profile-save")
+                }
+            }
+            .interactiveDismissDisabled(saving)
+            .task(id: photo) { await loadPhoto() }
+            .onChange(of: store.userInfo, initial: true) { _, profile in
+                guard !hasProfile, let profile, Credential.shared.token == sessionToken else { return }
+                name = profile["name"].text
+                initialName = name
+                initialAvatar = webURL(profile["avatar"].text)
+                hasProfile = true
+            }
+            .onChange(of: name) { _, _ in error = nil }
+            .onDisappear { saveTask?.cancel() }
+        }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+    }
+    @ViewBuilder private var avatar: some View {
+        if let avatarPreview {
+            Image(uiImage: avatarPreview).resizable().scaledToFill()
+        } else if let initialAvatar {
+            AsyncImage(url: initialAvatar) { image in image.resizable().scaledToFill() } placeholder: { avatarPlaceholder }
+        } else { avatarPlaceholder }
+    }
+    private var avatarPlaceholder: some View {
+        Image(systemName: "person.fill").font(.title2).foregroundStyle(.white)
+            .frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.infoHubSelection)
+    }
+    private func loadPhoto() async {
+        guard let photo else { return }
+        let loadID = UUID()
+        photoLoadID = loadID; loadingPhoto = true; error = nil
+        defer { if photoLoadID == loadID { loadingPhoto = false } }
+        do {
+            guard let input = try await photo.loadTransferable(type: Data.self) else { throw APIError.message("无法读取图片，请重试") }
+            try Task.checkCancellation()
+            let png = try await Task.detached(priority: .userInitiated) { try profileAvatarPNG(from: input) }.value
+            try Task.checkCancellation()
+            avatarPNG = png; avatarPreview = UIImage(data: png)
+        } catch is CancellationError { return }
+        catch { if !Task.isCancelled { self.error = error.localizedDescription } }
+    }
+    private func save() {
+        guard !saving, !loadingPhoto else { return }
+        saving = true; error = nil
+        let name = name, avatar = avatarPNG, token = sessionToken
+        saveTask = Task {
+            defer { saving = false }
+            do {
+                try await store.updateUserInfo(name: name, avatar: avatar, sessionToken: token)
+                dismiss()
+            } catch is CancellationError { return }
+            catch { if !Task.isCancelled { self.error = error.localizedDescription } }
+        }
+    }
+}
+
+func profileAvatarPNG(from input: Data) throws -> Data {
+    guard !input.isEmpty, input.count <= 50 * 1024 * 1024 else { throw APIError.message("图片文件过大或为空") }
+    guard let source = CGImageSourceCreateWithData(input as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+          let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: 1024
+          ] as CFDictionary) else { throw APIError.message("无法读取图片，请选择其他照片") }
+    let output = NSMutableData()
+    guard let destination = CGImageDestinationCreateWithData(output, UTType.png.identifier as CFString, 1, nil) else {
+        throw APIError.message("无法处理图片，请重试")
+    }
+    CGImageDestinationAddImage(destination, image, nil)
+    guard CGImageDestinationFinalize(destination), output.length <= 10 * 1024 * 1024 else {
+        throw APIError.message("头像处理失败，请选择其他照片")
+    }
+    return output as Data
 }
 
 private struct ReadingPreference<Selection: Hashable, Options: View>: View {
@@ -239,7 +406,9 @@ private struct SubscriptionSyncView: View {
             .navigationTitle("订阅同步").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .sheet(isPresented: $login) { LoginView().environment(\.appFooterHeight, 0) }
             .confirmationDialog("用云端订阅替换本机配置？", isPresented: $confirmRestore, titleVisibility: .visible) {
-                Button("恢复订阅", role: .destructive) { Task { syncing = true; await store.sync(download: true); syncing = false } }
+                Button(role: .destructive) { Task { syncing = true; await store.sync(download: true); syncing = false } }
+                    label: { Text("↓").accessibilityLabel("恢复订阅") }.accessibilityLabel("恢复订阅")
+                Button(role: .cancel) {} label: { Text("×").accessibilityLabel("取消") }.accessibilityLabel("取消")
             }
     }
 }
@@ -416,7 +585,7 @@ struct LoginView: View {
                             .padding(.top, typeSize.isAccessibilitySize ? 20 : min(96, max(32, viewport.size.height * 0.11)))
                             .padding(.bottom, typeSize.isAccessibilitySize ? 164 : 400)
                             .frame(maxWidth: 520, alignment: .leading).frame(maxWidth: .infinity)
-                    }.scrollDismissesKeyboard(.immediately)
+                    }.scrollDismissesKeyboard(.immediately).contentShape(Rectangle())
                         .simultaneousGesture(DragGesture(minimumDistance: 12).onChanged { drag in
                             guard emailFocused || codeFocused,
                                   abs(drag.translation.height) > abs(drag.translation.width) else { return }
@@ -453,14 +622,20 @@ struct LoginView: View {
         }
     }
     private func primaryButton(_ title: String, enabled: Bool, loading: Bool, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                if loading { ProgressView().tint(.white) }
-                Text(title).font(.body.weight(.semibold))
-            }.padding(.vertical, 14).frame(maxWidth: .infinity, minHeight: 54)
-                .foregroundStyle(enabled || loading ? Color.white : Color.secondary)
-                .background(enabled || loading ? Color.infoHubSelection : Color(uiColor: .tertiarySystemFill), in: .rect(cornerRadius: 16))
-        }.disabled(!enabled).accessibilityIdentifier(identifier)
+        HStack(spacing: 12) {
+            Text(title).font(.body.weight(.semibold)).foregroundStyle(enabled || loading ? Color.primary : Color.secondary)
+                .accessibilityHidden(true)
+            Spacer()
+            Button(action: action) {
+                Group {
+                    if loading { ProgressView().tint(.white) }
+                    else { Image(systemName: identifier == "login-submit" ? "arrow.right" : "paperplane.fill") }
+                }.font(.body.weight(.semibold)).frame(width: 52, height: 52)
+                    .foregroundStyle(enabled || loading ? Color.white : Color.secondary)
+                    .background(enabled || loading ? Color.infoHubSelection : Color(uiColor: .tertiarySystemFill), in: Circle())
+                    .contentShape(Circle())
+            }.disabled(!enabled).accessibilityLabel(title).accessibilityIdentifier(identifier)
+        }.frame(minHeight: 54)
     }
     private func inputSurface<Content: View>(active: Bool, @ViewBuilder content: () -> Content) -> some View {
         content().font(.body).padding(.horizontal, 16).padding(.vertical, 16).frame(minHeight: 56)
@@ -470,13 +645,17 @@ struct LoginView: View {
     private var resendCodeButton: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
             let remaining = flow.remaining(at: timeline.date)
-            Button { sendCode() } label: {
-                HStack(spacing: 6) {
-                    if flow.operation == .sendCode { ProgressView().controlSize(.small) }
-                    Text(remaining > 0 ? "\(remaining) 秒后重发" : "重新发送验证码").font(.subheadline.weight(.semibold))
-                }.frame(minHeight: 44)
-                    .foregroundStyle(!flow.busy && remaining == 0 ? Color.primary : Color.secondary)
-            }.disabled(flow.busy || remaining > 0).accessibilityIdentifier("login-resend-code")
+            let title = remaining > 0 ? "\(remaining) 秒后重发" : "重新发送验证码"
+            HStack {
+                Text(title).font(.subheadline.weight(.semibold)).accessibilityHidden(true)
+                Spacer()
+                Button { sendCode() } label: {
+                    Group {
+                        if flow.operation == .sendCode { ProgressView().controlSize(.small) }
+                        else { Image(systemName: "arrow.clockwise") }
+                    }.frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                }.disabled(flow.busy || remaining > 0).accessibilityLabel(title).accessibilityIdentifier("login-resend-code")
+            }.foregroundStyle(!flow.busy && remaining == 0 ? Color.primary : Color.secondary)
         }
     }
     private var consent: some View {

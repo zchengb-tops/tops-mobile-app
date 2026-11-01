@@ -221,11 +221,11 @@ struct RSSEditor: View {
                             } label: {
                                 HStack {
                                     if parsingName { ProgressView().controlSize(.small) }
-                                    else { Label("尝试解析名称", systemImage: "lightbulb").font(.caption) }
-                                }.frame(minHeight: 48).contentShape(Rectangle())
+                                    else { Image(systemName: "lightbulb").font(.body) }
+                                }.frame(minWidth: 44, minHeight: 48).contentShape(Rectangle())
                             }.buttonStyle(.plain)
                                 .foregroundStyle(address.isEmpty ? Color.secondary : Color(red: 247 / 255, green: 111 / 255, blue: 0))
-                                .disabled(busy || address.isEmpty).accessibilityIdentifier("rss-editor-parse")
+                                .disabled(busy || address.isEmpty).accessibilityLabel("尝试解析名称").accessibilityIdentifier("rss-editor-parse")
                         }
                         TextField("资讯名称", text: $name).focused($focusedField, equals: .name)
                             .accessibilityLabel("资讯名称").accessibilityIdentifier("rss-editor-name")
@@ -241,9 +241,12 @@ struct RSSEditor: View {
                 .scrollDismissesKeyboard(.interactively)
                 .navigationTitle(editing == nil ? "添加 RSS 订阅" : "编辑 RSS 订阅").navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { dismiss() } label: { Image(systemName: "xmark") }
+                            .accessibilityLabel("取消").accessibilityIdentifier("rss-editor-cancel")
+                    }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("保存") {
+                        Button {
                             Task {
                                 busy = true; defer { busy = false }
                                 do {
@@ -251,7 +254,9 @@ struct RSSEditor: View {
                                     dismiss()
                                 } catch { self.error = error.localizedDescription }
                             }
-                        }.disabled(busy || name.isEmpty || webURL(address) == nil)
+                        } label: { Image(systemName: "checkmark") }
+                            .disabled(busy || name.isEmpty || webURL(address) == nil)
+                            .accessibilityLabel("保存").accessibilityIdentifier("rss-editor-save")
                     }
                 }
                 .task {
