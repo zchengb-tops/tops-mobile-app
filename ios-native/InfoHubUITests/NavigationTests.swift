@@ -1,6 +1,84 @@
 import XCTest
 
 final class NavigationTests: XCTestCase {
+    func testRSSListAndCardViewsPersistPerFeed() {
+        let app = XCUIApplication()
+        let run = UUID().uuidString
+        let firstID = "fixture-\(run)-feed-a"
+        let secondID = "fixture-\(run)-feed-b"
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "feed"
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS_RUN"] = run
+        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", firstID, "-native.syncEnabled", "NO"]
+        app.launch()
+        let toggle = app.buttons["rss-view-toggle-\(firstID)"]
+        waitUntilHittable(toggle)
+        let first = app.buttons["news-\(firstID)-0"]
+        waitUntilHittable(first)
+        XCTAssertLessThan(first.frame.height, 76, "RSS list rows should not have the old 76pt minimum spacing")
+        XCTAssertEqual(toggle.label, "切换卡片视图")
+        capture(app, "RSS-list-light")
+        toggle.tap()
+        XCTAssertEqual(toggle.label, "切换列表视图")
+        XCTAssertTrue(app.buttons["rss-card-\(firstID)-0"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["这是一段用于卡片视图的测试摘要。"].exists)
+        capture(app, "RSS-card-light")
+        let otherTab = app.buttons["tab-\(secondID)"]
+        XCTAssertTrue(otherTab.waitForExistence(timeout: 5))
+        otherTab.tap()
+        let otherToggle = app.buttons["rss-view-toggle-\(secondID)"]
+        waitUntilHittable(otherToggle)
+        XCTAssertEqual(otherToggle.label, "切换卡片视图", "View preference belongs to each feed")
+        app.buttons["tab-\(firstID)"].tap()
+        waitUntilHittable(toggle)
+        XCTAssertEqual(toggle.label, "切换列表视图")
+        app.terminate()
+        app.launch()
+        waitUntilHittable(toggle)
+        XCTAssertEqual(toggle.label, "切换列表视图", "The chosen view survives relaunch")
+        app.terminate()
+        app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", firstID, "-native.syncEnabled", "NO"]
+        app.launch()
+        waitUntilHittable(toggle)
+        XCTAssertTrue(app.buttons["rss-card-\(firstID)-0"].waitForExistence(timeout: 5))
+        capture(app, "RSS-card-dark")
+        app.terminate()
+    }
+
+    func testLoginSuccessUpdatesAndRestoresAccountUI() {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_LOGIN"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_LOGIN_STATE"] = "1"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
+        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
+        app.launch()
+        app.buttons["nav-2"].tap()
+        XCTAssertFalse(app.staticTexts["阅读"].exists)
+        XCTAssertFalse(app.staticTexts["更多"].exists)
+        capture(app, "My-generated-illustrations-light")
+        app.buttons["使用邮箱登录"].tap()
+        let email = app.textFields["login-email"]
+        waitUntilHittable(email)
+        email.tap(); email.typeText("preview@example.invalid")
+        app.buttons["login-consent"].tap()
+        app.buttons["login-send-code"].tap()
+        let code = app.textFields["login-code-0"]
+        waitUntilHittable(code)
+        code.tap(); app.typeText("123456")
+        app.buttons["login-submit"].tap()
+        XCTAssertTrue(app.staticTexts["preview@example.invalid"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["预览用户"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["退出登录"].exists)
+        app.terminate()
+        app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
+        app.launch()
+        app.buttons["nav-2"].tap()
+        XCTAssertTrue(app.staticTexts["preview@example.invalid"].waitForExistence(timeout: 5))
+        capture(app, "My-generated-illustrations-dark")
+        app.buttons["退出登录"].tap()
+        XCTAssertTrue(app.buttons["使用邮箱登录"].waitForExistence(timeout: 5))
+        app.terminate()
+    }
     func testStockFitsAvailableViewportAfterRotation() {
         let app = XCUIApplication()
         app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", "stock", "-native.readingSize", "system"]

@@ -1,9 +1,101 @@
 import XCTest
 import SwiftUI
 import UIKit
+import Observation
 @testable import InfoHub
 
 final class ContractTests: XCTestCase {
+    @MainActor func testLoginUpdatesObservationAndIsolatesAccountChanges() async throws {
+        setenv("INFOHUB_TEST_FAKE_CREDENTIALS", "1", 1)
+        let defaults = UserDefaults.standard
+        let keys = ["native.email", "native.syncEnabled", "native.syncVersion", "native.lastSync"]
+        let saved = keys.map { defaults.object(forKey: $0) }
+        let originalToken = Credential.shared.token
+        Credential.shared.clear()
+        defer {
+            Credential.shared.clear()
+            if let originalToken { try? Credential.shared.save(originalToken) }
+            for (key, value) in zip(keys, saved) {
+                if let value { defaults.set(value, forKey: key) } else { defaults.removeObject(forKey: key) }
+            }
+            AuthFixtureProtocol.onDelayed = nil
+            AuthFixtureProtocol.onRestore = nil
+            unsetenv("INFOHUB_TEST_FAKE_CREDENTIALS")
+        }
+        for key in keys { defaults.removeObject(forKey: key) }
+        defaults.set("not-a-fixture-token", forKey: "fixture.authToken")
+        XCTAssertNil(Credential.shared.token)
+        defaults.removeObject(forKey: "fixture.authToken")
+        do { _ = try await API().request("user/me"); XCTFail("Fixtures must not contact production") } catch {}
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [AuthFixtureProtocol.self]
+        let api = API(baseURL: URL(string: "https://fixture.invalid/api")!, session: URLSession(configuration: configuration))
+        let store = AppStore(api: api)
+        XCTAssertFalse(store.loggedIn)
+        AuthFixtureProtocol.signInToken = "fixture-a"
+        let loginChanged = expectation(description: "Login is observable")
+        withObservationTracking { _ = store.loggedIn } onChange: { loginChanged.fulfill() }
+        try await store.signIn(email: "a@example.invalid", code: "123456")
+        await fulfillment(of: [loginChanged], timeout: 2)
+        XCTAssertTrue(store.loggedIn)
+        XCTAssertEqual(Credential.shared.token, "fixture-a")
+        XCTAssertEqual(store.email, "a@example.invalid")
+        XCTAssertTrue(AppStore(api: api).loggedIn, "A new store sees the persisted credential")
+
+        let expired = expectation(description: "Expiration is observable")
+        withObservationTracking { _ = store.loggedIn } onChange: { expired.fulfill() }
+        do { _ = try await api.request("protected"); XCTFail("Expected 401") } catch {}
+        await fulfillment(of: [expired], timeout: 2)
+        XCTAssertFalse(store.loggedIn)
+
+        try await store.signIn(email: "a@example.invalid", code: "123456")
+        store.syncEnabled = true
+        defaults.set("a-version", forKey: "native.syncVersion")
+        let original = Channel(.object(["id": .string("local"), "title": .string("Local"), "isRss": .bool(true), "enable": .bool(true)]))
+        store.channels = [original]
+        let requested = expectation(description: "Old request started")
+        AuthFixtureProtocol.onDelayed = { requested.fulfill() }
+        let stale = Task { try await api.request("delayed-unauthorized") }
+        await fulfillment(of: [requested], timeout: 2)
+        AuthFixtureProtocol.signInToken = "fixture-b"
+        try await store.signIn(email: "b@example.invalid", code: "123456")
+        XCTAssertEqual(Credential.shared.token, "fixture-b")
+        do { _ = try await stale.value; XCTFail("Expected stale 401") } catch {}
+        XCTAssertTrue(store.loggedIn, "A stale 401 must not clear the new account")
+        XCTAssertEqual(store.email, "b@example.invalid")
+        XCTAssertFalse(store.syncEnabled)
+        XCTAssertNil(defaults.string(forKey: "native.syncVersion"))
+        XCTAssertEqual(store.channels.map(\.id), ["local"])
+
+        AuthFixtureProtocol.signInToken = "fixture-a"
+        try await store.signIn(email: "a@example.invalid", code: "123456")
+        let restoring = expectation(description: "Old restore started")
+        AuthFixtureProtocol.onRestore = { restoring.fulfill() }
+        let restore = Task { await store.sync(download: true) }
+        await fulfillment(of: [restoring], timeout: 2)
+        AuthFixtureProtocol.signInToken = "fixture-b"
+        try await store.signIn(email: "b@example.invalid", code: "123456")
+        await restore.value
+        XCTAssertEqual(store.channels.map(\.id), ["local"], "The prior account's delayed restore must not replace local data")
+        store.signOut()
+        XCTAssertFalse(store.loggedIn)
+        XCTAssertEqual(store.channels.map(\.id), ["local"], "Sign-out retains local subscriptions")
+    }
+
+    func testRSSCardContentAndSafeThumbnail() {
+        let item = NewsItem(raw: .object(["description": .string("<p>Hello&nbsp; world &amp; friends</p>"),
+                                         "thumbnail": .string("/images/example.png")]), index: 0)
+        XCTAssertEqual(item.rssSummary, "Hello world & friends")
+        XCTAssertEqual(item.rssThumbnail(feedURL: "https://example.invalid/rss/feed.xml")?.absoluteString, "https://example.invalid/images/example.png")
+        let unsafe = NewsItem(raw: .object(["thumbnail": .string("javascript:alert(1)")]), index: 0)
+        XCTAssertNil(unsafe.rssThumbnail(feedURL: "https://example.invalid/feed"))
+        XCTAssertNil(item.rssThumbnail(feedURL: "file:///private/feed"))
+    }
+    func testSettingsIllustrationsAreBundled() {
+        for name in ["appearance", "reading", "sync", "feedback", "website", "terms", "privacy", "version"] {
+            XCTAssertNotNil(UIImage(named: "settings-\(name)"), "Missing settings illustration: \(name)")
+        }
+    }
     @MainActor func testLaunchScreenUsesOriginalArtworkWithoutCropping() throws {
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "UILaunchStoryboardName") as? String, "LaunchScreen")
         let controller = try XCTUnwrap(UIStoryboard(name: "LaunchScreen", bundle: .main).instantiateInitialViewController())
@@ -659,6 +751,41 @@ final class ContractTests: XCTestCase {
             attachment.name = "Featured-stock-\(scheme)"; attachment.lifetime = .keepAlways; add(attachment)
         }
     }
+}
+
+private final class AuthFixtureProtocol: URLProtocol {
+    static var signInToken = "fixture-a"
+    static var onDelayed: (() -> Void)?
+    static var onRestore: (() -> Void)?
+    override class func canInit(with request: URLRequest) -> Bool { request.url?.host == "fixture.invalid" }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        guard let url = request.url else { return }
+        let status: Int
+        let body: String
+        let delay: TimeInterval
+        switch url.path {
+        case "/api/user/sign-in":
+            status = 200; body = "{\"accessToken\":\"\(Self.signInToken)\"}"; delay = 0
+        case "/api/user/me":
+            let isA = request.value(forHTTPHeaderField: "Authorization") == "Bearer fixture-a"
+            status = 200; body = isA ? #"{"name":"Account A","email":"a@example.invalid"}"# : #"{"name":"Account B","email":"b@example.invalid"}"#; delay = 0
+        case "/api/delayed-unauthorized":
+            Self.onDelayed?(); status = 401; body = "{}"; delay = 0.4
+        case "/api/user/news-channel-config":
+            Self.onRestore?(); status = 200
+            body = #"{"content":"[{\"id\":\"cloud\",\"title\":\"Cloud\",\"isRss\":true,\"enable\":true}]","version":"1"}"#
+            delay = 0.4
+        default: status = 401; body = "{}"; delay = 0
+        }
+        DispatchQueue.global().asyncAfter(deadline: .now() + delay) { [self] in
+            guard let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: ["Content-Type": "application/json"]) else { return }
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: Data(body.utf8))
+            client?.urlProtocolDidFinishLoading(self)
+        }
+    }
+    override func stopLoading() {}
 }
 
 private final class RSSResourceProtocol: URLProtocol {

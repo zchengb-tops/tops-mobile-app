@@ -162,6 +162,11 @@ struct ChannelPager: View {
 struct ChannelFeed: View {
     let channel: Channel
     var previewHeight: CGFloat?
+    @AppStorage private var rssViewMode: String
+    init(channel: Channel, previewHeight: CGFloat? = nil) {
+        self.channel = channel; self.previewHeight = previewHeight
+        _rssViewMode = AppStorage(wrappedValue: "list", "native.rssViewMode.\(channel.id)")
+    }
     private var preview: Bool { previewHeight != nil }
     @Environment(AppStore.self) private var store
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -228,6 +233,19 @@ struct ChannelFeed: View {
         } else if channel.code == "artificialAnalysis", !channel.isRSS {
             AnalysisContent(preview: preview)
         } else {
+            if channel.isRSS && !preview {
+                HStack {
+                    Spacer()
+                    Button {
+                        rssViewMode = rssViewMode == "card" ? "list" : "card"
+                    } label: {
+                        Image(systemName: rssViewMode == "card" ? "list.bullet" : "rectangle.grid.1x2")
+                            .font(.body.weight(.medium)).frame(width: 44, height: 44).contentShape(Rectangle())
+                    }.buttonStyle(.plain).foregroundStyle(.secondary)
+                        .accessibilityLabel(rssViewMode == "card" ? "切换列表视图" : "切换卡片视图")
+                        .accessibilityIdentifier("rss-view-toggle-\(channel.id)")
+                }.padding(.horizontal, 12)
+            }
             if channel.code == "arena" {
                 VStack(alignment: .leading, spacing: 8) {
                     ViewThatFits(in: .horizontal) {
@@ -268,9 +286,15 @@ struct ChannelFeed: View {
                 let dates = channel.isRSS ? items.compactMap(\.publicationDate) : []
                 let sameDay = dates.count == items.count && dates.first.map { first in dates.allSatisfy { Calendar.current.isDate($0, inSameDayAs: first) } } == true
                 ForEach(items) { item in
-                    NewsRow(item: item, channel: channel.isRSS ? "rss" : channel.code, density: density, rssShowsTime: sameDay)
-                        .frame(minHeight: preview ? 44 : nil)
-                        .accessibilityIdentifier("news-\(channel.code)-\(item.index)")
+                    if channel.isRSS && rssViewMode == "card" {
+                        RSSCard(item: item, feedURL: store.rss[channel.rssURL]["originLink"].text.nilIfEmpty ?? channel.rssURL)
+                            .padding(.horizontal, 20).padding(.vertical, 5)
+                            .accessibilityIdentifier("rss-card-\(channel.id)-\(item.index)")
+                    } else {
+                        NewsRow(item: item, channel: channel.isRSS ? "rss" : channel.code, density: density, rssShowsTime: sameDay)
+                            .frame(minHeight: preview ? 44 : nil)
+                            .accessibilityIdentifier("news-\(channel.code)-\(item.index)")
+                    }
                     if !channel.isRSS, ["zhihu", "sspai", "nnGroup", "tiobe", "arena"].contains(channel.code), item.id != items.last?.id {
                         Divider().opacity(0.45).padding(.horizontal, 20)
                     }
@@ -315,6 +339,36 @@ private struct ChannelTextStyle: ViewModifier {
 extension View {
     func channelText(_ size: CGFloat, weight: Font.Weight = .regular, lineHeight: CGFloat? = nil, family: String? = nil) -> some View {
         modifier(ChannelTextStyle(size, weight: weight, lineHeight: lineHeight, family: family))
+    }
+}
+
+private struct RSSCard: View {
+    let item: NewsItem
+    let feedURL: String
+    var body: some View {
+        NavigationLink(value: item) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text(item.title).channelText(16, weight: .medium, lineHeight: 22)
+                        .lineLimit(3).fixedSize(horizontal: false, vertical: true)
+                    if !item.rssSummary.isEmpty {
+                        Text(item.rssSummary).channelText(13, lineHeight: 18).foregroundStyle(.secondary)
+                            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if item.publicationDate != nil {
+                        Text(publicationTime(item.raw["publishDate"].text.nilIfEmpty ?? item.properties.first("publishDate", "publishTime")))
+                            .channelText(12).foregroundStyle(.secondary)
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                if let image = item.rssThumbnail(feedURL: feedURL) {
+                    Artwork(url: image, symbol: "photo").frame(width: 90, height: 72)
+                        .clipShape(.rect(cornerRadius: 8, style: .continuous))
+                }
+            }.padding(14).frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+                .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain)
+            .contextMenu { if let url = item.url { ShareLink(item: url, subject: Text(item.title)); Link("在浏览器打开", destination: url) } }
     }
 }
 
@@ -381,7 +435,7 @@ struct NewsRow: View {
             }
         }.padding(.horizontal, channel == "history" ? 24 : 20)
             .padding(.vertical, isOverview && channel == "sina" && !dynamicTypeSize.isAccessibilitySize ? 0 :
-                        source != nil ? 8 : channel == "history" ? 0 : channel == "sina" ? (density == .compact ? 2 : density == .spacious ? 12 : 4) : (density == .compact ? 10 : density == .spacious ? 24 : 16))
+                        source != nil ? 8 : channel == "history" ? 0 : channel == "rss" ? 5 : channel == "sina" ? (density == .compact ? 2 : density == .spacious ? 12 : 4) : (density == .compact ? 10 : density == .spacious ? 24 : 16))
     }
     @ViewBuilder private func articleCopy<Copy: View>(@ViewBuilder _ copy: () -> Copy) -> some View {
         if let source {
@@ -458,7 +512,7 @@ struct NewsRow: View {
                     if dynamicTypeSize.isAccessibilitySize || density == .spacious {
                         VStack(alignment: .leading, spacing: 6) { title.fixedSize(horizontal: false, vertical: true); rssDate }
                     } else {
-                        title.lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+                        title.lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
                         rssDate.fixedSize()
                     }
                 }.frame(minHeight: 44)

@@ -19,7 +19,8 @@ enum FeedDensity: String, CaseIterable, Identifiable {
     var update: JSON?
     var availableUpdate: JSON?
     var email = UserDefaults.standard.string(forKey: "native.email") ?? ""
-    var loggedIn: Bool { Credential.token != nil }
+    var userInfo: JSON?
+    var loggedIn: Bool { Credential.shared.isLoggedIn }
     var selectedChannel = UserDefaults.standard.string(forKey: "native.selectedChannel") ?? "sina" {
         didSet { UserDefaults.standard.set(selectedChannel, forKey: "native.selectedChannel") }
     }
@@ -34,21 +35,33 @@ enum FeedDensity: String, CaseIterable, Identifiable {
         didSet { UserDefaults.standard.set(syncEnabled, forKey: "native.syncEnabled") }
     }
     var lastSync = UserDefaults.standard.string(forKey: "native.lastSync") ?? "尚未同步"
-    let api = API()
+    let api: API
     private let cacheURL = URL.applicationSupportDirectory.appendingPathComponent("InfoHub/news.json")
     private var syncTask: Task<Void, Never>?
+    private var profileTask: Task<Void, Never>?
     var enabledChannels: [Channel] { channels.filter { $0.enabled && $0.supported } }
     var current: Channel? { enabledChannels.first { $0.id == selectedChannel } ?? enabledChannels.first }
     var colorScheme: ColorScheme? { appearance == "system" ? nil : appearance == "dark" ? .dark : .light }
 
-    init() {
+    init(api: API = API()) {
+        self.api = api
         if let data = UserDefaults.standard.data(forKey: "native.channels"), let raw = try? JSONDecoder().decode([JSON].self, from: data) { channels = raw.map(Channel.init) }
         if let data = try? Data(contentsOf: cacheURL), let cached = try? JSONDecoder().decode(JSON.self, from: data) {
             news = cached["news"]; rss = cached["rss"]
         }
         if !channels.isEmpty { channels = Channel.mobileCatalog(existing: channels, remote: []) }
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_RSS"] == "feed" {
+            let run = ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_RSS_RUN"] ?? "default"
+            for suffix in ["a", "b"] where !channels.contains(where: { $0.id == "fixture-\(run)-feed-\(suffix)" }) {
+                channels.append(Channel(.object(["id": .string("fixture-\(run)-feed-\(suffix)"), "title": .string("测试资讯 \(suffix)"),
+                    "isRss": .bool(true), "enable": .bool(true), "rssUrl": .string("https://example.org/\(run)/\(suffix).xml")])))
+            }
+        }
+        #endif
     }
     func start() async {
+        if loggedIn { refreshUserInfo() }
         do {
             let defaults = try await api.request("news-channels/default").array.map(Channel.init)
             channels = Channel.mobileCatalog(existing: channels, remote: defaults)
@@ -158,20 +171,49 @@ enum FeedDensity: String, CaseIterable, Identifiable {
     func signIn(email: String, code: String) async throws {
         let response = try await api.request("user/sign-in", body: .object(["email": .string(email), "verificationCode": .string(code)]))
         guard let token = response["accessToken"].text.nilIfEmpty else { throw APIError.message("服务器未返回登录凭证") }
-        try Credential.save(token)
+        try Credential.shared.save(token)
+        profileTask?.cancel(); userInfo = nil
+        if self.email.caseInsensitiveCompare(email) != .orderedSame {
+            syncTask?.cancel(); syncEnabled = false; lastSync = "尚未同步"
+            UserDefaults.standard.removeObject(forKey: "native.syncVersion")
+            UserDefaults.standard.removeObject(forKey: "native.lastSync")
+        }
         self.email = email
         UserDefaults.standard.set(email, forKey: "native.email")
+        refreshUserInfo()
     }
     func signOut() {
-        syncTask?.cancel()
-        Credential.clear(); email = ""; syncEnabled = false
+        syncTask?.cancel(); profileTask?.cancel()
+        Credential.shared.clear()
+        guard !loggedIn else { error = "无法安全删除登录凭证，请重试"; return }
+        email = ""; userInfo = nil; syncEnabled = false; lastSync = "尚未同步"
         UserDefaults.standard.removeObject(forKey: "native.email")
         UserDefaults.standard.removeObject(forKey: "native.syncVersion")
+        UserDefaults.standard.removeObject(forKey: "native.lastSync")
+    }
+    private func refreshUserInfo() {
+        profileTask?.cancel()
+        guard let token = Credential.shared.token else { userInfo = nil; return }
+        profileTask = Task {
+            do {
+                let info = try await api.request("user/me", requiredToken: token)
+                try requireCurrentSession(token)
+                if let address = info["email"].text.nilIfEmpty {
+                    email = address; UserDefaults.standard.set(address, forKey: "native.email")
+                }
+                userInfo = info
+            } catch is CancellationError { return }
+            catch {
+                if Credential.shared.token == token { self.error = error.localizedDescription }
+            }
+        }
     }
     func sync(download: Bool, automatic: Bool = false) async {
+        guard let token = Credential.shared.token else { error = "请先登录"; return }
         do {
             if automatic {
-                let remote = try await api.request("user/news-channel-config/version")["version"].text
+                let remote = try await api.request("user/news-channel-config/version", requiredToken: token)["version"].text
+                try requireCurrentSession(token)
                 let local = UserDefaults.standard.string(forKey: "native.syncVersion") ?? ""
                 guard remote == local else {
                     syncEnabled = false
@@ -179,7 +221,8 @@ enum FeedDensity: String, CaseIterable, Identifiable {
                 }
             }
             if download {
-                let result = try await api.request("user/news-channel-config")
+                let result = try await api.request("user/news-channel-config", requiredToken: token)
+                try requireCurrentSession(token)
                 guard let content = result["content"].text.data(using: .utf8), !content.isEmpty else { throw APIError.message("云端还没有订阅配置，请先上传") }
                 let restored = try JSONDecoder().decode([JSON].self, from: content).map(Channel.init)
                 guard restored.allSatisfy({ !$0.id.isEmpty && !$0.title.isEmpty }), Set(restored.map(\.id)).count == restored.count else {
@@ -191,13 +234,22 @@ enum FeedDensity: String, CaseIterable, Identifiable {
                 await refreshRSS()
             } else {
                 let content = String(decoding: try JSONEncoder().encode(channels.map(\.raw)), as: UTF8.self)
-                let result = try await api.request("user/news-channel-config", body: .object(["content": .string(content)]))
+                let result = try await api.request("user/news-channel-config", body: .object(["content": .string(content)]), requiredToken: token)
+                try requireCurrentSession(token)
                 UserDefaults.standard.set(result["newVersion"].text, forKey: "native.syncVersion")
             }
+            try requireCurrentSession(token)
             lastSync = Date.now.formatted(date: .abbreviated, time: .shortened)
             UserDefaults.standard.set(lastSync, forKey: "native.lastSync")
             if !automatic { message = "订阅配置已同步" }
-        } catch { self.error = error.localizedDescription }
+        } catch is CancellationError { return }
+        catch {
+            if let current = Credential.shared.token, current != token { return }
+            self.error = error.localizedDescription
+        }
+    }
+    private func requireCurrentSession(_ token: String) throws {
+        guard !Task.isCancelled, Credential.shared.token == token else { throw CancellationError() }
     }
     func checkUpdate(silent: Bool = false) async {
         do {

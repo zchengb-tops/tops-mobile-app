@@ -4,20 +4,20 @@ struct SettingsView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 44
-    @ScaledMetric(relativeTo: .body) private var actionSymbolSize: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var actionSymbolSize: CGFloat = 38
     @State private var login = false
     @State private var confirmLogin = false
     @State private var syncPresented = false
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 36) {
+            VStack(alignment: .leading, spacing: 28) {
                 HStack {
                     Text("我的").font(.largeTitle.bold()).tracking(-1).accessibilityAddTraits(.isHeader)
                     Spacer(minLength: 16)
                     Image("InfoHubLogo").resizable().scaledToFit().frame(width: 32, height: 32).accessibilityHidden(true)
                 }
                 account
-                SettingsSection("阅读") {
+                Group {
                     if typeSize >= .xxLarge {
                         VStack(spacing: 10) { readingControls(compact: false) }
                     } else {
@@ -27,31 +27,31 @@ struct SettingsView: View {
                         }
                     }
                 }
-                SettingsSection("更多") {
+                Group {
                     VStack(spacing: 4) {
                         Button {
                             if store.loggedIn { syncPresented = true } else { confirmLogin = true }
                         } label: {
-                            secondaryAction("订阅同步", symbol: "arrow.triangle.2.circlepath",
+                            secondaryAction("订阅同步", illustration: "settings-sync",
                                             value: store.loggedIn ? (store.syncEnabled ? "自动同步" : "手动同步") : "未登录")
                         }.accessibilityIdentifier("settings-sync")
                         Link(destination: URL(string: "https://jsj.top/f/T4STLU")!) {
-                            secondaryAction("意见反馈", symbol: "bubble.left", accessory: "arrow.up.right")
+                            secondaryAction("意见反馈", illustration: "settings-feedback", accessory: "arrow.up.right")
                         }.accessibilityIdentifier("settings-feedback")
                         Link(destination: URL(string: "https://infohub.net.cn/")!) {
-                            secondaryAction("访问官网", symbol: "globe", accessory: "arrow.up.right")
+                            secondaryAction("访问官网", illustration: "settings-website", accessory: "arrow.up.right")
                         }.accessibilityIdentifier("settings-website")
                         NavigationLink { LegalView(kind: "terms") } label: {
-                            secondaryAction("服务协议", symbol: "doc.text")
+                            secondaryAction("服务协议", illustration: "settings-terms")
                         }.accessibilityIdentifier("settings-terms")
                         NavigationLink { LegalView(kind: "privacy") } label: {
-                            secondaryAction("隐私政策", symbol: "hand.raised")
+                            secondaryAction("隐私政策", illustration: "settings-privacy")
                         }.accessibilityIdentifier("settings-privacy")
                         Button {
                             if let update = store.availableUpdate { store.update = update }
                             else { Task { await store.checkUpdate() } }
                         } label: {
-                            secondaryAction("版本", symbol: "square.stack.3d.up",
+                            secondaryAction("版本", illustration: "settings-version",
                                         value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—",
                                         accessory: nil, badge: store.availableUpdate == nil ? nil : "新版本")
                         }.accessibilityIdentifier("settings-version").accessibilityHint("检查或查看版本更新")
@@ -90,27 +90,35 @@ struct SettingsView: View {
     }
     private var accountLabel: some View {
         HStack(spacing: 14) {
-            Image(systemName: "person.fill").font(.body).foregroundStyle(.white)
-                .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
-                .background(Color.infoHubSelection, in: Circle()).accessibilityHidden(true)
+            Group {
+                if store.loggedIn, let avatar = webURL((store.userInfo ?? .null)["avatar"].text) {
+                    AsyncImage(url: avatar) { image in image.resizable().scaledToFill() } placeholder: { accountIllustration }
+                } else { accountIllustration }
+            }.frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+                .clipShape(Circle()).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 6) {
-                Text(store.loggedIn ? store.email : "使用邮箱登录").font(.title3.weight(.semibold))
+                let name = (store.userInfo ?? .null)["name"].text
+                Text(store.loggedIn ? (name.nilIfEmpty ?? store.email) : "使用邮箱登录").font(.title3.weight(.semibold))
                     .fixedSize(horizontal: false, vertical: true)
-                Text(store.loggedIn ? "已登录" : "在不同设备间同步订阅").font(.footnote).foregroundStyle(.secondary)
+                Text(store.loggedIn ? (name.isEmpty ? "已登录" : store.email) : "在不同设备间同步订阅").font(.footnote).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }.padding(.vertical, 8)
     }
+    private var accountIllustration: some View {
+        Image(systemName: "person.fill").font(.body).foregroundStyle(.white)
+            .frame(width: min(avatarSize, 80), height: min(avatarSize, 80))
+            .background(Color.infoHubSelection, in: Circle())
+    }
     private var chevron: some View {
         Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityHidden(true)
     }
-    private func secondaryAction(_ title: String, symbol: String, value: String? = nil,
+    private func secondaryAction(_ title: String, illustration: String, value: String? = nil,
                                  accessory: String? = "chevron.right", badge: String? = nil) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).font(.body).foregroundStyle(.secondary)
-                .frame(width: actionSymbolSize, height: actionSymbolSize).padding(8)
-                .background(Color(uiColor: .secondarySystemBackground), in: Circle()).accessibilityHidden(true)
+            Image(illustration).renderingMode(.template).resizable().scaledToFit().foregroundStyle(.secondary)
+                .frame(width: actionSymbolSize, height: actionSymbolSize).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.subheadline.weight(.medium)).fixedSize(horizontal: false, vertical: true)
                 if typeSize.isAccessibilitySize, let value { Text(value).font(.footnote).foregroundStyle(.secondary) }
@@ -131,12 +139,12 @@ struct SettingsView: View {
     }
     @ViewBuilder private func readingControls(compact: Bool) -> some View {
         @Bindable var store = store
-        ReadingPreference("外观", symbol: "circle.lefthalf.filled",
+        ReadingPreference("外观", illustration: "settings-appearance",
                           value: store.appearance == "system" ? "跟随系统" : store.appearance == "dark" ? "深色" : "浅色",
                           selection: $store.appearance, compact: compact) {
             Text("跟随系统").tag("system"); Text("浅色").tag("light"); Text("深色").tag("dark")
         }.accessibilityIdentifier("appearance-picker")
-        ReadingPreference("阅读字号", symbol: "textformat.size",
+        ReadingPreference("阅读字号", illustration: "settings-reading",
                           value: store.readingSize == "system" ? "跟随系统" : store.readingSize == "large" ? "大" : "小",
                           selection: $store.readingSize, compact: compact) {
             Text("跟随系统").tag("system"); Text("小").tag("small"); Text("大").tag("large")
@@ -146,15 +154,15 @@ struct SettingsView: View {
 
 private struct ReadingPreference<Selection: Hashable, Options: View>: View {
     let title: String
-    let symbol: String
+    let illustration: String
     let value: String
     @Binding var selection: Selection
     let compact: Bool
-    @ScaledMetric(relativeTo: .title3) private var symbolSize: CGFloat = 26
+    @ScaledMetric(relativeTo: .title3) private var symbolSize: CGFloat = 38
     @ViewBuilder let options: Options
-    init(_ title: String, symbol: String, value: String, selection: Binding<Selection>, compact: Bool,
+    init(_ title: String, illustration: String, value: String, selection: Binding<Selection>, compact: Bool,
          @ViewBuilder options: () -> Options) {
-        self.title = title; self.symbol = symbol; self.value = value
+        self.title = title; self.illustration = illustration; self.value = value
         _selection = selection; self.compact = compact; self.options = options()
     }
     var body: some View {
@@ -179,7 +187,7 @@ private struct ReadingPreference<Selection: Hashable, Options: View>: View {
         }.accessibilityLabel(title).accessibilityValue(value)
     }
     private var preferenceIcon: some View {
-        Image(systemName: symbol).font(.title3).foregroundStyle(.secondary)
+        Image(illustration).renderingMode(.template).resizable().scaledToFit().foregroundStyle(.secondary)
             .frame(width: symbolSize, height: symbolSize).accessibilityHidden(true)
     }
     private var preferenceLabel: some View {
@@ -537,6 +545,12 @@ struct LoginView: View {
         #if DEBUG
         if let fixture = ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_LOGIN"], ["success", "send-error", "sign-in-error"].contains(fixture) {
             if fixture == "sign-in-error" { throw APIError.message("验证码不正确，请重试") }
+            if ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_LOGIN_STATE"] == "1" {
+                guard ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_RSS"] == "success" else {
+                    throw APIError.message("登录状态测试需要隔离的 API fixture")
+                }
+                try await store.signIn(email: email, code: code)
+            }
             return
         }
         #endif

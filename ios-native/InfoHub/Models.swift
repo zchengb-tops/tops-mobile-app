@@ -164,6 +164,19 @@ struct NewsItem: Identifiable, Hashable {
         return components.url ?? image
     }
     var summary: String { raw.first("brief", "desc").nilIfEmpty ?? properties.first("summary", "excerpt", "recommendReason") }
+    var rssSummary: String {
+        var text = raw["description"].text.replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+        for (entity, value) in [("&nbsp;", " "), ("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""), ("&#39;", "'")] {
+            text = text.replacingOccurrences(of: entity, with: value)
+        }
+        return text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    func rssThumbnail(feedURL: String) -> URL? {
+        let thumbnail = raw["thumbnail"].text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !thumbnail.isEmpty, let base = webURL(feedURL),
+              let resolved = URL(string: thumbnail, relativeTo: base)?.absoluteURL else { return nil }
+        return webURL(resolved.absoluteString)
+    }
     var rank: String { raw["rankNum"].text }
     var audio: URL? { webURL(raw["mediaUrl"].text) }
     var durationText: String {
