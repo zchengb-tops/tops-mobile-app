@@ -47,7 +47,7 @@ class LocalTestFlightTests(unittest.TestCase):
         self.install_fake_xcode()
         self.command("git", "add", "ios-native", ".github", cwd=self.main_repo)
         self.command("git", "commit", "-m", "Initial", cwd=self.main_repo)
-        self.command("git", "worktree", "add", "-b", "feature/ios-native-rebuild", str(self.repo), cwd=self.main_repo)
+        self.command("git", "worktree", "add", "-b", "ios", str(self.repo), cwd=self.main_repo)
         self.command("python3", str(self.repo / "ios-native/tool/local_testflight.py"), "install", cwd=self.repo)
 
     def tearDown(self):
@@ -127,7 +127,7 @@ print("Fake xcodebuild completed")
         return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
     def push(self):
-        return self.command("git", "push", "origin", "HEAD:refs/heads/feature/ios-native-rebuild", cwd=self.repo, check=False)
+        return self.command("git", "push", "origin", "HEAD:refs/heads/ios", cwd=self.repo, check=False)
 
     def test_successful_push_releases_the_committed_snapshot_once(self):
         (self.repo / "ios-native/snapshot.txt").write_text("uncommitted\n")
@@ -153,15 +153,15 @@ print("Fake xcodebuild completed")
         time.sleep(0.3)
         self.assertEqual(self.events(), [])
 
-    def test_wrong_branch_does_not_release(self):
-        result = self.command("git", "push", "origin", "HEAD:refs/heads/other", cwd=self.repo, check=False)
+    def test_previous_branch_does_not_release(self):
+        result = self.command("git", "push", "origin", "HEAD:refs/heads/feature/ios-native-rebuild", cwd=self.repo, check=False)
         self.assertEqual(result.returncode, 0, result.stderr)
         time.sleep(0.3)
         self.assertEqual(self.events(), [])
 
     def test_github_push_trigger_prevents_duplicate_uploads(self):
         workflow = self.repo / ".github/workflows/ios-release.yml"
-        workflow.write_text("name: TestFlight\non:\n  push:\n    branches:\n      - main\n      - feature/ios-native-rebuild\n  workflow_dispatch:\n")
+        workflow.write_text("name: TestFlight\non:\n  push:\n    branches:\n      - main\n      - ios\n  workflow_dispatch:\n")
         self.command("git", "add", str(workflow), cwd=self.repo)
         self.command("git", "commit", "-m", "Enable duplicate workflow", cwd=self.repo)
         result = self.push()
@@ -209,7 +209,7 @@ print("Fake xcodebuild completed")
 
     def test_no_verify_does_not_release(self):
         result = self.command("git", "push", "--no-verify", "origin",
-                              "HEAD:refs/heads/feature/ios-native-rebuild", cwd=self.repo, check=False)
+                              "HEAD:refs/heads/ios", cwd=self.repo, check=False)
         self.assertEqual(result.returncode, 0, result.stderr)
         time.sleep(0.3)
         self.assertEqual(self.events(), [])
@@ -268,12 +268,12 @@ print("Fake xcodebuild completed")
         self.assertEqual(result.returncode, 1)
         fetch = self.command("git", "config", "--get-all", "remote.origin.fetch", cwd=self.main_repo).stdout.splitlines()
         self.assertEqual(fetch, ["+refs/heads/main:refs/remotes/origin/main",
-                                 "+refs/heads/feature/ios-native-rebuild:refs/remotes/origin/feature/ios-native-rebuild"])
+                                 "+refs/heads/ios:refs/remotes/origin/ios"])
 
     def test_installer_rejects_a_negative_refspec(self):
         script = self.repo / "ios-native/tool/local_testflight.py"
         self.command("python3", str(script), "uninstall", cwd=self.repo)
-        self.command("git", "config", "--add", "remote.origin.fetch", "^refs/heads/feature/*", cwd=self.repo)
+        self.command("git", "config", "--add", "remote.origin.fetch", "^refs/heads/i*", cwd=self.repo)
         result = self.command("python3", str(script), "install", cwd=self.repo, check=False)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("excluded by an origin fetch refspec", result.stderr)

@@ -1,6 +1,6 @@
 # InfoHub native iOS
 
-Native SwiftUI rewrite on `feature/ios-native-rebuild`. The React Native app and Android sources remain in place. Open **InfoHub.xcodeproj**, select the **InfoHub** scheme, then run on an iPhone or iPad simulator. No Metro, CocoaPods, or third-party runtime is required.
+Native SwiftUI rewrite on `ios`. The React Native app and Android sources remain in place. Open **InfoHub.xcodeproj**, select the **InfoHub** scheme, then run on an iPhone or iPad simulator. No Metro, CocoaPods, or third-party runtime is required.
 
 From the `tops-mobile-app` directory, build and launch on iPhone 18 Pro Max with:
 
@@ -93,7 +93,7 @@ On this Mac, install the worktree-specific hooks once, then push the native bran
 
 ```sh
 python3 ios-native/tool/local_testflight.py install
-git push origin feature/ios-native-rebuild
+git push origin ios
 python3 ios-native/tool/local_testflight.py status
 ```
 

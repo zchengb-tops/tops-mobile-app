@@ -16,8 +16,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / "ios-native/build/local-testflight"
-BRANCH = "refs/heads/feature/ios-native-rebuild"
-TRACKING = "refs/remotes/origin/feature/ios-native-rebuild"
+BRANCH = "refs/heads/ios"
+TRACKING = "refs/remotes/origin/ios"
 APP_ID = "cn.zchengb.infohub"
 TEAM_ID = "UPDM24DCXU"
 HOOKS = ROOT / "ios-native/tool/git-hooks"
