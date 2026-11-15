@@ -7,6 +7,14 @@ import AVFoundation
     var body: some Scene {
         WindowGroup {
             RootView().environment(store).environment(player)
+                // Keep app typography stable; reading-size preferences remain independent.
+                .dynamicTypeSize(.large)
+                .onAppear {
+                    // Presented UIKit/SwiftUI hosts also need the same window-scene baseline.
+                    for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+                        scene.traitOverrides.preferredContentSizeCategory = .large
+                    }
+                }
                 .tint(.primary)
                 .toggleStyle(SwitchToggleStyle(tint: .infoHubSelection))
                 .preferredColorScheme(store.colorScheme)
@@ -112,15 +120,13 @@ struct RootView: View {
                         // The page extends underneath glass and the home indicator, with no opaque shelf.
                         .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, max(8, geometry.safeAreaInsets.bottom - 8))
                         .frame(maxWidth: .infinity)
-                        .background {
-                            GeometryReader { footer in
-                                Color.clear.preference(key: FooterHeightPreference.self, value: footer.size.height)
-                            }
+                        .onGeometryChange(for: CGFloat.self) { footer in
+                            footer.size.height
+                        } action: { height in
+                            // Measure the current controls directly, including decreases when playback ends.
+                            if height > 0 { footerHeight = height }
                         }
                     }
-                }
-                .onPreferenceChange(FooterHeightPreference.self) { height in
-                    if height > 0 { footerHeight = height }
                 }
                 .ignoresSafeArea(.container, edges: .bottom)
         }
@@ -169,16 +175,11 @@ extension Color {
 
 extension View {
     /// Reserve scrollable space for the shared floating controls, not a fixed screen-size spacer.
-    func avoidsAppFooter() -> some View { modifier(AppFooterClearance()) }
+    func avoidsAppFooter(readingClearance: CGFloat = 16) -> some View { modifier(AppFooterClearance(readingClearance: readingClearance)) }
 
     func glassSurface(tint: Color? = nil, in shape: some Shape = RoundedRectangle(cornerRadius: 24)) -> some View {
         modifier(GlassSurface(tint: tint, shape: shape))
     }
-}
-
-private enum FooterHeightPreference: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
 private enum AppFooterHeightKey: EnvironmentKey {
@@ -193,11 +194,12 @@ extension EnvironmentValues {
 }
 
 private struct AppFooterClearance: ViewModifier {
+    let readingClearance: CGFloat
     @Environment(\.appFooterHeight) private var height
     func body(content: Content) -> some View {
         // TabView hosts don't consistently forward an outer safeAreaInset to Form/List/page feeds.
         // Set the margins on the scrolling surface itself; nil preserves defaults in footer-free sheets.
-        content.contentMargins(.bottom, height > 0 ? height + 16 : nil, for: .scrollContent)
+        content.contentMargins(.bottom, height > 0 ? height + readingClearance : nil, for: .scrollContent)
             .contentMargins(.bottom, height > 0 ? height : nil, for: .scrollIndicators)
     }
 }

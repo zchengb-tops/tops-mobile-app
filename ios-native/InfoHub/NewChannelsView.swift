@@ -1,9 +1,6 @@
 import SwiftUI
-import Charts
 
 struct GithubContent: View {
-    var previewItemLimit: Int?
-    private var preview: Bool { previewItemLimit != nil }
     @Environment(AppStore.self) private var store
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var period = GithubPeriod.daily
@@ -11,28 +8,27 @@ struct GithubContent: View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 4) {
                 if typeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: 8) { heading; if !preview { periodPicker } }
+                    VStack(alignment: .leading, spacing: 8) { heading; periodPicker }
                 } else {
                     ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 12) { heading; Spacer(minLength: 0); if !preview { periodPicker.frame(width: 160) } }
-                        VStack(alignment: .leading, spacing: 8) { heading; if !preview { periodPicker } }
+                        HStack(spacing: 12) { heading; Spacer(minLength: 0); periodPicker.frame(width: 160) }
+                        VStack(alignment: .leading, spacing: 8) { heading; periodPicker }
                     }
                 }
                 Text("发现近期热门的开源项目").font(.footnote).foregroundStyle(.secondary)
                     .offset(y: typeSize.isAccessibilitySize ? -6 : -12)
             }
-            if let error = store.channelErrors["github"], !preview { Text(error).font(.footnote).foregroundStyle(.secondary) }
+            if let error = store.channelErrors["github"] { Text(error).font(.footnote).foregroundStyle(.secondary) }
             let items = period.items(in: store.news["github"])
             if items.isEmpty {
                 ChannelDataState(loading: store.loading, message: store.news["github"][period.rawValue]["errorMessage"].text)
             } else {
-                if preview { VStack(spacing: 0) { rows(items) } }
-                else { LazyVStack(spacing: 0) { rows(items) } }
+                LazyVStack(spacing: 0) { rows(items) }
             }
         }.padding(.horizontal, 20).padding(.top, 16)
     }
     private func rows(_ items: [NewsItem]) -> some View {
-        ForEach(Array(items.prefix(previewItemLimit ?? items.count))) { item in
+        ForEach(items) { item in
             GithubRow(item: item, period: period)
             if item.id != items.last?.id { Divider().opacity(0.4).padding(.vertical, 16) }
         }
@@ -141,10 +137,9 @@ private struct GithubRow: View {
 }
 
 struct AnalysisContent: View {
-    var preview = false
     @Environment(AppStore.self) private var store
     var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
+        VStack(alignment: .leading, spacing: 18) {
             Link(destination: URL(string: "https://artificialanalysis.ai/")!) {
                 HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 6) {
@@ -155,11 +150,11 @@ struct AnalysisContent: View {
                         .frame(width: 56, height: 56).accessibilityHidden(true)
                 }
             }.foregroundStyle(.primary).accessibilityIdentifier("analysis-heading")
-            if let error = store.channelErrors["artificialAnalysis"], !preview { Text(error).font(.footnote).foregroundStyle(.secondary) }
+            if let error = store.channelErrors["artificialAnalysis"] { Text(error).font(.footnote).foregroundStyle(.secondary) }
             let charts = AnalysisChart.charts(in: store.news["artificialAnalysis"])
             if charts.isEmpty { ChannelDataState(loading: store.loading) }
             ForEach(charts) { chart in
-                AnalysisChartView(chart: chart, limit: preview ? 4 : nil, preview: preview)
+                AnalysisChartView(chart: chart)
             }
         }.padding(.horizontal, 20).padding(.top, 16)
     }
@@ -167,85 +162,72 @@ struct AnalysisContent: View {
 
 struct AnalysisChartView: View {
     let chart: AnalysisChart
-    var limit: Int?
-    var preview = false
-    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.newsPath) private var newsPath
-    @ScaledMetric(relativeTo: .caption2) private var columnWidth = 60.0
-    @ScaledMetric(relativeTo: .caption2) private var axisWidth = 40.0
     @State private var selection: String?
-    private var points: [AnalysisChart.Point] { Array(chart.points.prefix(limit ?? chart.points.count)) }
+    private var points: [AnalysisChart.Point] { chart.points }
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(chart.title).font(.headline)
                 Text(chart.subtitle).font(.caption).foregroundStyle(.secondary)
             }.accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("analysis-\(chart.id)-heading")
-            GeometryReader { geometry in plot(width: geometry.size.width) }
-                .frame(height: typeSize.isAccessibilitySize ? 420 : 270)
-        }.padding(16).background(Color(uiColor: .systemBackground), in: .rect(cornerRadius: 16))
-            .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(Color(uiColor: .separator).opacity(0.25), lineWidth: 0.5) }
+            LazyVStack(spacing: 0) {
+                ForEach(Array(points.enumerated()), id: \.element.id) { index, point in
+                    pointRow(point, index: index)
+                }
+            }.accessibilityElement(children: .contain)
+                .accessibilityValue(selection ?? "未选择模型")
+                .accessibilityIdentifier("analysis-\(chart.id)-chart")
+        }.padding(.vertical, 8)
     }
-    private func plot(width availableWidth: CGFloat) -> some View {
-        let width = availableWidth.isFinite ? max(0, availableWidth) : 0
-        let visibleCount = max(1, Int(min(CGFloat(points.count), max(1, (width - axisWidth) / columnWidth))))
-        let labelWidth = max(44, (width - axisWidth) / CGFloat(max(1, visibleCount)) - 8)
-        return Chart(points) { point in
-            BarMark(x: .value("模型", point.label), y: .value(chart.title, point.value), width: .ratio(0.55))
-                .foregroundStyle(analysisColor(point.color)).cornerRadius(4)
-                .opacity(selection == nil || selection == point.id ? 1 : 0.75)
-                .annotation(position: .top, spacing: 4) {
-                    Text(chart.formatted(point.value)).font(.caption2.weight(.semibold)).monospacedDigit()
-                        .foregroundStyle(.primary).accessibilityHidden(true)
+    private func pointRow(_ point: AnalysisChart.Point, index: Int) -> some View {
+        Button { open(point) } label: {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) {
+                    modelLabel(point).frame(width: 128, alignment: .leading)
+                    bar(point).frame(minWidth: 48, maxWidth: .infinity)
+                    modelValue(point).frame(minWidth: 44, alignment: .trailing)
                 }
-                .accessibilityLabel(point.label).accessibilityValue("\(chart.title) \(chart.formatted(point.value))")
-        }
-        .chartXScale(domain: points.map(\.label))
-        .chartYScale(domain: 0...chart.maximum, range: .plotDimension(startPadding: 0, endPadding: 24))
-        .chartScrollableAxes(preview ? [] : .horizontal)
-        .chartXVisibleDomain(length: visibleCount)
-        .chartXAxis {
-            AxisMarks(values: points.map(\.label)) { value in
-                AxisValueLabel {
-                    if let label = value.as(String.self), let point = points.first(where: { $0.label == label }) {
-                        VStack(spacing: 3) {
-                            Group {
-                                if let asset = point.logoAsset, UIImage(named: asset) != nil {
-                                    Image(asset).resizable().scaledToFit().foregroundStyle(analysisColor(point.color))
-                                } else { Image(systemName: "cpu").resizable().scaledToFit().foregroundStyle(.secondary) }
-                            }.frame(width: 16, height: 16).accessibilityHidden(true)
-                            Text(point.name).channelText(11, weight: .medium).lineLimit(3)
-                            if !point.variant.isEmpty, !typeSize.isAccessibilitySize { Text(point.variant).channelText(10).lineLimit(2).foregroundStyle(.secondary) }
-                        }.multilineTextAlignment(.center).frame(width: labelWidth)
-                    }
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) { modelLabel(point); Spacer(minLength: 0); modelValue(point) }
+                    bar(point)
                 }
-            }
-        }
-        .chartYAxis {
-            AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
-                AxisValueLabel {
-                    if let number = value.as(Double.self) { Text(chart.formatted(number)).font(.caption2).monospacedDigit() }
+            }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
+        }.buttonStyle(.plain)
+            .opacity(selection == nil || selection == point.id ? 1 : 0.75)
+            .accessibilityLabel(point.label)
+            .accessibilityValue("\(chart.title) \(chart.formatted(point.value))")
+            .accessibilityIdentifier("analysis-\(chart.id)-point-\(index)")
+    }
+    private func modelLabel(_ point: AnalysisChart.Point) -> some View {
+        HStack(alignment: .center, spacing: 6) {
+            Group {
+                if let asset = point.logoAsset, UIImage(named: asset) != nil {
+                    Image(asset).resizable().scaledToFit().foregroundStyle(analysisColor(point.color))
+                } else { Image(systemName: "cpu").resizable().scaledToFit().foregroundStyle(.secondary) }
+            }.frame(width: 16, height: 16).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(point.name).channelText(11, weight: .medium, lineHeight: 14)
+                if !point.variant.isEmpty {
+                    Text(point.variant).channelText(10, lineHeight: 12).foregroundStyle(.secondary)
                 }
-            }
+            }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
         }
-        .chartGesture { proxy in
-            SpatialTapGesture().onEnded { tap in
-                if let label = proxy.value(atX: tap.location.x, as: String.self),
-                   let point = points.first(where: { $0.id == label }) { open(point) }
+    }
+    private func modelValue(_ point: AnalysisChart.Point) -> some View {
+        Text(chart.formatted(point.value)).font(.caption2.weight(.semibold)).monospacedDigit()
+            .fixedSize(horizontal: true, vertical: false)
+    }
+    private func bar(_ point: AnalysisChart.Point) -> some View {
+        GeometryReader { geometry in
+            Capsule().fill(Color.secondary.opacity(0.14)).overlay(alignment: .leading) {
+                Capsule().fill(analysisColor(point.color))
+                    .frame(width: max(0, geometry.size.width) * CGFloat(point.value / chart.maximum))
             }
-        }
-        .accessibilityActions {
-            ForEach(points) { point in
-                Button("查看\(point.label)，\(chart.title) \(chart.formatted(point.value))") { open(point) }
-            }
-        }
-        .accessibilityValue(selection ?? "未选择模型")
-        .accessibilityIdentifier("analysis-\(chart.id)-chart")
+        }.frame(height: 6).accessibilityHidden(true)
     }
     private func open(_ point: AnalysisChart.Point) {
-        guard !preview else { return }
         selection = point.id
         if let url = point.detailsURL {
             newsPath?.wrappedValue.append(NewsItem(raw: .object(["title": .string(point.label), "url": .string(url.absoluteString)]), index: 0))
@@ -271,7 +253,6 @@ private struct ChannelDataState: View {
 }
 
 struct FeaturedContent: View {
-    var previewHeight: CGFloat?
     @Environment(AppStore.self) private var store
     private let groups: [[String]] = [
         ["sina", "zhihu", "stock"],
@@ -280,21 +261,8 @@ struct FeaturedContent: View {
         ["xiaoyuzhou", "bilibili", "doubanMovie"]
     ]
     private var visibleGroups: [[Channel]] {
-        let channelsByGroup = groups.map { codes in codes.compactMap { code in store.enabledChannels.first { !$0.isRSS && $0.code == code } } }
+        groups.map { codes in codes.compactMap { code in store.enabledChannels.first { !$0.isRSS && $0.code == code } } }
             + [store.enabledChannels.filter(\.isRSS)]
-        guard let previewHeight else { return channelsByGroup }
-        // Minimum heights deliberately overfill rather than leave a partially populated thumbnail.
-        var height: CGFloat = 0
-        return Array(channelsByGroup.prefix { channels in
-            guard height < previewHeight else { return false }
-            for channel in channels {
-                let count = items(for: channel).count
-                if channel.code == "stock", count > 0 { height += 240 + 44 }
-                else if channel.code == "artificialAnalysis", !AnalysisChart.charts(in: store.news[channel.code]).isEmpty { height += 270 + 44 }
-                else { height += CGFloat(min(count, channel.code == "sina" ? 5 : 4)) * 44 + (isArticle(channel) ? 0 : 44) }
-            }
-            return true
-        })
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {

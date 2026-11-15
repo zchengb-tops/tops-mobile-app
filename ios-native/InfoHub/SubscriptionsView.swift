@@ -6,6 +6,8 @@ struct SubscriptionsView: View {
     @State private var recommendationsPresented = false
     @State private var firstChannelBeforeAdding: String?
     @State private var editing: Channel?
+    @State private var recommendationPreview: [JSON] = []
+    @State private var recommendationResult: [JSON]?
     var body: some View {
         @Bindable var store = store
         ScrollViewReader { proxy in
@@ -15,12 +17,25 @@ struct SubscriptionsView: View {
                     firstChannelBeforeAdding = store.channels.first?.id
                     recommendationsPresented = true
                 } label: {
-                    HStack {
-                        Label("精选推荐", systemImage: "sparkles")
+                    HStack(spacing: 10) {
+                        Image("RSSIcon").resizable().scaledToFit().frame(width: 21, height: 21)
+                            .accessibilityHidden(true)
+                        Text("精选 RSS").channelText(15, weight: .semibold)
                         Spacer()
+                        HStack(spacing: 6) {
+                            ForEach(Array(recommendationPreview.enumerated()), id: \.offset) { _, recommendation in
+                                AsyncImage(url: webURL(recommendation["iconUrl"].text)) { phase in
+                                    if let image = phase.image { image.resizable().scaledToFit() }
+                                    else { Image("RSSIcon").resizable().scaledToFit() }
+                                }.frame(width: 20, height: 20)
+                            }
+                        }.accessibilityHidden(true)
                         Image(systemName: "chevron.right").font(.footnote).foregroundStyle(.secondary)
-                    }.frame(minHeight: 44).contentShape(Rectangle())
-                }.buttonStyle(.plain).listRowBackground(Color.clear)
+                    }.padding(.horizontal, 13).frame(minHeight: 64).contentShape(Rectangle())
+                        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+                        .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.08), lineWidth: 1) }
+                }.buttonStyle(.plain).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 2, trailing: 16))
                     .accessibilityIdentifier("rss-recommendations-entry")
                     .accessibilityHint("浏览推荐来源并直接订阅")
             }
@@ -71,7 +86,13 @@ struct SubscriptionsView: View {
                 }
             }
         }
-        .navigationDestination(isPresented: $recommendationsPresented) { RSSRecommendationsView() }
+        .navigationDestination(isPresented: $recommendationsPresented) { RSSRecommendationsView(preloaded: recommendationResult) }
+        .task(id: recommendationsPresented) {
+            if !recommendationsPresented {
+                recommendationResult = nil
+                await loadRecommendationPreview()
+            }
+        }
         .onChange(of: recommendationsPresented) { _, presented in
             if !presented { revealNewRSS(using: proxy) }
         }
@@ -86,10 +107,22 @@ struct SubscriptionsView: View {
             proxy.scrollTo(first.id, anchor: .top)
         }
     }
+    private func loadRecommendationPreview() async {
+        guard recommendationResult == nil else { return }
+        do {
+            let recommendations = try await store.api.request("rss-recommendations").array
+            guard !Task.isCancelled else { return }
+            recommendationPreview = Array(recommendations.filter { webURL($0["iconUrl"].text) != nil }.prefix(3))
+            recommendationResult = recommendations
+        } catch {
+            if !Task.isCancelled { recommendationPreview = [] }
+        }
+    }
 }
 
 struct RSSRecommendationsView: View {
     @Environment(AppStore.self) private var store
+    let preloaded: [JSON]?
     @State private var recommendations: [JSON] = []
     @State private var loading = true
     @State private var loadError: String?
@@ -121,7 +154,12 @@ struct RSSRecommendationsView: View {
         .avoidsAppFooter().ignoresSafeArea(.container, edges: .bottom)
         .navigationTitle("精选推荐").navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("rss-recommendations-list")
-        .task { await loadRecommendations() }
+        .task {
+            if let preloaded {
+                recommendations = preloaded
+                loading = false
+            } else { await loadRecommendations() }
+        }
         .refreshable { if !loading { await loadRecommendations() } }
     }
     private func recommendationRow(_ recommendation: JSON) -> some View {

@@ -174,15 +174,211 @@ final class ContractTests: XCTestCase {
         let item = NewsItem(raw: .object(["description": .string("<p>Hello&nbsp; world &amp; friends</p>"),
                                          "thumbnail": .string("/images/example.png")]), index: 0)
         XCTAssertEqual(item.rssSummary, "Hello world & friends")
+        let escaped = NewsItem(raw: .object(["description": .string("新闻电#8195;通讯 &#8195; 正文 #8195;")]), index: 0)
+        XCTAssertEqual(escaped.rssSummary, "新闻电 通讯 正文 #8195;")
+        for (description, expected) in [("同一个标题", ""), ("新闻聚焦｜同一个标题", ""),
+                                        ("同一个标题：附带的详细内容", "同一个标题：附带的详细内容")] {
+            let story = NewsItem(raw: .object(["title": .string("同一个标题"), "description": .string(description)]), index: 0)
+            XCTAssertEqual(story.rssCardSummary, expected)
+        }
         XCTAssertEqual(item.rssThumbnail(feedURL: "https://example.invalid/rss/feed.xml")?.absoluteString, "https://example.invalid/images/example.png")
         let unsafe = NewsItem(raw: .object(["thumbnail": .string("javascript:alert(1)")]), index: 0)
         XCTAssertNil(unsafe.rssThumbnail(feedURL: "https://example.invalid/feed"))
         XCTAssertNil(item.rssThumbnail(feedURL: "file:///private/feed"))
+        for (title, topic, headline) in [
+            ("[分享创造] 做了一个工具", "分享创造", "做了一个工具"),
+            ("[iPhone]使用心得", "iPhone", "使用心得"),
+            ("没有分类的标题", nil, "没有分类的标题"),
+            ("[未完成的标题", nil, "[未完成的标题"),
+            ("[] 空分类", nil, "[] 空分类"),
+            ("[只有分类]", nil, "[只有分类]")
+        ] as [(String, String?, String)] {
+            let item = NewsItem(raw: .object(["title": .string(title)]), index: 0)
+            XCTAssertEqual(item.rssTitleParts.topic, topic)
+            XCTAssertEqual(item.rssTitleParts.headline, headline)
+        }
+    }
+    func testRSSSameDayRequiresAllDates() {
+        func item(_ date: String, _ index: Int) -> NewsItem {
+            NewsItem(raw: .object(["publishDate": .string(date)]), index: index)
+        }
+        XCTAssertFalse(rssItemsShareDay([]))
+        XCTAssertTrue(rssItemsShareDay([item("2026-10-08 09:30", 0), item("2026-10-08 10:30", 1)]))
+        XCTAssertFalse(rssItemsShareDay([item("2026-10-08 09:30", 0), item("2026-10-09 09:30", 1)]))
+        XCTAssertFalse(rssItemsShareDay([item("2026-10-08 09:30", 0), item("invalid", 1)]))
+    }
+    @MainActor func testRSSListLongTitlesStayOnOneLine() throws {
+        let store = AppStore()
+        let player = PodcastPlayer()
+        let short = NewsItem(raw: .object(["title": .string("短标题"), "publishDate": .string("2026-10-29T10:00:00Z")]), index: 0)
+        let long = NewsItem(raw: .object(["title": .string(String(repeating: "这是很长的新闻标题", count: 12)),
+                                         "publishDate": .string("2026-10-29T10:00:00Z")]), index: 1)
+        for width in [CGFloat(280), 390] {
+            for density in [FeedDensity.standard, .spacious] {
+                for textSize in [DynamicTypeSize.large, .accessibility3] {
+                    func height(_ item: NewsItem) throws -> CGFloat {
+                        let renderer = ImageRenderer(content: NewsRow(item: item, channel: "rss", density: density)
+                            .environment(store).environment(player).environment(\.dynamicTypeSize, textSize).frame(width: width))
+                        renderer.scale = 2
+                        return try XCTUnwrap(renderer.uiImage).size.height
+                    }
+                    let shortHeight = try height(short)
+                    XCTAssertGreaterThanOrEqual(shortHeight, 44)
+                    XCTAssertEqual(try height(long), shortHeight, accuracy: 0.5,
+                                   "Long RSS headlines must not add a second line or move the date")
+                }
+            }
+        }
     }
     func testSettingsIllustrationsAreBundled() {
-        for name in ["appearance", "reading", "sync", "feedback", "website", "terms", "privacy", "version"] {
+        for name in ["account", "appearance", "reading", "sync", "feedback", "website", "terms", "privacy", "version"] {
             XCTAssertNotNil(UIImage(named: "settings-\(name)"), "Missing settings illustration: \(name)")
         }
+    }
+    @MainActor func testWeiboRowsTightenPaddingWithoutShrinkingTouchTargets() throws {
+        let store = AppStore()
+        let player = PodcastPlayer()
+        let originalSize = store.readingSize
+        defer { store.readingSize = originalSize }
+        for readingSize in ["system", "large"] {
+            store.readingSize = readingSize
+            for scheme in [ColorScheme.light, .dark] {
+                for headline in ["微博热榜", String(repeating: "这是一条需要换行的微博新闻标题", count: 3)] {
+                    let item = NewsItem(raw: .object(["title": .string(headline), "url": .string("https://example.org/news"),
+                        "properties": .object(["viewers": .number(1234000)])]), index: 0)
+                    func render(overview: Bool) throws -> UIImage {
+                        let renderer = ImageRenderer(content: NewsRow(item: item, channel: "sina", isOverview: overview)
+                            .environment(store).environment(player).environment(\.dynamicTypeSize, .large)
+                            .environment(\.colorScheme, scheme).frame(width: 390))
+                        renderer.scale = 2
+                        return try XCTUnwrap(renderer.uiImage)
+                    }
+                    let overview = try render(overview: true)
+                    let full = try render(overview: false)
+                    XCTAssertGreaterThanOrEqual(overview.size.height, 44, "Keep the original 44pt content/touch target")
+                    XCTAssertEqual(full.size.height - overview.size.height, 4, accuracy: 0.5,
+                                   "The complete Weibo tab adds only 2pt above and below each unchanged row")
+                    if headline == "微博热榜" { XCTAssertEqual(full.size.height, 48, accuracy: 0.5) }
+                    let attachment = XCTAttachment(image: full)
+                    attachment.name = "Weibo-tight-row-\(scheme)-\(readingSize)-\(headline == "微博热榜" ? "single" : "wrapped")"
+                    attachment.lifetime = .keepAlways
+                    add(attachment)
+                }
+            }
+        }
+    }
+    @MainActor func testAppSceneKeepsStandardTextSizeForPresentedHosts() throws {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        XCTAssertFalse(scenes.isEmpty)
+        for scene in scenes {
+            XCTAssertEqual(scene.traitOverrides.preferredContentSizeCategory, .large)
+            XCTAssertEqual(scene.traitCollection.preferredContentSizeCategory, .large)
+        }
+    }
+    @MainActor func testOverviewArticleCoverKeepsLandscapeRatio() throws {
+        let wideArtwork = UIGraphicsImageRenderer(size: CGSize(width: 300, height: 200)).image { context in
+            UIColor.red.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 300, height: 200))
+            UIColor.green.setFill()
+            context.cgContext.fillEllipse(in: CGRect(x: 110, y: 60, width: 80, height: 80))
+        }
+        let cover = Color.clear.frame(width: 140, height: 140 / 1.5).overlay {
+            GeometryReader { geometry in
+                Image(uiImage: wideArtwork).resizable().scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+            }
+        }.clipped()
+        for width in [280, 390] {
+            for (copyHeight, topInset) in [60, 94, 132, 210].flatMap({ height in [0, 8, 14].map { (height, $0) } }) {
+                for coverFirst in [true, false] {
+                    let renderer = ImageRenderer(content: OverviewArticleLayout(coverFirst: coverFirst, spacing: coverFirst ? 14 : 12,
+                                                                                coverTopInset: CGFloat(topInset)) {
+                        if coverFirst { cover }
+                        Color.green.frame(height: CGFloat(copyHeight))
+                        if !coverFirst { cover }
+                    }.frame(width: CGFloat(width)))
+                    renderer.scale = 3
+                    let image = try XCTUnwrap(renderer.cgImage)
+                    let height = max(copyHeight * 3, topInset * 3 + 280)
+                    let pixelWidth = width * 3
+                    XCTAssertEqual(image.width, pixelWidth)
+                    XCTAssertEqual(image.height, height, "The row accommodates both the fixed-ratio cover and longer text")
+                    var pixels = [UInt8](repeating: 0, count: pixelWidth * height * 4)
+                    try pixels.withUnsafeMutableBytes { bytes in
+                        let context = try XCTUnwrap(CGContext(data: bytes.baseAddress, width: pixelWidth, height: height,
+                            bitsPerComponent: 8, bytesPerRow: pixelWidth * 4, space: CGColorSpaceCreateDeviceRGB(),
+                            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+                        context.draw(image, in: CGRect(x: 0, y: 0, width: pixelWidth, height: height))
+                    }
+                    let x = coverFirst ? 210 : pixelWidth - 210
+                    var artworkRows = 0
+                    var transparentRows = 0
+                    for y in 0..<height {
+                        let offset = (y * pixelWidth + x) * 4
+                        if pixels[offset + 3] == 255 { artworkRows += 1 }
+                        if pixels[offset + 3] == 0 { transparentRows += 1 }
+                    }
+                    XCTAssertEqual(artworkRows, 280, "The 420px-wide artwork is always 280px high (3:2)")
+                    XCTAssertEqual(transparentRows, height - 280, "Longer copy must not stretch the artwork")
+                    var minX = pixelWidth, maxX = 0, minY = height, maxY = 0
+                    let coverStart = coverFirst ? 0 : pixelWidth - 420
+                    for y in 0..<height {
+                        for x in coverStart..<(coverStart + 420) {
+                            let offset = (y * pixelWidth + x) * 4
+                            if pixels[offset] < 10 && pixels[offset + 1] > 240 && pixels[offset + 2] < 10 {
+                                minX = min(minX, x); maxX = max(maxX, x)
+                                minY = min(minY, y); maxY = max(maxY, y)
+                            }
+                        }
+                    }
+                    XCTAssertGreaterThan(maxX - minX, 100)
+                    XCTAssertEqual(maxX - minX, maxY - minY, accuracy: 1, "A source circle must remain circular, not become an ellipse")
+                }
+            }
+        }
+        let textOnly = ImageRenderer(content: OverviewArticleLayout {
+            Color.green.frame(height: 60)
+        }.frame(width: 280))
+        textOnly.scale = 1
+        XCTAssertEqual(try XCTUnwrap(textOnly.cgImage).height, 60, "Image-less rows keep their natural height")
+    }
+    @MainActor func testBackToTopInterruptsNativeScrollingAndKeepsPagerPosition() async throws {
+        guard #available(iOS 17.4, *) else { throw XCTSkip("Scroll-animation state is available from iOS 17.4") }
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        defer { window.isHidden = true }
+        let pager = UIScrollView(frame: window.bounds)
+        pager.contentInsetAdjustmentBehavior = .never
+        pager.contentSize = CGSize(width: window.bounds.width * 2, height: window.bounds.height)
+        root.view.addSubview(pager)
+        let feed = UIScrollView(frame: CGRect(x: 0, y: 0, width: 350, height: 500))
+        feed.contentInsetAdjustmentBehavior = .never
+        feed.contentInset = UIEdgeInsets(top: 37, left: 0, bottom: 120, right: 0)
+        feed.contentSize = CGSize(width: 700, height: 4000)
+        pager.addSubview(feed)
+        pager.setContentOffset(CGPoint(x: 30, y: 0), animated: false)
+        let anchor = UIView()
+        feed.addSubview(anchor)
+        let controller = FeedScrollController()
+        controller.anchor = anchor
+        for animatedReturn in [false, true] {
+            feed.setContentOffset(CGPoint(x: 12, y: 600), animated: false)
+            feed.setContentOffset(CGPoint(x: 12, y: 2600), animated: true)
+            try await Task.sleep(for: .milliseconds(50))
+            XCTAssertTrue(feed.isScrollAnimating, "Exercise a moving native scroll view, not an idle one")
+            XCTAssertTrue(controller.scrollToTop(animated: animatedReturn))
+            if !animatedReturn { XCTAssertFalse(feed.isScrollAnimating, "Reduced motion must stop immediately") }
+            try await Task.sleep(for: .seconds(1))
+            XCTAssertEqual(feed.contentOffset.y, -feed.adjustedContentInset.top, accuracy: 0.5)
+            XCTAssertEqual(feed.contentOffset.x, 12, accuracy: 0.5)
+            XCTAssertEqual(pager.contentOffset, CGPoint(x: 30, y: 0), "Only the nearest feed may be scrolled")
+            XCTAssertFalse(feed.isScrollAnimating)
+        }
+        anchor.removeFromSuperview()
+        XCTAssertFalse(controller.scrollToTop(animated: false), "An unmounted anchor must use the proxy fallback")
     }
     @MainActor func testLaunchScreenUsesOriginalArtworkWithoutCropping() throws {
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "UILaunchStoryboardName") as? String, "LaunchScreen")
@@ -204,62 +400,6 @@ final class ContractTests: XCTestCase {
                 attachment.name = "Launch-\(style.rawValue)-\(Int(size.width))x\(Int(size.height))"
                 attachment.lifetime = .keepAlways
                 add(attachment)
-            }
-        }
-    }
-    @MainActor func testChannelPreviewsRenderBothHalvesOfTallViewports() throws {
-        let store = AppStore()
-        let player = PodcastPlayer()
-        let originalSize = store.readingSize
-        defer { store.readingSize = originalSize }
-        store.readingSize = "system"
-        let items: [JSON] = (0..<40).map { index in
-            .object(["title": .string("Preview headline \(index)"), "rankNum": .string("\(index + 1)"),
-                     "url": .string("https://example.com/\(index)")])
-        }
-        store.news = .object(["sina": .array(items), "sspai": .array(items), "36kr": .array(items), "nnGroup": .array(items),
-                              "github": .object(["daily": .object(["items": .array(items)])])])
-        store.channels = ["sspai", "36kr", "nnGroup"].map { Channel(.object(["channelCode": .string($0), "enable": .bool(true)])) }
-        for code in ["sina", "github", "featured"] {
-            for height in [800, 1200] {
-                let channel = Channel(.object(["channelCode": .string(code)]))
-                let renderer = ImageRenderer(content: ChannelFeed(channel: channel, previewHeight: CGFloat(height))
-                    .environment(store).environment(player).environment(\.colorScheme, .light)
-                    .environment(\.dynamicTypeSize, .large).tint(.black)
-                    .frame(width: 400, height: CGFloat(height)))
-                renderer.scale = 1
-                let image = try XCTUnwrap(renderer.cgImage)
-                let attachment = XCTAttachment(image: UIImage(cgImage: image))
-                attachment.name = "Preview-\(code)-\(height)"
-                attachment.lifetime = .keepAlways
-                add(attachment)
-                var pixels = [UInt8](repeating: 255, count: 400 * height * 4)
-                try pixels.withUnsafeMutableBytes { bytes in
-                    let context = try XCTUnwrap(CGContext(data: bytes.baseAddress, width: 400, height: height,
-                        bitsPerComponent: 8, bytesPerRow: 400 * 4, space: CGColorSpaceCreateDeviceRGB(),
-                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
-                    context.draw(image, in: CGRect(x: 0, y: 0, width: 400, height: height))
-                }
-                for band in [100..<300, (height - 300)..<(height - 100)] {
-                    let ink = band.reduce(0) { count, y in
-                        count + (100..<350).filter { x in
-                            let offset = (y * 400 + x) * 4
-                            return pixels[offset] < 160 && pixels[offset + 1] < 160 && pixels[offset + 2] < 160
-                        }.count
-                    }
-                    XCTAssertGreaterThan(ink, 100, "\(code) preview must render headlines in both halves at height \(height)")
-                }
-                if code == "sina" {
-                    // Standalone NavigationLinks are dimmed; compare hue rather than absolute brightness.
-                    let firstRankPixels = [0..<80, (height - 80)..<height].flatMap { Array($0) }.reduce(0) { count, y in
-                        count + (0..<60).filter { x in
-                            let offset = (y * 400 + x) * 4
-                            let red = Int(pixels[offset]), green = Int(pixels[offset + 1]), blue = Int(pixels[offset + 2])
-                            return red - green > 30 && red - blue > 30 && abs(green - blue) < 20
-                        }.count
-                    }
-                    XCTAssertGreaterThan(firstRankPixels, 5, "Preview must start at rank 1, not center-crop the list")
-                }
             }
         }
     }
@@ -641,18 +781,6 @@ final class ContractTests: XCTestCase {
         XCTAssertEqual(accessed.first?["NSPrivacyAccessedAPIType"] as? String, "NSPrivacyAccessedAPICategoryUserDefaults")
         XCTAssertEqual(accessed.first?["NSPrivacyAccessedAPITypeReasons"] as? [String], ["CA92.1"])
     }
-    func testChannelOverviewZoomThresholdsAndReversal() {
-        XCTAssertEqual(ChannelZoom.progress(from: 0, magnification: 0.5, thumbnailScale: 0.5), 1)
-        XCTAssertEqual(ChannelZoom.progress(from: 0, magnification: 0.95, thumbnailScale: 0.5), 0.1, accuracy: 0.001)
-        XCTAssertEqual(ChannelZoom.progress(from: 1, magnification: 1.5, thumbnailScale: 0.5), 0)
-        XCTAssertEqual(ChannelZoom.progress(from: 0, magnification: 2, thumbnailScale: 0.5), 0)
-        XCTAssertEqual(ChannelZoom.progress(from: 1, magnification: 0.1, thumbnailScale: 0.5), 1)
-        XCTAssertEqual(ChannelZoom.progress(from: 0.4, magnification: .nan, thumbnailScale: 0.5), 0.4)
-        XCTAssertEqual(ChannelZoom.destination(progress: 0.2, velocity: 0), 0)
-        XCTAssertEqual(ChannelZoom.destination(progress: 0.8, velocity: 0), 1)
-        XCTAssertEqual(ChannelZoom.destination(progress: 0.4, velocity: -1), 1)
-        XCTAssertEqual(ChannelZoom.destination(progress: 0.6, velocity: 1), 0)
-    }
     func testNativeChannelAdditionsPreserveSubscriptionChoices() throws {
         let github = Channel(.object(["id": .number(20), "channelCode": .string("github"), "title": .string("GitHub"), "enable": .bool(false), "custom": .string("keep")]))
         let rss = Channel(.object(["id": .string("my-feed"), "isRss": .bool(true), "title": .string("Feed"), "rssUrl": .string("https://example.com/feed"), "enable": .bool(true)]))
@@ -712,19 +840,23 @@ final class ContractTests: XCTestCase {
         XCTAssertEqual(analysisColor("invalid"), .purple)
     }
     @MainActor func testAnalysisProviderLogosMatchExtensionAndAreBundled() {
-        for (label, asset) in [("Claude Opus 5.5 (max)", "anthropic"), ("GPT-6 Astra (max)", "openai"),
-                               ("Gemini 4 Argon (high)", "google"), ("DeepSeek V4.1 Flash", "deepseek"),
-                               ("Grok 4.7 (xhigh)", "xai"), ("Kimi K2", "moonshot"),
-                               ("GLM-5.3 (max)", "zai"), ("Muse Spark 1.3", "meta"),
-                               ("MiMo-V2.6-Pro", "xiaomi"), ("Xiaomi model", "xiaomi")] {
+        for (label, asset) in [("Claude Opus 5.5 (max)", "arena-anthropic"), ("GPT-6 Astra (max)", "arena-openai"),
+                               ("Gemini 4 Argon (high)", "arena-google"), ("DeepSeek V4.1 Flash", "arena-deepseek"),
+                               ("Grok 4.7 (xhigh)", "arena-xai"), ("Kimi K2", "arena-moonshot"),
+                               ("GLM-5.3 (max)", "analysis-zai"), ("Muse Spark 1.3", "arena-meta"),
+                               ("MiMo-V2.6-Pro", "analysis-xiaomi"), ("Xiaomi model", "analysis-xiaomi")] {
             let point = AnalysisChart.Point(label: label, value: 1, detailsURL: nil, color: "")
-            XCTAssertEqual(point.logoAsset, "arena-\(asset)")
-            XCTAssertNotNil(UIImage(named: "arena-\(asset)"))
+            XCTAssertEqual(point.logoAsset, asset)
+            XCTAssertNotNil(UIImage(named: asset))
         }
         XCTAssertNil(AnalysisChart.Point(label: "Unknown model", value: 1, detailsURL: nil, color: "").logoAsset)
         XCTAssertNil(AnalysisChart.Point(label: "NotGPT", value: 1, detailsURL: nil, color: "").logoAsset)
         XCTAssertEqual(UIImage(named: "arena-openai")?.renderingMode, .alwaysTemplate,
                        "Monochrome provider logos must adapt to the chart's semantic dark-mode tint")
+        for asset in ["analysis-zai", "analysis-xiaomi"] {
+            XCTAssertEqual(UIImage(named: asset)?.renderingMode, .alwaysOriginal,
+                           "Multicolor provider logos must preserve their original artwork")
+        }
     }
     func testAnalysisChartLabelsAndZeroBasedScale() {
         for (label, name, variant) in [("GPT-6 Astra (max)", "GPT-6 Astra", "(max)"),

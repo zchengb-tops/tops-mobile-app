@@ -144,7 +144,7 @@ private actor RSSUITestAPI {
         switch path {
         case "rss-recommendations":
             recommendationAttempts += 1
-            if scenario == "load-error", recommendationAttempts == 1 { throw APIError.message("测试推荐加载失败") }
+            if scenario == "load-error", recommendationAttempts <= 2 { throw APIError.message("测试推荐加载失败") }
             response = scenario == "empty" ? "[]" : #"[{"id":"fixture-one","title":"测试来源一","rssUrl":"https://example.org/one.xml","description":"独立推荐列表，点击即可订阅","iconUrl":""},{"id":"fixture-two","title":"测试来源二","rssUrl":"https://example.org/two.xml","description":"无需填写 RSS 创建表单","iconUrl":""}]"#
         case "rss-resource":
             resourceAttempts += 1
@@ -168,6 +168,20 @@ private actor RSSUITestAPI {
             return fixtureUserInfo()
         case "normal-news" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_PLAYER"] == "1":
             response = #"{"xiaoyuzhou":[{"title":"测试播客","author":"测试频道","mediaUrl":"https://audio.invalid/episode.mp3","duration":3600}]}"#
+        case "news/artificial-analysis" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_ANALYSIS"] == "1":
+            let labels = ["Claude Opus 5.5 (max with fallback)", "GPT-6 Astra (max)", "Gemini 4 Carbon (high)",
+                          "GPT-6.1 Sol (max)", "Kimi K3.1 Pro (max)", "Claude Fable 5.1 (max with fallback)",
+                          "Extra Model (preview)", "GLM-5.3 (max)", "MiMo-V2.6-Pro"]
+            let colors = ["#d97659", "#000000", "#08a953", "#000000", "#1685ed", "#d97659", "#7f4bf3", "#1685ed", "#ff6900"]
+            let charts = ["intelligence", "speed", "cost"].map { key in
+                let points = labels.enumerated().map { index, label in
+                    let value = key == "cost" ? Double(index + 1) * 0.125 : Double(70 - index * 8)
+                    return JSON.object(["label": .string(label), "value": .number(value), "color": .string(colors[index]),
+                                        "details_url": .string("https://example.invalid/model-\(index)")])
+                }
+                return JSON.object(["key": .string(key), "points": .array(points)])
+            }
+            return .object(["charts": .array(charts)])
         case "normal-news", "news/github", "news/artificial-analysis", "app/versions": response = "{}"
         default: throw APIError.message("订阅测试未配置此请求")
         }

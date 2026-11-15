@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 final class NavigationTests: XCTestCase {
     func testLoginPromptIconActionsRemainAccessible() {
@@ -116,6 +117,52 @@ final class NavigationTests: XCTestCase {
         XCTAssertTrue(app.buttons["使用邮箱登录"].waitForExistence(timeout: 5))
     }
 
+    func testExistingRSSFloatingSwitchKeepsReadingPosition() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-native.syncEnabled", "NO"]
+        app.launch()
+        let toggle = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "rss-view-toggle-")).firstMatch
+        guard toggle.waitForExistence(timeout: 10) else { throw XCTSkip("Requires a selected RSS channel") }
+        let originalLabel = toggle.label
+        let channel = String(toggle.identifier.dropFirst("rss-view-toggle-".count))
+        let feed = app.scrollViews["feed-\(channel)"]
+        let back = app.buttons["back-to-top-\(channel)"]
+        let rowPrefix = originalLabel == "切换列表视图" ? "rss-card-\(channel)-" : "news-\(channel)-"
+        let first = app.buttons["\(rowPrefix)0"].firstMatch
+        waitUntilHittable(first)
+        let initialTop = first.frame.minY
+        defer {
+            if toggle.exists && toggle.label != originalLabel { toggle.tap() }
+        }
+        XCTAssertGreaterThanOrEqual(toggle.frame.height, 44)
+        XCTAssertGreaterThan(toggle.frame.minY, feed.frame.midY)
+        for _ in 0..<4 where !back.exists { feed.swipeUp() }
+        waitUntilHittable(back)
+        XCTAssertLessThanOrEqual(back.frame.maxY + 4, toggle.frame.minY)
+        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", rowPrefix)).allElementsBoundByIndex
+        let visibleTop = app.buttons["channel-menu"].frame.maxY + 8
+        let visible = rows.filter { $0.frame.maxY > visibleTop && $0.frame.minY < toggle.frame.minY }
+            .sorted { $0.frame.minY < $1.frame.minY }
+        let index = try XCTUnwrap(visible.first?.identifier.split(separator: "-").last)
+        toggle.tap()
+        let newPrefix = originalLabel == "切换列表视图" ? "news-\(channel)-" : "rss-card-\(channel)-"
+        let retained = app.buttons["\(newPrefix)\(index)"].firstMatch
+        XCTAssertTrue(retained.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(retained.frame.maxY, visibleTop)
+        XCTAssertLessThan(retained.frame.minY, toggle.frame.minY)
+        waitUntilHittable(back)
+        back.tap()
+        XCTAssertTrue(back.waitForNonExistence(timeout: 5))
+        let topInNewView = app.buttons["\(newPrefix)0"].firstMatch
+        let reachedTop = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            topInNewView.exists && abs(topInNewView.frame.minY - initialTop) <= 10
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [reachedTop], timeout: 10), .completed)
+        toggle.tap()
+        waitUntilHittable(first)
+        XCTAssertEqual(first.frame.minY, initialTop, accuracy: 4, "Switching after returning to the top must not restore a stale item")
+    }
+
     func testRSSListAndCardViewsPersistPerFeed() {
         let app = XCUIApplication()
         let run = UUID().uuidString
@@ -127,6 +174,11 @@ final class NavigationTests: XCTestCase {
         app.launch()
         let toggle = app.buttons["rss-view-toggle-\(firstID)"]
         waitUntilHittable(toggle)
+        let feed = app.scrollViews["feed-\(firstID)"]
+        XCTAssertGreaterThan(toggle.frame.minY, feed.frame.midY, "The view switch should float near the bottom")
+        XCTAssertGreaterThanOrEqual(toggle.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(toggle.frame.height, 44)
+        assertAboveFooter(toggle, in: app, name: "RSS-view-toggle-light")
         let first = app.buttons["news-\(firstID)-0"]
         waitUntilHittable(first)
         XCTAssertLessThan(first.frame.height, 76, "RSS list rows should not have the old 76pt minimum spacing")
@@ -225,6 +277,71 @@ final class NavigationTests: XCTestCase {
         waitUntilHittable(app.buttons["使用邮箱登录"])
         app.terminate()
     }
+    func testSystemTextSizeKeepsPodcastAndNavigationLayoutStable() {
+        let app = XCUIApplication()
+        var standardSizes: [CGSize] = []
+        for category in ["UICTContentSizeCategoryL", "UICTContentSizeCategoryXS", "UICTContentSizeCategoryAccessibilityXXXL"] {
+            app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", "xiaoyuzhou",
+                                   "-native.readingSize", "system", "-native.syncEnabled", "NO",
+                                   "-UIPreferredContentSizeCategoryName", category]
+            app.launch()
+            let podcast = app.buttons.matching(identifier: "news-xiaoyuzhou-0").firstMatch
+            waitUntilHittable(podcast)
+            ensureMiniPlayer(app)
+            if app.buttons["mini-player-toggle"].label == "暂停" { app.buttons["mini-player-toggle"].tap() }
+            let controls = [app.buttons["tab-xiaoyuzhou"], podcast, app.buttons["mini-player"],
+                            app.staticTexts["mini-player-metadata"], app.buttons["nav-0"],
+                            app.buttons["nav-1"], app.buttons["nav-2"]]
+            if standardSizes.isEmpty { standardSizes = controls.map { $0.frame.size } }
+            for (control, size) in zip(controls, standardSizes) {
+                XCTAssertTrue(control.isHittable)
+                XCTAssertEqual(control.frame.width, size.width, accuracy: 1, "\(control.identifier) must ignore system text size: \(category)")
+                XCTAssertEqual(control.frame.height, size.height, accuracy: 1, "\(control.identifier) must ignore system text size: \(category)")
+            }
+            XCTAssertEqual(app.buttons["nav-0"].label, "发现")
+            XCTAssertEqual(app.buttons["nav-1"].label, "订阅")
+            XCTAssertEqual(app.buttons["nav-2"].label, "我的")
+            capture(app, "Fixed-typography-podcast-\(category)")
+            app.buttons["mini-player"].tap()
+            let player = app.scrollViews["player-scroll"]
+            waitUntilHittable(player)
+            waitUntilHittable(app.buttons["player-toggle"])
+            XCTAssertLessThanOrEqual(app.buttons["player-toggle"].frame.maxY, player.frame.maxY)
+            capture(app, "Fixed-typography-player-\(category)")
+            app.buttons["收起"].tap()
+            app.buttons["nav-2"].tap()
+            let readingSize = app.buttons["reading-size-picker"]
+            waitUntilHittable(readingSize)
+            XCTAssertEqual(readingSize.value as? String, "标准")
+            XCTAssertEqual(readingSize.frame.minY, app.buttons["appearance-picker"].frame.minY, accuracy: 1)
+            capture(app, "Fixed-typography-settings-\(category)")
+            app.terminate()
+        }
+    }
+    func testManualReadingSizeStillWorksWithLargestSystemText() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "xiaoyuzhou",
+                               "-native.readingSize", "system", "-native.syncEnabled", "NO",
+                               "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        let tab = app.buttons["tab-xiaoyuzhou"]
+        waitUntilHittable(tab)
+        let standardWidth = tab.frame.width
+        let navigationHeight = app.buttons["nav-0"].frame.height
+        for (label, grows) in [("小", false), ("大", true), ("标准", false)] {
+            app.buttons["nav-2"].tap()
+            app.buttons["reading-size-picker"].tap()
+            app.buttons[label].tap()
+            XCTAssertEqual(app.buttons["reading-size-picker"].value as? String, label)
+            app.buttons["nav-0"].tap()
+            waitUntilHittable(tab)
+            if label == "标准" { XCTAssertEqual(tab.frame.width, standardWidth, accuracy: 1) }
+            else if grows { XCTAssertGreaterThan(tab.frame.width, standardWidth) }
+            else { XCTAssertLessThan(tab.frame.width, standardWidth) }
+            XCTAssertEqual(app.buttons["nav-0"].frame.height, navigationHeight, accuracy: 1)
+            capture(app, "Fixed-system-manual-reading-\(label)")
+        }
+    }
     func testStockFitsAvailableViewportAfterRotation() {
         let app = XCUIApplication()
         app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", "stock", "-native.readingSize", "system"]
@@ -243,8 +360,58 @@ final class NavigationTests: XCTestCase {
         XCTAssertTrue(app.buttons["tab-stock"].isSelected)
         XCTAssertGreaterThan(sectors.count, 12)
         let lastSector = sectors.allElementsBoundByIndex.max { $0.frame.maxY < $1.frame.maxY } ?? sectors.firstMatch
-        assertAboveFooter(lastSector, in: app, name: "Stock-landscape-bottom")
+        let footerTop = app.buttons["mini-player"].exists ? app.buttons["mini-player"].frame.minY : app.buttons["nav-0"].frame.minY
+        XCTAssertGreaterThanOrEqual(footerTop - lastSector.frame.maxY, 12)
+        XCTAssertLessThanOrEqual(footerTop - lastSector.frame.maxY, 20)
         XCTAssertFalse(app.staticTexts["面积代表市值 · 点击板块查看详情"].exists)
+    }
+    func testStockExpandsWhenMiniPlayerIsDismissedWithoutLeavingChannel() {
+        let app = XCUIApplication()
+        for appearance in ["light", "dark"] {
+            app.launchArguments = ["-native.appearance", appearance, "-native.selectedChannel", "xiaoyuzhou", "-native.readingSize", "system", "-native.syncEnabled", "NO"]
+            app.launch()
+            waitUntilHittable(app.buttons["channel-menu"])
+            ensureMiniPlayer(app)
+            if app.buttons["mini-player-toggle"].label == "暂停" { app.buttons["mini-player-toggle"].tap() }
+            app.buttons["channel-menu"].tap()
+            channelMenuItem(app, channel: "stock").tap()
+            let sectors = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'stock-sector-'"))
+            waitUntilHittable(sectors.firstMatch)
+            let topBeforeSwipe = sectors.firstMatch.frame.minY
+            app.scrollViews["feed-stock"].swipeUp(velocity: .fast)
+            XCTAssertEqual(sectors.firstMatch.frame.minY, topBeforeSwipe, accuracy: 1,
+                           "A viewport-filling map must not scroll into duplicate bottom clearance")
+            let before = sectors.allElementsBoundByIndex.reduce(CGRect.null) { $0.union($1.frame) }
+            let playerTop = app.buttons["mini-player"].frame.minY
+            XCTAssertGreaterThanOrEqual(playerTop - before.maxY, 12)
+            XCTAssertLessThanOrEqual(playerTop - before.maxY, 20)
+            capture(app, "Stock-live-player-present-\(appearance)")
+            XCTAssertFalse(app.buttons["mini-player-stop"].exists)
+            app.buttons["mini-player"].tap()
+            let stop = app.buttons["player-stop"]
+            XCTAssertTrue(stop.waitForExistence(timeout: 5))
+            waitUntilHittable(stop)
+            stop.tap()
+            XCTAssertTrue(app.buttons["mini-player"].waitForNonExistence(timeout: 5))
+            waitUntilHittable(sectors.firstMatch)
+            XCTAssertTrue(app.buttons["tab-stock"].isSelected)
+            let expanded = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard let lastSector = sectors.allElementsBoundByIndex.last else { return false }
+                let gap = app.buttons["nav-0"].frame.minY - lastSector.frame.maxY
+                return (12...20).contains(gap)
+            }, object: app)
+            XCTAssertEqual(XCTWaiter.wait(for: [expanded], timeout: 5), .completed,
+                           "The mounted heatmap must reclaim the mini-player height without switching channels")
+            app.scrollViews["feed-stock"].swipeUp(velocity: .fast)
+            let after = sectors.allElementsBoundByIndex.reduce(CGRect.null) { $0.union($1.frame) }
+            XCTAssertGreaterThan(after.height - before.height, 40, "The chart must grow by the released player space")
+            XCTAssertEqual(after.minY, before.minY, accuracy: 1)
+            let gap = app.buttons["nav-0"].frame.minY - after.maxY
+            XCTAssertGreaterThanOrEqual(gap, 12)
+            XCTAssertLessThanOrEqual(gap, 20)
+            capture(app, "Stock-live-player-dismissed-\(appearance)")
+            app.terminate()
+        }
     }
     func testStockFitsAvailableViewportInBothAppearances() {
         let app = XCUIApplication()
@@ -273,36 +440,13 @@ final class NavigationTests: XCTestCase {
                 XCTAssertGreaterThan(bounds.height, 300)
                 XCTAssertGreaterThanOrEqual(bounds.minY, app.staticTexts["stock-updated"].frame.maxY - 1)
                 XCTAssertGreaterThanOrEqual(footerTop - bounds.maxY, 12)
-                XCTAssertLessThan(footerTop - bounds.maxY, 64, "Do not leave a fixed-height chart's blank lower half")
+                XCTAssertLessThanOrEqual(footerTop - bounds.maxY, 20, "Extend the heatmap to the clearance immediately above the footer")
                 XCTAssertFalse(app.staticTexts["面积代表市值 · 点击板块查看详情"].exists)
                 capture(app, "Stock-viewport-\(appearance)-AX-\(largeText)-player-\(withPlayer)")
                 app.buttons["channel-menu"].tap()
                 channelMenuItem(app, channel: "xiaoyuzhou").tap()
             }
         }
-    }
-    func testChannelOverviewScrollingPerformanceAndReturn() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sina", "-native.readingSize", "system"]
-        app.launch()
-        waitUntilHittable(app.buttons["news-sina-0"].firstMatch)
-        app.buttons["news-sina-0"].firstMatch.pinch(withScale: 0.55, velocity: -1)
-        waitUntilHittable(app.buttons["overview-sina"])
-        let overview = app.scrollViews["channel-overview"]
-        let options = XCTMeasureOptions()
-        options.iterationCount = 3
-        measure(metrics: [XCTOSSignpostMetric.scrollingAndDecelerationMetric], options: options) {
-            overview.swipeUp()
-            overview.swipeDown()
-        }
-        capture(app, "Overview-complete-previews-after-scrolling")
-        for _ in 0..<12 where !app.buttons["overview-artificialAnalysis"].isHittable { overview.swipeUp() }
-        waitUntilHittable(app.buttons["overview-artificialAnalysis"])
-        capture(app, "Overview-complete-GitHub-and-AI-previews")
-        app.buttons["overview-artificialAnalysis"].tap()
-        waitUntilHittable(app.descendants(matching: .any)["analysis-intelligence-chart"].firstMatch)
-        XCTAssertTrue(app.buttons["tab-artificialAnalysis"].isSelected)
-        XCTAssertFalse(app.buttons["overview-close"].exists)
     }
     func testLoginLegalLinksAtAccessibilityTextSize() {
         let app = XCUIApplication()
@@ -375,6 +519,30 @@ final class NavigationTests: XCTestCase {
             app.terminate()
         }
     }
+    func testBackToTopAfterFastFlicks() {
+        let app = XCUIApplication()
+        for (channel, appearance) in [("sina", "light"), ("36kr", "dark"), ("featured", "dark")] {
+            app.launchArguments = ["-native.appearance", appearance, "-native.selectedChannel", channel, "-native.readingSize", "system"]
+            app.launch()
+            let feed = app.scrollViews["feed-\(channel)"]
+            waitUntilHittable(feed)
+            let button = app.buttons["back-to-top-\(channel)"]
+            let first = app.buttons[channel == "featured" ? "featured-open-sina" : "news-\(channel)-0"].firstMatch
+            waitUntilHittable(first)
+            let topY = first.frame.minY
+            for _ in 0..<3 {
+                feed.swipeUp(velocity: .fast)
+                XCTAssertTrue(button.exists)
+                button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                XCTAssertTrue(button.waitForNonExistence(timeout: 5), "A single tap must return to top after a fast flick")
+                waitUntilHittable(first)
+                XCTAssertEqual(first.frame.minY, topY, accuracy: 2, "Restore the actual first item, not merely hide the button")
+                XCTAssertTrue(app.buttons["tab-\(channel)"].isSelected)
+            }
+            capture(app, "Back-to-top-fast-flick-\(channel)-\(appearance)")
+            app.terminate()
+        }
+    }
     func testBackToTopWithPlayerAndAccessibility() {
         let app = XCUIApplication()
         for contentSize in ["", "UICTContentSizeCategoryAccessibilityXXXL"] {
@@ -428,7 +596,13 @@ final class NavigationTests: XCTestCase {
             XCTAssertFalse(app.staticTexts["精选订阅"].exists)
             XCTAssertFalse(app.buttons["rss-subscribe-fixture-one"].exists)
             app.buttons["取消"].tap()
-            app.buttons["rss-recommendations-entry"].tap()
+            let entry = app.buttons["rss-recommendations-entry"]
+            waitUntilHittable(entry)
+            XCTAssertEqual(entry.label, "精选 RSS")
+            XCTAssertGreaterThanOrEqual(entry.frame.height, 64)
+            XCTAssertGreaterThanOrEqual(entry.frame.width, 44)
+            capture(app, "RSS-recommendations-entry-\(appearance)")
+            entry.tap()
             let first = app.buttons["rss-subscribe-fixture-one"]
             waitUntilHittable(first)
             XCTAssertFalse(app.textFields["rss-editor-name"].exists)
@@ -655,7 +829,7 @@ final class NavigationTests: XCTestCase {
             app.buttons["小"].tap()
             XCTAssertEqual(app.buttons["reading-size-picker"].value as? String, "小")
             app.buttons["reading-size-picker"].tap()
-            app.buttons["跟随系统"].tap()
+            app.buttons["标准"].tap()
             app.buttons["settings-sync"].tap()
             let prompt = app.alerts["请先登录"]
             XCTAssertTrue(prompt.waitForExistence(timeout: 5))
@@ -793,7 +967,9 @@ final class NavigationTests: XCTestCase {
             }
             let appearanceControl = app.buttons["appearance-picker"]
             let sizeControl = app.buttons["reading-size-picker"]
-            XCTAssertLessThanOrEqual(appearanceControl.frame.maxY, sizeControl.frame.minY, "Large text uses full-width stacked preferences")
+            XCTAssertEqual(appearanceControl.frame.minY, sizeControl.frame.minY, accuracy: 1,
+                           "System accessibility text must not change the app's standard preference layout")
+            XCTAssertEqual(sizeControl.value as? String, "标准")
             capture(app, "My-refined-accessibility-\(appearance)-preferences")
             let version = app.descendants(matching: .any).matching(identifier: "settings-version").firstMatch
             scrollToEnd(form) { version }
@@ -1124,53 +1300,18 @@ final class NavigationTests: XCTestCase {
             app.terminate()
         }
     }
-    func testPinchOpensChannelOverviewWithoutChangingListDensity() {
+    func testPinchDoesNotOpenChannelOverview() {
         let app = XCUIApplication()
-        for appearance in ["light", "dark"] {
-            app.launchArguments = ["-native.appearance", appearance, "-native.selectedChannel", "sina", "-native.feedDensity", "standard", "-native.readingSize", "system"]
-            app.launch()
-            let first = app.buttons["news-sina-0"].firstMatch
-            waitUntilHittable(first)
-            let height = first.frame.height
-            first.pinch(withScale: 0.94, velocity: -0.3)
-            XCTAssertFalse(app.buttons["overview-close"].exists, "A small aborted pinch returns to reading")
-            waitUntilHittable(first)
-            first.pinch(withScale: 0.55, velocity: -1)
-            let overview = app.scrollViews["channel-overview"]
-            waitUntilHittable(app.buttons["overview-sina"])
-            XCTAssertTrue(overview.exists)
-            XCTAssertFalse(app.buttons["reader-share"].exists, "A two-touch gesture must not open an article")
-            XCTAssertFalse(app.buttons["channel-menu"].exists, "Overview replaces the channel rail")
-            XCTAssertTrue(app.buttons["overview-sina"].isSelected)
-            capture(app, "Channel-overview-\(appearance)")
-            app.buttons["overview-sina"].pinch(withScale: 1.8, velocity: 1)
-            waitUntilHittable(first)
-            XCTAssertEqual(first.frame.height, height, accuracy: 1, "Pinching must not change row density")
-            waitForDensity("标准", app: app)
-            first.pinch(withScale: 0.55, velocity: -1)
-            for _ in 0..<3 where !app.buttons["overview-zhihu"].isHittable { overview.swipeUp() }
-            waitUntilHittable(app.buttons["overview-zhihu"])
-            app.buttons["overview-zhihu"].tap()
-            waitUntilHittable(app.buttons["news-zhihu-0"].firstMatch)
-            XCTAssertTrue(app.buttons["tab-zhihu"].isSelected)
-            app.scrollViews["feed-zhihu"].swipeUp()
-            let visible = app.buttons.allElementsBoundByIndex.first { $0.identifier.hasPrefix("news-zhihu-") && $0.isHittable }!
-            let y = visible.frame.minY
-            app.buttons["channel-menu"].tap()
-            app.buttons["open-channel-overview"].tap()
-            XCTAssertTrue(app.buttons["overview-close"].waitForExistence(timeout: 5))
-            capture(app, "Channel-overview-\(appearance)-scrolled-channel")
-            closeOverview(app)
-            waitUntilHittable(visible)
-            XCTAssertEqual(visible.frame.minY, y, accuracy: 2, "Zooming preserves the actual channel's reading position")
-            waitForDensity("标准", app: app)
-            swipeChannel(app, left: false)
-            waitUntilHittable(first)
-            XCTAssertTrue(app.buttons["tab-sina"].isSelected, "Horizontal channel paging still works")
-            app.terminate()
-        }
+        app.launchArguments = ["-native.selectedChannel", "sina", "-native.syncEnabled", "NO"]
+        app.launch()
+        let first = app.buttons["news-sina-0"].firstMatch
+        waitUntilHittable(first)
+        first.pinch(withScale: 0.55, velocity: -1)
+        XCTAssertFalse(app.scrollViews["channel-overview"].exists)
+        XCTAssertTrue(app.buttons["tab-sina"].isSelected)
+        XCTAssertTrue(app.buttons["channel-menu"].exists)
     }
-    func testStandardListSpacingIgnoresSavedDensityAndPreservesZoom() {
+    func testStandardListSpacingIgnoresSavedDensity() {
         let app = XCUIApplication()
         app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sspai", "-native.feedDensity", "standard", "-native.readingSize", "system"]
         app.launch()
@@ -1181,11 +1322,8 @@ final class NavigationTests: XCTestCase {
         XCTAssertFalse(app.buttons["density-picker"].exists)
         XCTAssertFalse(app.staticTexts["列表间距"].exists)
         app.buttons["nav-0"].tap()
-        first.pinch(withScale: 0.55, velocity: -1)
-        closeOverview(app)
         waitUntilHittable(first)
         XCTAssertEqual(first.frame.height, standardHeight, accuracy: 1)
-        capture(app, "Standard-spacing-after-zoom")
         app.terminate()
         for legacy in ["compact", "spacious"] {
             app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "sspai", "-native.readingSize", "system", "-native.feedDensity", legacy]
@@ -1320,16 +1458,6 @@ final class NavigationTests: XCTestCase {
             }
             XCTAssertTrue(app.buttons["tab-sina"].isSelected, "Keep each channel's direct entry")
             XCTAssertTrue(app.staticTexts["sina-title-5"].exists, "Do not limit the complete channel feed to five items")
-            if appearance == "light" {
-                app.buttons["tab-featured"].tap()
-                waitUntilHittable(first)
-                app.buttons["channel-menu"].tap()
-                app.buttons["open-channel-overview"].tap()
-                XCTAssertTrue(app.buttons["overview-close"].waitForExistence(timeout: 5))
-                capture(app, "Featured-no-headings-thumbnails")
-                closeOverview(app)
-                XCTAssertTrue(app.buttons["tab-featured"].isSelected)
-            }
             if !app.buttons["tab-featured"].isSelected { app.buttons["tab-featured"].tap() }
             let zhihu = app.buttons["featured-open-zhihu"]
             let feed = app.scrollViews["feed-featured"]
@@ -1344,6 +1472,68 @@ final class NavigationTests: XCTestCase {
             capture(app, "Zhihu-preserved-ranks-\(appearance)-\(accessibility ? "accessibility" : "standard")")
             app.terminate()
         }
+    }
+    func testFeaturedCoversWithLargeReadingSize() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "featured", "-native.readingSize", "large"]
+        app.launch()
+        XCTAssertTrue(app.buttons["featured-source-sspai-0"].waitForExistence(timeout: 15))
+        for channel in ["sspai", "36kr", "nnGroup"] {
+            for index in 0..<4 {
+                let cover = app.buttons["featured-cover-\(channel)-\(index)"]
+                // NN/g can publish text-only items; don't manufacture an image for those rows.
+                if channel == "nnGroup", !cover.exists { continue }
+                XCTAssertTrue(cover.exists)
+                let source = app.buttons["featured-source-\(channel)-\(index)"]
+                let copy = app.buttons.containing(.staticText, identifier: "\(channel)-title-\(index)").firstMatch
+                let visibleTop = source.frame.midY - 8 // The large-reading label is 16pt tall, inside a 44pt target.
+                XCTAssertEqual(cover.frame.width, 140, accuracy: 1)
+                XCTAssertEqual(cover.frame.height, 140 / 1.5, accuracy: 1, "All summary covers retain 3:2 regardless of text height")
+                XCTAssertEqual(cover.frame.minY, visibleTop, accuracy: 1, "Align to the visible logo/name, not the 44pt button bounds")
+                XCTAssertLessThanOrEqual(copy.frame.maxX, app.frame.maxX - 19)
+                XCTAssertGreaterThanOrEqual(source.frame.height, 44, "Preserve the channel shortcut's touch target")
+                if channel == "36kr" {
+                    let title = app.staticTexts["36kr-title-\(index)"].firstMatch
+                    let metadata = app.descendants(matching: .any).matching(identifier: "36kr-metadata-\(index)").firstMatch
+                    XCTAssertGreaterThanOrEqual(metadata.frame.minY, title.frame.maxY)
+                    XCTAssertLessThanOrEqual(metadata.frame.minY - title.frame.maxY, 10, "Do not retain height-balancing blank space")
+                }
+            }
+        }
+        let source = app.buttons["featured-source-36kr-2"]
+        let feed = app.scrollViews["feed-featured"]
+        let railBottom = app.buttons["channel-menu"].frame.maxY
+        for _ in 0..<20 {
+            if source.isHittable && source.frame.minY >= railBottom && source.frame.maxY < app.frame.midY { break }
+            if source.frame.minY < railBottom { feed.swipeDown(velocity: .slow) }
+            else { feed.swipeUp(velocity: .slow) }
+        }
+        // Accessibility expands label bounds to the button; verify the actual colored logo pixels instead.
+        let screenshot = app.screenshot().image
+        let screen = try XCTUnwrap(screenshot.cgImage)
+        let scale = CGFloat(screen.width) / app.frame.width
+        let crop = try XCTUnwrap(screen.cropping(to: CGRect(x: source.frame.minX * scale, y: source.frame.minY * scale,
+                                                           width: 15 * scale, height: source.frame.height * scale)))
+        var pixels = [UInt8](repeating: 0, count: crop.width * crop.height * 4)
+        try pixels.withUnsafeMutableBytes { bytes in
+            let context = try XCTUnwrap(CGContext(data: bytes.baseAddress, width: crop.width, height: crop.height,
+                bitsPerComponent: 8, bytesPerRow: crop.width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+            context.draw(crop, in: CGRect(x: 0, y: 0, width: crop.width, height: crop.height))
+        }
+        let blueRows = (0..<crop.height).filter { y in
+            (0..<crop.width).contains { x in
+                let offset = (y * crop.width + x) * 4
+                return pixels[offset] < 80 && pixels[offset + 1] > 75 && pixels[offset + 1] < 220 && pixels[offset + 2] > 170
+            }
+        }
+        XCTAssertFalse(blueRows.isEmpty, "The visible 36kr logo must be in the screenshot crop")
+        if let top = blueRows.first {
+            XCTAssertEqual(app.buttons["featured-cover-36kr-2"].frame.minY,
+                           source.frame.minY + CGFloat(top) / scale, accuracy: 3, // Allow the logo asset's transparent edge and pixel rounding.
+                           "The cover's upper edge must match the actual logo pixels, not the touch target")
+        }
+        capture(app, "Featured-landscape-covers-large-reading")
     }
     func testFeaturedArticleSourcesAndContinuousLayout() {
         let app = XCUIApplication()
@@ -1363,9 +1553,11 @@ final class NavigationTests: XCTestCase {
             let next = app.buttons["featured-source-36kr-0"]
             XCTAssertTrue(last.exists && next.exists)
             let nextCover = app.buttons["featured-cover-36kr-0"]
+            let lastCover = app.buttons["featured-cover-sspai-3"]
+            let lastBottom = max(last.frame.maxY, lastCover.exists ? lastCover.frame.maxY : last.frame.maxY)
             let coverHeight = accessibility && nextCover.exists ? nextCover.frame.height + 12 : 0
-            XCTAssertGreaterThanOrEqual(next.frame.minY - last.frame.maxY, 0)
-            XCTAssertLessThanOrEqual(next.frame.minY - last.frame.maxY, coverHeight + 18,
+            XCTAssertGreaterThanOrEqual(next.frame.minY - lastBottom, 0)
+            XCTAssertLessThanOrEqual(next.frame.minY - lastBottom, coverHeight + 18,
                                     "Do not add a channel-sized gap beyond the accessibility layout's stacked cover")
             let feed = app.scrollViews["feed-featured"]
             let railBottom = app.buttons["channel-menu"].frame.maxY
@@ -1405,19 +1597,14 @@ final class NavigationTests: XCTestCase {
                 for channel in ["sspai", "36kr"] {
                     for index in 0..<4 {
                         let badge = app.buttons["featured-source-\(channel)-\(index)"]
-                        let copy = app.buttons.containing(.staticText, identifier: "\(channel)-title-\(index)").firstMatch
                         let cover = app.buttons["featured-cover-\(channel)-\(index)"]
                         XCTAssertTrue(cover.exists)
+                        let visibleTop = badge.frame.midY - 7.5 // Standard 15pt visible source label.
                         XCTAssertEqual(cover.frame.width, 140, accuracy: 1, "Overview covers share the extension's landscape dimensions")
-                        XCTAssertEqual(cover.frame.height, max(94, copy.frame.maxY - badge.frame.minY), accuracy: 1,
-                                       "Overview covers fill the complete source, headline and metadata column")
-                        XCTAssertEqual(cover.frame.midY, (badge.frame.minY + copy.frame.maxY) / 2, accuracy: 1,
-                                       "Center the landscape cover beside the complete text column")
-                        if channel == "36kr" {
-                            let title = app.staticTexts["36kr-title-\(index)"].firstMatch
-                            XCTAssertEqual(title.frame.midY, cover.frame.midY, accuracy: 1,
-                                           "Center the 36kr headline vertically within the news row")
-                        }
+                        XCTAssertEqual(cover.frame.minY, visibleTop, accuracy: 1,
+                                       "The cover starts at the visible source label, below the button's transparent top padding")
+                        XCTAssertEqual(cover.frame.height, 140 / 1.5, accuracy: 1,
+                                       "The cover must not expand with its text column")
                     }
                 }
             }
@@ -1541,17 +1728,17 @@ final class NavigationTests: XCTestCase {
             capture(app, "AI-Analysis-\(appearance)")
             let firstModel = openAnalysisModel(app, plot: plot)
             capture(app, "AI-Analysis-\(appearance)-selected")
-            plot.swipeLeft(velocity: .slow)
-            XCTAssertTrue(app.buttons["tab-artificialAnalysis"].isSelected, "Chart scrolling must not change channels")
-            capture(app, "AI-Analysis-\(appearance)-scrolled")
-            XCTAssertNotEqual(openAnalysisModel(app, plot: plot), firstModel)
             let feed = app.scrollViews["feed-artificialAnalysis"]
-            for _ in 0..<8 where !app.descendants(matching: .any)["analysis-cost-heading"].isHittable { feed.swipeUp() }
+            let laterModel = app.buttons["analysis-intelligence-point-4"].firstMatch
+            for _ in 0..<8 where !laterModel.isHittable { feed.swipeUp() }
+            XCTAssertNotEqual(openAnalysisModel(app, plot: plot, index: 4), firstModel)
+            capture(app, "AI-Analysis-\(appearance)-scrolled")
+            for _ in 0..<16 where !app.descendants(matching: .any)["analysis-cost-heading"].isHittable { feed.swipeUp() }
             XCTAssertTrue(app.descendants(matching: .any)["analysis-cost-heading"].exists)
             capture(app, "AI-Analysis-\(appearance)-cost")
-            let lastPlot = app.descendants(matching: .any)["analysis-cost-chart"].firstMatch
-            scrollToEnd(feed) { lastPlot }
-            assertAboveFooter(lastPlot, in: app, name: "AI-Analysis-\(appearance)-bottom")
+            let costPoints = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'analysis-cost-point-'"))
+            scrollToEnd(feed) { costPoints.allElementsBoundByIndex.last ?? costPoints.firstMatch }
+            assertAboveFooter(costPoints.allElementsBoundByIndex.last ?? costPoints.firstMatch, in: app, name: "AI-Analysis-\(appearance)-bottom")
             app.buttons["channel-menu"].tap()
             channelMenuItem(app, channel: "featured").tap()
             waitUntilHittable(app.buttons["featured-open-sina"])
@@ -1602,10 +1789,11 @@ final class NavigationTests: XCTestCase {
             app.launch()
             let feed = app.scrollViews["feed-featured"]
             let plot = app.descendants(matching: .any)["analysis-intelligence-chart"].firstMatch
+            let firstPoint = app.buttons["analysis-intelligence-point-0"].firstMatch
             waitUntilHittable(feed)
-            for _ in 0..<40 where !plot.isHittable { feed.swipeUp() }
-            waitUntilHittable(plot)
-            for _ in 0..<4 where plot.frame.minY < app.buttons["channel-menu"].frame.maxY + 16 {
+            for _ in 0..<40 where !firstPoint.isHittable { feed.swipeUp() }
+            waitUntilHittable(firstPoint)
+            for _ in 0..<4 where firstPoint.frame.minY < app.buttons["channel-menu"].frame.maxY + 16 {
                 feed.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
                     .press(forDuration: 0.05, thenDragTo: feed.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)))
             }
@@ -1613,13 +1801,14 @@ final class NavigationTests: XCTestCase {
             XCTAssertFalse(app.staticTexts["点选柱形查看详情 · 横向滑动查看更多"].exists)
             capture(app, "Featured-Analysis-\(appearance)")
             let beforeScroll = openAnalysisModel(app, plot: plot)
-            plot.swipeLeft(velocity: .slow)
-            XCTAssertNotEqual(openAnalysisModel(app, plot: plot), beforeScroll,
-                           "Overview must retain models beyond the first four, not just a static truncated chart")
-            XCTAssertTrue(app.buttons["tab-featured"].isSelected, "Chart scrolling must not switch channels")
+            let laterPoint = app.buttons["analysis-intelligence-point-4"].firstMatch
+            for _ in 0..<8 where !laterPoint.isHittable { feed.swipeUp() }
+            XCTAssertNotEqual(openAnalysisModel(app, plot: plot, index: 4), beforeScroll,
+                           "Overview must retain models beyond the first four")
+            XCTAssertTrue(app.buttons["tab-featured"].isSelected)
             capture(app, "Featured-Analysis-\(appearance)-scrolled")
             let rating = app.descendants(matching: .any)["doubanMovie-rating-0"].firstMatch
-            for _ in 0..<16 where !rating.isHittable { feed.swipeUp() }
+            for _ in 0..<32 where !rating.isHittable { feed.swipeUp() }
             XCTAssertTrue(rating.isHittable)
             XCTAssertTrue(rating.label.contains("满分 10 分"))
             for _ in 0..<4 where rating.frame.maxY > app.buttons["nav-0"].frame.minY - 100 {
@@ -1634,22 +1823,6 @@ final class NavigationTests: XCTestCase {
             app.terminate()
         }
     }
-    func testBenchmarkChartPinchAndSelectionRetention() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-native.appearance", "light", "-native.selectedChannel", "artificialAnalysis", "-native.readingSize", "system"]
-        app.launch()
-        let plot = app.descendants(matching: .any)["analysis-intelligence-chart"].firstMatch
-        waitUntilHittable(plot)
-        let selected = openAnalysisModel(app, plot: plot, x: 0.65)
-        plot.pinch(withScale: 0.55, velocity: -1)
-        XCTAssertTrue(app.buttons["overview-close"].waitForExistence(timeout: 5))
-        capture(app, "AI-Analysis-pinch-overview")
-        closeOverview(app)
-        waitUntilHittable(plot)
-        XCTAssertEqual(plot.value as? String, selected, "Global zoom must retain the chart's selected model")
-        XCTAssertTrue(app.buttons["tab-artificialAnalysis"].isSelected)
-        capture(app, "AI-Analysis-pinch-return")
-    }
     func testNewChannelAccessibilityLayoutAndChartOverview() {
         let app = XCUIApplication()
         app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", "github", "-native.readingSize", "system",
@@ -1657,7 +1830,8 @@ final class NavigationTests: XCTestCase {
         app.launch()
         waitUntilHittable(app.segmentedControls["github-period"])
         let heading = app.descendants(matching: .any)["github-heading"].firstMatch
-        XCTAssertGreaterThan(app.segmentedControls["github-period"].frame.minY, heading.frame.maxY)
+        XCTAssertLessThan(app.segmentedControls["github-period"].frame.minY, heading.frame.maxY,
+                          "System text changes must retain the standard inline heading controls")
         XCTAssertLessThanOrEqual(heading.frame.maxX, app.frame.maxX - 16)
         capture(app, "GitHub-accessibility-heading")
         let feed = app.scrollViews["feed-github"]
@@ -1673,69 +1847,85 @@ final class NavigationTests: XCTestCase {
         let plot = app.descendants(matching: .any)["analysis-intelligence-chart"].firstMatch
         XCTAssertTrue(plot.waitForExistence(timeout: 15))
         let analysisFeed = app.scrollViews["feed-artificialAnalysis"]
+        let firstPoint = app.buttons["analysis-intelligence-point-0"].firstMatch
         let footerTop = app.buttons["mini-player"].exists ? app.buttons["mini-player"].frame.minY : app.buttons["nav-0"].frame.minY
-        for _ in 0..<8 where !plot.isHittable || plot.frame.maxY > footerTop - 18 { analysisFeed.swipeUp() }
-        waitUntilHittable(plot)
-        XCTAssertLessThanOrEqual(plot.frame.maxX, app.frame.maxX - 16)
-        // Swift Charts exposes the plot area here, excluding the model labels below it.
-        XCTAssertGreaterThanOrEqual(plot.frame.height, 44)
-        XCTAssertLessThanOrEqual(plot.frame.maxY, footerTop - 18)
+        for _ in 0..<8 where !firstPoint.isHittable || firstPoint.frame.maxY > footerTop - 18 { analysisFeed.swipeUp() }
+        waitUntilHittable(firstPoint)
+        XCTAssertLessThanOrEqual(firstPoint.frame.maxX, app.frame.maxX - 16)
+        XCTAssertGreaterThanOrEqual(firstPoint.frame.height, 44)
+        XCTAssertLessThanOrEqual(firstPoint.frame.maxY, footerTop - 18)
         XCTAssertFalse(app.buttons["analysis-intelligence-detail"].exists)
         capture(app, "AI-Analysis-accessibility-icons")
         openAnalysisModel(app, plot: plot)
-        app.buttons["channel-menu"].tap()
-        app.buttons["open-channel-overview"].tap()
-        XCTAssertTrue(app.buttons["overview-close"].waitForExistence(timeout: 5))
-        capture(app, "AI-Analysis-accessibility-overview")
-        closeOverview(app)
         XCTAssertTrue(app.buttons["tab-artificialAnalysis"].isSelected)
     }
-    @discardableResult private func openAnalysisModel(_ app: XCUIApplication, plot: XCUIElement, x: CGFloat = 0.75) -> String {
-        plot.coordinate(withNormalizedOffset: CGVector(dx: x, dy: 0.35)).tap()
-        XCTAssertTrue(app.buttons["reader-share"].waitForExistence(timeout: 5), "Chart columns open their model directly without a separate detail row")
+    func testAnalysisVerticalChartsKeepChannelPagingAndModelActions() {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_ANALYSIS"] = "1"
+        app.launchEnvironment["INFOHUB_TEST_FAKE_CREDENTIALS"] = "1"
+        for (appearance, readingSize) in [("light", "system"), ("dark", "large")] {
+            app.launchArguments = ["-native.appearance", appearance, "-native.selectedChannel", "artificialAnalysis",
+                                   "-native.readingSize", readingSize, "-native.syncEnabled", "NO"]
+            app.launch()
+            let feed = app.scrollViews["feed-artificialAnalysis"]
+            let plot = app.descendants(matching: .any)["analysis-intelligence-chart"].firstMatch
+            let first = app.buttons["analysis-intelligence-point-0"].firstMatch
+            let second = app.buttons["analysis-intelligence-point-1"].firstMatch
+            waitUntilHittable(first)
+            waitUntilHittable(second)
+            let heading = app.descendants(matching: .any)["analysis-heading"].firstMatch
+            let chartHeading = app.descendants(matching: .any)["analysis-intelligence-heading"].firstMatch
+            XCTAssertEqual(chartHeading.frame.minX, heading.frame.minX, accuracy: 1)
+            XCTAssertEqual(first.frame.minX, heading.frame.minX, accuracy: 1)
+            XCTAssertEqual(first.label, "Claude Opus 5.5 (max with fallback)")
+            XCTAssertTrue((first.value as? String ?? "").contains("70.0"))
+            XCTAssertGreaterThanOrEqual(first.frame.height, 44)
+            XCTAssertLessThanOrEqual(first.frame.maxX, app.frame.maxX - 16)
+            XCTAssertGreaterThan(second.frame.minY, first.frame.minY)
+            XCTAssertLessThanOrEqual(second.frame.minY - first.frame.maxY, 4)
+            capture(app, "AI-Analysis-vertical-\(appearance)")
+
+            let selected = openAnalysisModel(app, plot: plot)
+            let start = first.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5))
+            let end = first.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
+            start.press(forDuration: 0.05, thenDragTo: end)
+            let analysisTab = app.buttons["tab-artificialAnalysis"]
+            let switched = XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == false"), object: analysisTab)
+            XCTAssertEqual(XCTWaiter.wait(for: [switched], timeout: 5), .completed,
+                           "A horizontal swipe beginning on a chart row must switch channels")
+            app.buttons["tab-artificialAnalysis"].tap()
+            waitUntilHittable(first)
+            XCTAssertEqual(plot.value as? String, selected)
+
+            let later = app.buttons["analysis-intelligence-point-6"].firstMatch
+            for _ in 0..<8 where !later.isHittable { feed.swipeUp() }
+            waitUntilHittable(later)
+            XCTAssertEqual(later.label, "Extra Model (preview)")
+            let zai = app.buttons["analysis-intelligence-point-7"].firstMatch
+            let xiaomi = app.buttons["analysis-intelligence-point-8"].firstMatch
+            waitUntilHittable(zai); waitUntilHittable(xiaomi)
+            XCTAssertEqual(zai.label, "GLM-5.3 (max)")
+            XCTAssertEqual(xiaomi.label, "MiMo-V2.6-Pro")
+            capture(app, "AI-Analysis-provider-logos-\(appearance)")
+            let last = app.buttons["analysis-cost-point-8"].firstMatch
+            scrollToEnd(feed) { last }
+            assertAboveFooter(last, in: app, name: "AI-Analysis-vertical-\(appearance)-bottom")
+            app.terminate()
+        }
+    }
+    @discardableResult private func openAnalysisModel(_ app: XCUIApplication, plot: XCUIElement, index: Int = 0) -> String {
+        let point = app.buttons["analysis-intelligence-point-\(index)"].firstMatch
+        waitUntilHittable(point)
+        point.tap()
+        XCTAssertTrue(app.buttons["reader-share"].waitForExistence(timeout: 5), "Model rows open their detail without a separate action")
         XCTAssertFalse(app.buttons["nav-0"].exists, "Use the existing reader path and hide its floating footer")
         app.navigationBars.buttons.firstMatch.tap()
-        waitUntilHittable(plot)
+        waitUntilHittable(point)
         let selected = plot.value as? String ?? ""
         XCTAssertFalse(selected.isEmpty)
         XCTAssertNotEqual(selected, "未选择模型")
         return selected
-    }
-    func testOverviewAccessibleEntryAndAllSubscribedChannels() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-native.appearance", "dark", "-native.selectedChannel", "sina", "-native.readingSize", "system",
-                               "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
-        app.launch()
-        waitUntilHittable(app.buttons["channel-menu"])
-        app.buttons["channel-menu"].tap()
-        app.buttons["open-channel-overview"].tap()
-        let overview = app.scrollViews["channel-overview"]
-        XCTAssertTrue(app.buttons["overview-close"].waitForExistence(timeout: 5))
-        var seen = Set<String>()
-        overview.swipeDown()
-        for _ in 0..<30 {
-            for button in app.buttons.allElementsBoundByIndex where button.identifier.hasPrefix("overview-") && button.identifier != "overview-close" {
-                seen.insert(button.identifier)
-                if button.isHittable { XCTAssertGreaterThanOrEqual(button.frame.height, 44) }
-            }
-            if seen.contains("overview-artificialAnalysis") { break }
-            overview.swipeUp()
-        }
-        for code in ["featured", "sina", "zhihu", "sspai", "arena", "xiaoyuzhou", "stock", "36kr", "doubanMovie", "bilibili", "nnGroup", "tiobe", "history", "github", "artificialAnalysis"] {
-            XCTAssertTrue(seen.contains("overview-\(code)"), code)
-        }
-        XCTAssertFalse(seen.contains("overview-codexRadar"))
-        capture(app, "Channel-overview-accessibility")
-        closeOverview(app)
-        XCTAssertTrue(app.buttons["tab-sina"].isSelected)
-    }
-    private func closeOverview(_ app: XCUIApplication) {
-        let close = app.buttons["overview-close"]
-        XCTAssertTrue(close.waitForExistence(timeout: 5))
-        // XCTest misreports occlusion by thumbnails scrolling beneath glass; verify the actual touch instead.
-        close.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        let closed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: close)
-        XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 5), .completed)
     }
     private func waitForDensity(_ density: String, app: XCUIApplication) {
         let feed = app.scrollViews.matching(NSPredicate(format: "identifier BEGINSWITH %@", "feed-")).firstMatch
@@ -2145,8 +2335,6 @@ final class NavigationTests: XCTestCase {
             channelMenuItem(app, channel: "sina").tap()
             swipeChannel(app, left: false)
             XCTAssertTrue(app.buttons["tab-featured"].isSelected, "The added editorial overview precedes Sina")
-            swipeChannel(app, left: false)
-            XCTAssertTrue(app.buttons["tab-featured"].isSelected, "Do not wrap past the first enabled channel")
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "Paging-and-fonts-\(appearance)"; screenshot.lifetime = .keepAlways; add(screenshot)
             app.terminate()
@@ -2175,9 +2363,7 @@ final class NavigationTests: XCTestCase {
             XCTAssertTrue(app.buttons["tab-sspai"].isSelected)
             app.buttons["channel-menu"].tap()
             XCTAssertFalse(app.buttons["紧凑"].exists, "The channel menu no longer changes individual feed density")
-            app.buttons["open-channel-overview"].tap()
-            closeOverview(app)
-            XCTAssertTrue(app.buttons["tab-sspai"].isSelected)
+            XCTAssertFalse(app.buttons["open-channel-overview"].exists)
             app.terminate()
         }
     }
@@ -2201,12 +2387,6 @@ final class NavigationTests: XCTestCase {
             XCTAssertTrue(entry.waitForExistence(timeout: 5))
             capture(app, "Overview-app-logo-menu-\(appearance)-\(accessibility ? "accessibility" : "standard")")
             entry.tap()
-            XCTAssertTrue(overview.isSelected)
-            app.buttons["channel-menu"].tap()
-            app.buttons["open-channel-overview"].tap()
-            XCTAssertTrue(app.buttons["overview-featured"].waitForExistence(timeout: 5))
-            capture(app, "Overview-app-logo-thumbnail-\(appearance)-\(accessibility ? "accessibility" : "standard")")
-            closeOverview(app)
             XCTAssertTrue(overview.isSelected)
             app.terminate()
         }
@@ -2419,7 +2599,7 @@ final class NavigationTests: XCTestCase {
             XCTAssertTrue(first.isHittable)
             XCTAssertGreaterThanOrEqual(first.frame.minX, app.frame.minX + 12)
             XCTAssertLessThanOrEqual(first.frame.maxX, app.frame.maxX - 12)
-            if channel == "tiobe" { XCTAssertTrue(app.staticTexts["编程语言排行"].exists, "Accessibility sizes must use the stacked table layout") }
+            if channel == "tiobe" { XCTAssertTrue(app.staticTexts["语言"].exists, "System accessibility text must retain the standard table header") }
             let screenshot = XCTAttachment(screenshot: app.screenshot())
             screenshot.name = "Editorial-accessibility-\(channel)"; screenshot.lifetime = .keepAlways; add(screenshot)
             app.terminate()

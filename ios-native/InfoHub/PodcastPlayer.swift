@@ -16,6 +16,10 @@ import MediaPlayer
     private var routeObserver: NSObjectProtocol?
     private var wasPlaying = false
     init() {
+        #if DEBUG && targetEnvironment(simulator)
+        // Simulator tests may restart playback; never send their audio to the Mac's speakers.
+        player.isMuted = true
+        #endif
         timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 600), queue: .main) { [weak self] time in
             Task { @MainActor in
                 guard let self else { return }

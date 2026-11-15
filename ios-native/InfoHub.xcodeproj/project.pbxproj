@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		9100A0000000000000000020 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9100A0000000000000000021 /* LaunchScreen.storyboard */; };
-		9100A0000000000000000001 /* ChannelOverview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9100A0000000000000000011 /* ChannelOverview.swift */; };
 		9100A0000000000000000002 /* NewChannelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9100A0000000000000000012 /* NewChannelsView.swift */; };
 		01A7728FA8E2CCAAA52F205C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */; };
 		01A7728FA8E2CCAAA52F204C /* Ionicons-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = F638B8A170E042190C5554E1 /* Ionicons-LICENSE.txt */; };
@@ -51,7 +50,6 @@
 
 /* Begin PBXFileReference section */
 		9100A0000000000000000021 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		9100A0000000000000000011 /* ChannelOverview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelOverview.swift; sourceTree = "<group>"; };
 		9100A0000000000000000012 /* NewChannelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChannelsView.swift; sourceTree = "<group>"; };
 		F638B8A170E042190C5554F1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1D16DF0666F1F77A0EAB72E9 /* InfoHubTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InfoHubTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -118,7 +116,6 @@
 				35A85558A10483B9F2CC0FCE /* API.swift */,
 				86C54D8B40D32A4D8A66E785 /* AppStore.swift */,
 				4A778124F33DD979E05EA170 /* DiscoveryView.swift */,
-				9100A0000000000000000011 /* ChannelOverview.swift */,
 				9100A0000000000000000012 /* NewChannelsView.swift */,
 				A7E28994E095925F6E4939D9 /* InfoHubApp.swift */,
 				6EFF36471727628525964426 /* Models.swift */,
@@ -311,7 +308,6 @@
 				C74BFD4326C9F38655B49C87 /* API.swift in Sources */,
 				38BD7E5F40C3BA7A2234DD20 /* AppStore.swift in Sources */,
 				C37A6FD48DF78B2357C9DAC2 /* DiscoveryView.swift in Sources */,
-				9100A0000000000000000001 /* ChannelOverview.swift in Sources */,
 				9100A0000000000000000002 /* NewChannelsView.swift in Sources */,
 				E74FD57769232BE2E493EBDC /* InfoHubApp.swift in Sources */,
 				44A660D9CCB01D296FC0E3A9 /* Models.swift in Sources */,

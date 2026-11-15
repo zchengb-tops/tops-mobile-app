@@ -115,10 +115,11 @@ struct AnalysisChart: Identifiable {
         var logoAsset: String? {
             // shortcut: extension-known model prefixes; extend when a new provider appears in the chart feed.
             let model = name.lowercased()
-            let providers = [("claude", "anthropic"), ("gpt", "openai"), ("gemini", "google"),
-                             ("deepseek", "deepseek"), ("grok", "xai"), ("kimi", "moonshot"),
-                             ("glm", "zai"), ("muse", "meta"), ("mimo", "xiaomi"), ("xiaomi", "xiaomi")]
-            return providers.first { model.hasPrefix($0.0) }.map { "arena-\($0.1)" }
+            let providers = [("claude", "arena-anthropic"), ("gpt", "arena-openai"), ("gemini", "arena-google"),
+                             ("deepseek", "arena-deepseek"), ("grok", "arena-xai"), ("kimi", "arena-moonshot"),
+                             ("glm", "analysis-zai"), ("muse", "arena-meta"),
+                             ("mimo", "analysis-xiaomi"), ("xiaomi", "analysis-xiaomi")]
+            return providers.first { model.hasPrefix($0.0) }?.1
         }
     }
     let id: String
@@ -164,12 +165,32 @@ struct NewsItem: Identifiable, Hashable {
         return components.url ?? image
     }
     var summary: String { raw.first("brief", "desc").nilIfEmpty ?? properties.first("summary", "excerpt", "recommendReason") }
+    var rssTitleParts: (topic: String?, headline: String) {
+        let text = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.first == "[", let end = text.firstIndex(of: "]") else { return (nil, title) }
+        let topic = String(text[text.index(after: text.startIndex)..<end]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let headline = String(text[text.index(after: end)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        return topic.isEmpty || headline.isEmpty ? (nil, title) : (topic, headline)
+    }
     var rssSummary: String {
         var text = raw["description"].text.replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
-        for (entity, value) in [("&nbsp;", " "), ("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""), ("&#39;", "'")] {
+        for (entity, value) in [("&nbsp;", " "), ("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""), ("&#39;", "'"), ("&#8195;", " ")] {
             text = text.replacingOccurrences(of: entity, with: value)
         }
+        // Some RSS feeds omit the ampersand in an em-space after a news dateline.
+        text = text.replacingOccurrences(of: "电#8195;", with: "电 ")
         return text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    var rssCardSummary: String {
+        let summary = rssSummary
+        let headline = rssTitleParts.headline
+        guard !headline.isEmpty else { return summary }
+        if summary == headline { return "" }
+        if summary.hasSuffix(headline) {
+            let prefix = summary.dropLast(headline.count).trimmingCharacters(in: .whitespacesAndNewlines)
+            if prefix.count <= 24 && (prefix.hasSuffix("|") || prefix.hasSuffix("｜")) { return "" }
+        }
+        return summary
     }
     func rssThumbnail(feedURL: String) -> URL? {
         let thumbnail = raw["thumbnail"].text.trimmingCharacters(in: .whitespacesAndNewlines)

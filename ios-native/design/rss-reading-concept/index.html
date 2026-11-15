@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>InfoHub · 界面设计提案</title>
+<style>
+  :root { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: #252424; background: #f5f4f1; font-synthesis: none; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  button { font: inherit; cursor: pointer; }
+  button:focus-visible, [tabindex]:focus-visible { outline: 3px solid #f69249; outline-offset: 3px; }
+  .page { max-width: 1100px; margin: auto; padding: 38px 28px 70px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 650; letter-spacing: -.02em; }
+  .brand img { width: 28px; height: 28px; }
+  .brand span { color: #aaa39c; font-size: 12px; font-weight: 500; margin-left: 4px; }
+  .intro { display: flex; align-items: end; justify-content: space-between; gap: 25px; margin: 49px 0 29px; }
+  .intro h1 { margin: 0; font-size: clamp(28px, 3.2vw, 38px); line-height: 1.15; letter-spacing: -.055em; }
+  .intro p { margin: 12px 0 0; color: #85817d; font-size: 14px; line-height: 1.7; }
+  .intro-note { flex-shrink: 0; padding-bottom: 3px; color: #a6a09b; font-size: 12px; }
+  .board { padding: 30px 26px 32px; border: 1px solid #e9e6e2; border-radius: 26px; background: #fbfaf8; }
+  .board + .board { margin-top: 24px; }
+  .board-title { display: flex; align-items: center; justify-content: space-between; gap: 15px; max-width: 776px; margin: 0 auto 24px; }
+  .board-title strong { font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
+  .board-title span { color: #9a948e; font-size: 12px; }
+  .previews { display: grid; grid-template-columns: repeat(2, minmax(0, 360px)); justify-content: center; align-items: start; gap: 56px; }
+  .preview { min-width: 0; }
+  .preview-label { display: flex; align-items: center; justify-content: space-between; margin: 0 2px 12px; color: #7b7671; font-size: 12px; }
+  .preview-label strong { color: #57514d; font-weight: 600; }
+  .player-control { padding: 7px 10px; border: 1px solid #e4e0dc; border-radius: 9px; background: #fff; color: #77716b; font-size: 11px; }
+  .player-control:hover { background: #f5f2ee; }
+  .player-control:active { transform: scale(.97); }
+  .device { width: 100%; aspect-ratio: 440 / 956; position: relative; padding: 7px; border-radius: 45px; background: #242424; box-shadow: 0 16px 38px #30272020, 0 2px 5px #0002; }
+  .screen { --bg: #fff; --canvas: #f7f7f6; --text: #171719; --muted: #89898f; --card: #fff; --edge: #ecebe9; --topic: #f3f1ee; --topic-text: #81786f; --glass: rgba(255,255,255,.83); --glass-edge: rgba(0,0,0,.11); --pill: #363638; --pill-text: #fff; position: absolute; inset: 7px; overflow: hidden; border-radius: 38px; background: var(--bg); color: var(--text); }
+  .screen.dark { --bg: #080808; --canvas: #0c0c0d; --text: #f4f4f5; --muted: #97979d; --card: #1c1c1e; --edge: #2a2a2c; --topic: #2e2c2a; --topic-text: #b4a99d; --glass: rgba(38,38,40,.84); --glass-edge: rgba(255,255,255,.12); --pill: #48484a; --pill-text: #fff; }
+  .status { position: absolute; inset: 0 0 auto; z-index: 4; display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 22px; font-size: 14px; font-weight: 650; letter-spacing: -.02em; }
+  .island { position: absolute; top: 10px; left: 50%; width: 94px; height: 28px; border-radius: 20px; transform: translateX(-50%); background: #000; }
+  .status-icons { display: flex; align-items: center; gap: 4px; }
+  .status-icons svg { width: 17px; height: 17px; fill: currentColor; }
+  .status-icons .battery { width: 21px; }
+  .channel-rail { position: absolute; z-index: 4; top: 53px; left: 13px; right: 13px; display: flex; align-items: center; gap: 7px; height: 47px; padding: 4px; overflow: hidden; border: 1px solid var(--glass-edge); border-radius: 28px; background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+  .channel { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex: 0 0 auto; height: 37px; padding: 0 7px; white-space: nowrap; font-size: 12px; }
+  .channel.active { padding: 0 10px; border-radius: 22px; background: var(--pill); color: var(--pill-text); }
+  .channel img, .channel svg { display: block; width: 19px; height: 19px; object-fit: contain; }
+  .channel.more { margin-left: auto; padding: 0 7px; font-size: 19px; letter-spacing: 1px; }
+  .feed { position: absolute; inset: 109px 0 0; overflow-y: auto; background: var(--canvas); overscroll-behavior: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .feed::-webkit-scrollbar { display: none; }
+  .feed-items { display: grid; gap: 9px; padding: 10px 14px 128px; }
+  .screen.has-player .feed-items { padding-bottom: 188px; }
+  .entry { min-width: 0; padding: 14px 15px 15px; border: 1px solid var(--edge); border-radius: 15px; background: var(--card); box-shadow: 0 1px 2px #00000006; }
+  .entry-meta { display: flex; align-items: center; min-height: 19px; margin-bottom: 9px; }
+  .entry-topic { padding: 3px 6px; border-radius: 5px; background: var(--topic); color: var(--topic-text); font-size: 10px; line-height: 1.3; }
+  .entry-time { margin-left: auto; color: var(--muted); font-size: 11px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .entry-main { display: flex; align-items: flex-start; gap: 12px; }
+  .entry-copy { min-width: 0; flex: 1; }
+  .entry-title { margin: 0; font-size: 15px; line-height: 1.46; font-weight: 620; letter-spacing: -.018em; overflow-wrap: anywhere; }
+  .raw-topic { display: none; }
+  .entry-summary { display: -webkit-box; margin: 7px 0 0; overflow: hidden; color: var(--muted); font-size: 12px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .entry-summary:empty { display: none; }
+  .thumbnail { flex: 0 0 76px; width: 76px; height: 68px; display: grid; place-items: center; overflow: hidden; border-radius: 9px; background: #e9e6e3; }
+  .thumbnail img { width: 49px; height: 49px; object-fit: contain; }
+  .dark .thumbnail { background: #333235; }
+  .screen.list .feed { background: var(--bg); }
+  .screen.list .feed-items { display: block; padding: 6px 20px 128px; }
+  .screen.list.has-player .feed-items { padding-bottom: 188px; }
+  .screen.list .entry { position: relative; display: flex; align-items: center; min-height: 59px; padding: 14px 0 14px 15px; border: 0; border-bottom: 1px solid var(--edge); border-radius: 0; background: transparent; box-shadow: none; }
+  .screen.list .entry::before { content: ""; position: absolute; left: 0; top: 23px; width: 6px; height: 6px; border-radius: 50%; background: #ff922f; }
+  .screen.list .entry-meta { display: contents; }
+  .screen.list .entry-topic { display: none; }
+  .screen.list .entry-main { display: contents; }
+  .screen.list .entry-copy { display: contents; }
+  .screen.list .entry-title { display: -webkit-box; order: 1; flex: 1; min-width: 0; overflow: hidden; font-size: 13px; line-height: 1.4; font-weight: 450; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .screen.list .raw-topic { display: inline; }
+  .screen.list .entry-summary, .screen.list .thumbnail { display: none; }
+  .screen.list .entry-time { order: 2; flex: 0 0 auto; margin: 0 0 0 10px; font-size: 11px; }
+  .floating-actions { position: absolute; z-index: 5; right: 17px; bottom: 78px; display: flex; flex-direction: column; gap: 8px; transition: bottom .22s ease; }
+  .screen.has-player .floating-actions { bottom: 138px; }
+  .floating-actions button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--glass-edge); border-radius: 50%; background: var(--glass); color: var(--text); box-shadow: 0 5px 17px #0002; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .floating-actions button:active { transform: scale(.94); }
+  .floating-actions button[hidden] { display: none; }
+  .floating-actions svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .footer { position: absolute; z-index: 4; right: 13px; bottom: 10px; left: 13px; display: grid; gap: 7px; }
+  .mini-player, .bottom-nav { border: 1px solid var(--glass-edge); background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 3px 15px #0000000a; }
+  .mini-player { display: none; align-items: center; gap: 9px; height: 53px; padding: 5px 10px; border-radius: 19px; }
+  .has-player .mini-player { display: flex; }
+  .mini-art { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 auto; border-radius: 10px; background: #46566b; color: #fff; font-size: 10px; font-weight: 750; letter-spacing: -.05em; }
+  .mini-copy { min-width: 0; flex: 1; }
+  .mini-copy strong, .mini-copy span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .mini-copy strong { font-size: 12px; font-weight: 650; }
+  .mini-copy span { margin-top: 2px; color: var(--muted); font-size: 10px; }
+  .mini-play { width: 16px; height: 16px; fill: currentColor; margin-right: 4px; }
+  .bottom-nav { display: flex; align-items: center; height: 49px; padding: 4px; border-radius: 26px; }
+  .nav-item { display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; height: 39px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .nav-item svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-item.selected { border-radius: 23px; background: var(--pill); color: var(--pill-text); font-weight: 600; }
+  .home-indicator { position: absolute; z-index: 6; bottom: 3px; left: 50%; width: 102px; height: 3px; border-radius: 3px; background: var(--text); transform: translateX(-50%); opacity: .38; }
+  .analysis-content { position: absolute; inset: 109px 0 0; overflow-y: auto; overflow-x: hidden; padding: 18px 16px 130px; scrollbar-width: none; overscroll-behavior-y: contain; }
+  .analysis-content::-webkit-scrollbar { display: none; }
+  .screen.has-player .analysis-content { padding-bottom: 190px; }
+  .analysis-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 17px; }
+  .analysis-heading h2 { margin: 0; font-size: 18px; font-weight: 680; line-height: 1.2; letter-spacing: -.04em; }
+  .analysis-heading p { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+  .analysis-heading img { flex: 0 0 auto; width: 42px; height: 42px; object-fit: contain; }
+  .analysis-panels { display: grid; gap: 12px; }
+  .benchmark { min-width: 0; padding: 14px 13px 12px; border: 1px solid var(--edge); border-radius: 14px; background: var(--bg); }
+  .benchmark h3 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -.02em; }
+  .benchmark-subtitle { margin: 4px 0 12px; color: var(--muted); font-size: 10px; line-height: 1.3; }
+  .benchmark-rows { display: grid; gap: 7px; }
+  .benchmark-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(52px, .9fr) 42px; align-items: center; column-gap: 7px; min-height: 30px; }
+  .model-label { display: flex; align-items: flex-start; min-width: 0; gap: 6px; }
+  .model-logo { flex: 0 0 auto; width: 14px; height: 14px; object-fit: contain; margin-top: 1px; }
+  .model-logo.colored { background: var(--provider-color); -webkit-mask: var(--logo-image) center / contain no-repeat; mask: var(--logo-image) center / contain no-repeat; }
+  .dark .model-logo.monochrome { filter: invert(1); }
+  .model-name { display: block; font-size: 10.5px; font-weight: 550; line-height: 1.25; overflow-wrap: anywhere; }
+  .model-variant { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 1.25; overflow-wrap: anywhere; }
+  .bar-track { width: 100%; height: 6px; overflow: hidden; border-radius: 4px; background: var(--edge); }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .dark .bar-fill.monochrome { background: #f1f1f2 !important; }
+  .benchmark-value { text-align: right; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .subscription-bar { position: absolute; z-index: 2; top: 48px; left: 16px; right: 16px; display: grid; grid-template-columns: 58px 1fr 58px; align-items: center; height: 49px; text-align: center; }
+  .subscription-bar strong, .recommendation-bar strong { font-size: 15px; font-weight: 650; }
+  .toolbar-edit, .toolbar-add { display: grid; place-items: center; height: 36px; border: 1px solid var(--glass-edge); background: var(--glass); color: var(--text); }
+  .toolbar-edit { width: 50px; border-radius: 19px; font-size: 12px; }
+  .toolbar-add { justify-self: end; width: 36px; border-radius: 50%; font-size: 25px; font-weight: 300; line-height: 1; }
+  .subscription-content { position: absolute; inset: 98px 0 0; overflow-y: auto; padding: 10px 16px 125px; scrollbar-width: none; }
+  .subscription-content::-webkit-scrollbar, .recommendation-list::-webkit-scrollbar { display: none; }
+  .featured-entry { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 64px; padding: 12px 13px; border: 1px solid var(--edge); border-radius: 14px; background: var(--canvas); color: var(--text); text-align: left; }
+  .featured-entry:active { transform: scale(.99); }
+  .featured-rss { width: 21px; height: 21px; flex: 0 0 auto; }
+  .featured-entry strong { flex: 1; font-size: 15px; font-weight: 650; letter-spacing: -.02em; }
+  .featured-sources { display: flex; align-items: center; gap: 6px; }
+  .source-mark { display: block; width: 20px; height: 20px; flex: 0 0 auto; }
+  .featured-chevron, .back-icon { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .featured-chevron { margin-left: 2px; color: var(--muted); }
+  .subscription-heading { margin: 25px 0 9px; color: var(--muted); font-size: 12px; font-weight: 600; }
+  .subscription-row { display: flex; align-items: center; gap: 11px; min-height: 64px; }
+  .subscription-logo { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 auto; }
+  .subscription-logo img, .subscription-logo svg { display: block; width: 24px; height: 24px; object-fit: contain; }
+  .subscription-copy { min-width: 0; flex: 1; padding: 11px 0; border-bottom: 1px solid var(--edge); }
+  .subscription-copy strong, .subscription-copy span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .subscription-copy strong { font-size: 14px; font-weight: 600; }
+  .subscription-copy span { margin-top: 3px; color: var(--muted); font-size: 11px; }
+  .fake-toggle { width: 43px; height: 25px; flex: 0 0 auto; padding: 2px; border-radius: 14px; background: #3b3b3d; }
+  .fake-toggle::after { content: ""; display: block; width: 21px; height: 21px; margin-left: auto; border-radius: 50%; background: #fff; }
+  .recommendations-page { position: absolute; z-index: 3; inset: 48px 0 0; background: var(--bg); }
+  .recommendations-page[hidden] { display: none; }
+  .recommendation-bar { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; height: 49px; padding: 0 16px; text-align: center; }
+  .recommendation-back { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--glass-edge); border-radius: 50%; background: var(--glass); color: var(--text); }
+  .recommendation-list { position: absolute; inset: 49px 0 0; overflow-y: auto; padding: 8px 20px 120px; scrollbar-width: none; }
+  .recommendation-row { display: flex; align-items: center; gap: 12px; min-height: 70px; }
+  .recommendation-row .source-mark { width: 26px; height: 26px; }
+  .recommendation-copy { min-width: 0; flex: 1; }
+  .recommendation-copy strong, .recommendation-copy span { display: block; overflow: hidden; text-overflow: ellipsis; }
+  .recommendation-copy strong { font-size: 14px; font-weight: 600; }
+  .recommendation-copy span { margin-top: 4px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .demo-subscribe { display: grid; place-items: center; min-width: 76px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--text); font-size: 11px; }
+  .subscribe-pill { display: grid; place-items: center; min-width: 68px; height: 30px; padding: 0 9px; border: 1px solid var(--glass-edge); border-radius: 16px; background: var(--card); }
+  .demo-subscribe:disabled .subscribe-pill { border-color: transparent; background: transparent; color: var(--muted); }
+  .caption { margin: 25px 2px 0; color: #8b8580; font-size: 12px; line-height: 1.7; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  @media (max-width: 780px) { .page { padding: 28px 18px 48px; } .intro { margin-top: 38px; } .intro-note { display: none; } .board { padding: 24px 18px 30px; } .previews { grid-template-columns: minmax(0, 360px); gap: 38px; } .board-title { max-width: 360px; } }
+  @media (max-width: 380px) { .page { padding-inline: 10px; } .board { padding-inline: 10px; } .channel { padding-inline: 5px; font-size: 11px; } .entry { padding: 12px; } .entry-title { font-size: 14px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <symbol id="icon-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".8" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r=".8" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r=".8" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-card" viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="6" rx="1.8"/><rect x="4" y="13.5" width="16" height="6" rx="1.8"/></symbol>
+  <symbol id="icon-top" viewBox="0 0 24 24"><path d="M5 5h14M12 19V8M7.5 12.5 12 8l4.5 4.5"/></symbol>
+  <symbol id="icon-discover" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.8 8.2-2.3 6.3-5.3 1.3 2.3-6.3z"/></symbol>
+  <symbol id="icon-rss" viewBox="0 0 24 24"><path d="M5 5a14 14 0 0 1 14 14M5 11a8 8 0 0 1 8 8"/><circle cx="6" cy="18" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="icon-person" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="9.1" r="2.6"/><path d="M6.8 18c.7-2.5 2.5-3.8 5.2-3.8s4.5 1.3 5.2 3.8"/></symbol>
+  <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  <symbol id="icon-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+</svg>
+<main class="page">
+  <div class="brand"><img src="../logo.png" alt=""><strong>InfoHub</strong><span>设计提案</span></div>
+  <header class="intro">
+    <div><h1>让信息，更好读。</h1><p>阅读、发现与数据展示设计提案。</p></div>
+    <div class="intro-note">iOS · 界面设计</div>
+  </header>
+  <section class="board" aria-label="AI Analysis 纵向图表预览">
+    <div class="board-title"><strong>AI Analysis · 纵向图表</strong><span>示例数据</span></div>
+    <div class="previews">
+      <section class="analysis-preview" aria-label="浅色图表预览">
+        <div class="preview-label"><strong>浅色</strong><button class="player-control" type="button" aria-pressed="false">显示播放栏</button></div>
+        <div class="device"><div class="screen analysis-screen" data-theme="light"></div></div>
+      </section>
+      <section class="analysis-preview" aria-label="深色图表预览">
+        <div class="preview-label"><strong>深色</strong><button class="player-control" type="button" aria-pressed="true">隐藏播放栏</button></div>
+        <div class="device"><div class="screen dark has-player analysis-screen" data-theme="dark"></div></div>
+      </section>
+    </div>
+    <p class="caption">在手机内上下滚动查看图表；示例不包含图表内的横向滚动。</p>
+  </section>
+  <section class="board" aria-label="精选 RSS 入口交互预览">
+    <div class="board-title"><strong>精选 RSS · 入口</strong><span>示例内容 · 可交互</span></div>
+    <div class="previews">
+      <section class="recommendation-preview" aria-label="浅色订阅页预览">
+        <div class="preview-label"><strong>浅色</strong></div>
+        <div class="device"><div class="screen subscription-screen" data-theme="light"></div></div>
+      </section>
+      <section class="recommendation-preview" aria-label="深色订阅页预览">
+        <div class="preview-label"><strong>深色</strong></div>
+        <div class="device"><div class="screen dark subscription-screen" data-theme="dark"></div></div>
+      </section>
+    </div>
+    <p class="caption">点击「精选 RSS」查看推荐列表；来源图标和订阅状态为示例。</p>
+  </section>
+  <section class="board" aria-label="RSS 阅读交互预览">
+    <div class="board-title"><strong>阅读视图</strong><span>示例内容 · 可交互</span></div>
+    <div class="previews">
+      <section class="preview" aria-label="浅色预览">
+        <div class="preview-label"><strong>浅色 <span class="mode-label">· 卡片</span></strong><button class="player-control" type="button" aria-pressed="false">显示播放栏</button></div>
+        <div class="device"><div class="screen" data-theme="light"></div></div>
+      </section>
+      <section class="preview" aria-label="深色预览">
+        <div class="preview-label"><strong>深色 <span class="mode-label">· 卡片</span></strong><button class="player-control" type="button" aria-pressed="true">隐藏播放栏</button></div>
+        <div class="device"><div class="screen dark has-player" data-theme="dark"></div></div>
+      </section>
+    </div>
+    <p class="caption">点击手机右下角切换卡片与列表；滚动内容，可查看返回顶部及播放栏的避让效果。</p>
+  </section>
+</main>
+<script>
+const entries = [
+  { title: '[分享创造] 做了一个整理 RSS 和稍后阅读的小工具', summary: '把每天关心的信息放在一起，希望能让浏览和整理都简单一点。', time: '15:52', image: true },
+  { title: '[分享发现] 在电脑上看红果短剧～', summary: '', time: '15:49' },
+  { title: '[iPhone] 青龙面板环境变量自动推送', summary: '记录一下最近折腾的自动化流程，以及在手机上使用的体验。', time: '15:43' },
+  { title: '[问与答] 如何更好地管理每天看到的文章？', summary: '想听听大家的阅读习惯，有没有简单、顺手的整理方法？', time: '14:47' },
+  { title: '[分享创造] 最近做了一些有趣的小项目', summary: '', time: '14:41' },
+  { title: '[宽带症候群] 最近在家里搭了一个小小的服务', summary: '从设备选择到日常使用，分享一些踩坑和收获。', time: '14:36' },
+  { title: '关于新系统的一些使用感受', summary: '', time: '14:12' },
+  { title: '[推广] 做了一个可以记录灵感的轻量工具', summary: '欢迎体验，也想听听大家的建议。', time: '14:00' }
+];
+
+const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-${name}"></use></svg>`;
+const rows = entries.map(({ title, summary, time, image }) => {
+  const prefix = title.match(/^\[([^\]]+)\]\s*/);
+  const topic = prefix?.[1] ?? '';
+  const headline = prefix ? title.slice(prefix[0].length) : title;
+  return `<article class="entry">
+    <div class="entry-meta">${topic ? `<span class="entry-topic">${topic}</span>` : ''}<time class="entry-time">${time}</time></div>
+    <div class="entry-main"><div class="entry-copy"><h2 class="entry-title">${topic ? `<span class="raw-topic">[${topic}] </span>` : ''}${headline}</h2><p class="entry-summary">${summary}</p></div>
+    ${image ? '<div class="thumbnail"><img src="../logo.png" alt=""></div>' : ''}</div>
+  </article>`;
+}).join('');
+const status = `<div class="status" aria-hidden="true"><span>9:41</span><span class="island"></span><span class="status-icons"><svg viewBox="0 0 24 24"><path d="M2 10c6-5.3 14-5.3 20 0l-2.1 2.3c-4.8-4.2-11-4.2-15.8 0zm4 4.3c3.7-3.1 8.3-3.1 12 0l-2.1 2.2c-2.3-1.8-5.5-1.8-7.8 0zm4 4.1c1.1-.9 2.9-.9 4 0L12 21z"/></svg><svg class="battery" viewBox="0 0 26 14"><rect x="1" y="2" width="21" height="10" rx="3"/><path d="M23 5h2v4h-2z"/></svg></span></div>`;
+const rail = `<div class="channel-rail" aria-hidden="true"><span class="channel active"><svg viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="5" fill="#eee"/><path d="M5 6h8l5 6-5 6H5v-3h7l2.5-3L12 9H5z" fill="#454545"/></svg>V2EX</span><span class="channel"><img src="../../InfoHub/Assets.xcassets/channel-sina.imageset/logo.svg" alt="">微博</span><span class="channel"><img src="../logo.png" alt="">总览</span><span class="channel"><img src="../../InfoHub/Assets.xcassets/channel-zhihu.imageset/logo.svg" alt="">知乎</span><span class="channel more">···</span></div>`;
+const makeFooter = (selection) => `<div class="footer" aria-hidden="true"><div class="mini-player"><div class="mini-art">FM</div><div class="mini-copy"><strong>正在播放的播客</strong><span>节目名称</span></div><svg class="mini-play" viewBox="0 0 24 24"><path d="M6 3.8v16.4L20 12z"/></svg></div><div class="bottom-nav"><div class="nav-item${selection === 'discover' ? ' selected' : ''}">${icon('discover')}发现</div><div class="nav-item${selection === 'subscriptions' ? ' selected' : ''}">${icon('rss')}订阅</div><div class="nav-item">${icon('person')}我的</div></div></div><div class="home-indicator" aria-hidden="true"></div>`;
+const footer = makeFooter('discover');
+
+const sourceMarks = {
+  v2ex: `<svg class="source-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="5" fill="#eee"/><path d="M5 6h8l5 6-5 6H5v-3h7l2.5-3L12 9H5z" fill="#454545"/></svg>`,
+  zaobao: `<svg class="source-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#dc1747"/><text x="12" y="16.7" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="sans-serif">早</text></svg>`,
+  ithome: `<svg class="source-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 3h22v16H12l-4 3v-3H1z" fill="#df1f2b"/><text x="12" y="15.5" text-anchor="middle" fill="#fff" font-size="12" font-weight="800" font-family="sans-serif">IT</text></svg>`
+};
+const suggestions = [
+  { id: 'v2ex', title: 'V2EX', detail: '创意工作者的社区讨论' },
+  { id: 'zaobao', title: '联合早报', detail: '新加坡、中国与全球重要新闻' },
+  { id: 'ithome', title: 'IT之家', detail: '科技数码与产品资讯' }
+];
+const channelRow = (logo, title, detail) => `<div class="subscription-row"><span class="subscription-logo" aria-hidden="true">${logo}</span><div class="subscription-copy"><strong>${title}</strong><span>${detail}</span></div><span class="fake-toggle" aria-hidden="true"></span></div>`;
+const appChannels = [
+  { logo: '<img src="../logo.png" alt="">', title: '总览', detail: '汇集热点、阅读、开源与影音' },
+  { logo: '<img src="../../InfoHub/Assets.xcassets/channel-sina.imageset/logo.svg" alt="">', title: '新浪微博', detail: '新浪微博 TOP50 热搜榜' },
+  { logo: '<img src="../../InfoHub/Assets.xcassets/channel-zhihu.imageset/logo.svg" alt="">', title: '知乎', detail: '知乎 TOP50 热榜' },
+  { logo: '<img src="../../InfoHub/Assets.xcassets/channel-sspai.imageset/logo.svg" alt="">', title: '少数派', detail: '高效工作，品质生活' },
+  { logo: '<img src="../../InfoHub/Assets.xcassets/channel-xiaoyuzhou.imageset/logo.svg" alt="">', title: '小宇宙', detail: '小宇宙 FM 每日榜单' }
+];
+
+document.querySelectorAll('.recommendation-preview').forEach((preview) => {
+  const screen = preview.querySelector('.subscription-screen');
+  const suggestedRows = suggestions.map(({id, title, detail}) => `<div class="recommendation-row">${sourceMarks[id]}<div class="recommendation-copy"><strong>${title}</strong><span>${detail}</span></div><button class="demo-subscribe" data-source="${id}" type="button" aria-label="订阅 ${title}"><span class="subscribe-pill">＋ 订阅</span></button></div>`).join('');
+  screen.innerHTML = `${status}<div class="subscription-bar" aria-hidden="true"><span class="toolbar-edit">Edit</span><strong>资讯订阅</strong><span class="toolbar-add">＋</span></div>
+    <div class="subscription-content"><button class="featured-entry" type="button" aria-label="打开精选 RSS 推荐"><img class="featured-rss" src="../../InfoHub/Assets.xcassets/RSSIcon.imageset/logo.svg" alt=""><strong>精选 RSS</strong><span class="featured-sources" aria-hidden="true">${sourceMarks.v2ex}${sourceMarks.zaobao}${sourceMarks.ithome}</span><svg class="featured-chevron" aria-hidden="true"><use href="#icon-chevron"></use></svg></button>
+    <div class="subscription-heading">我的频道 · <span class="subscription-count" aria-live="polite">15</span> 个已订阅</div><div class="subscription-list">${appChannels.map(({logo, title, detail}) => channelRow(logo, title, detail)).join('')}</div></div>
+    <div class="recommendations-page" hidden><div class="recommendation-bar"><button class="recommendation-back" type="button" aria-label="返回资讯订阅"><svg class="back-icon" aria-hidden="true"><use href="#icon-back"></use></svg></button><strong>精选推荐</strong><span></span></div><div class="recommendation-list">${suggestedRows}</div></div>${makeFooter('subscriptions')}`;
+  const page = screen.querySelector('.recommendations-page');
+  screen.querySelector('.featured-entry').addEventListener('click', () => { page.hidden = false; screen.querySelector('.recommendation-back').focus(); });
+  screen.querySelector('.recommendation-back').addEventListener('click', () => { page.hidden = true; screen.querySelector('.featured-entry').focus(); });
+  screen.querySelectorAll('.demo-subscribe').forEach((button) => {
+    button.addEventListener('click', () => {
+      const source = suggestions.find((item) => item.id === button.dataset.source);
+      if (!source || button.disabled) return;
+      button.disabled = true;
+      button.querySelector('.subscribe-pill').textContent = '✓ 已订阅';
+      button.setAttribute('aria-label', `已订阅 ${source.title}`);
+      const count = screen.querySelector('.subscription-count');
+      count.textContent = String(Number(count.textContent) + 1);
+      screen.querySelector('.subscription-list').insertAdjacentHTML('afterbegin', channelRow(sourceMarks[source.id], source.title, source.detail));
+    });
+  });
+});
+
+const benchmarkCharts = [
+  { title: '智能指数', subtitle: 'Intelligence Index · 越高越好', kind: 'intelligence', points: [
+    { name: 'Gemini 4 Carbon', variant: '(high)', value: 59.4, provider: 'google', color: '#08a953' },
+    { name: 'Claude Opus 5.5', variant: '(max with fallback)', value: 58.4, provider: 'anthropic', color: '#d97659' },
+    { name: 'GPT-6 Astra', variant: '(max)', value: 56.9, provider: 'openai', color: '#171717' },
+    { name: 'GPT-6.1 Sol', variant: '(max)', value: 54.5, provider: 'openai', color: '#171717' },
+    { name: 'Claude Fable 5.1', variant: '(max with fallback)', value: 49.0, provider: 'anthropic', color: '#d97659' },
+    { name: 'Kimi K3.1 Pro', variant: '(max)', value: 46.3, provider: 'moonshot', color: '#1685ed' }
+  ] },
+  { title: '输出速度', subtitle: 'Tokens / second · 越高越好', kind: 'speed', points: [
+    { name: 'Muse Spark 1.3', variant: '(max)', value: 175, provider: 'meta', color: '#234de0' },
+    { name: 'Kimi K3.1 Pro', variant: '(max)', value: 143, provider: 'moonshot', color: '#1685ed' },
+    { name: 'Claude Opus 5.5', variant: '(max with fallback)', value: 97, provider: 'anthropic', color: '#d97659' },
+    { name: 'Grok 4.7', variant: '(max)', value: 87, provider: 'xai', color: '#7771d9' },
+    { name: 'Gemini 4 Carbon', variant: '(high)', value: 85, provider: 'google', color: '#08a953' },
+    { name: 'GPT-6.1 Sol', variant: '(max)', value: 72, provider: 'openai', color: '#171717' }
+  ] },
+  { title: '任务成本', subtitle: 'USD / task · 越低越好', kind: 'cost', points: [
+    { name: 'Gemini 4 Carbon', variant: '(high)', value: .133, provider: 'google', color: '#08a953' },
+    { name: 'Kimi K3.1 Pro', variant: '(max)', value: .219, provider: 'moonshot', color: '#1685ed' },
+    { name: 'Muse Spark 1.3', variant: '(max)', value: .346, provider: 'meta', color: '#234de0' },
+    { name: 'GPT-6.1 Sol', variant: '(max)', value: .552, provider: 'openai', color: '#171717' },
+    { name: 'Claude Fable 5.1', variant: '(max with fallback)', value: .738, provider: 'anthropic', color: '#d97659' },
+    { name: 'Claude Opus 5.5', variant: '(max with fallback)', value: 1.240, provider: 'anthropic', color: '#d97659' }
+  ] }
+];
+
+function benchmarkPanel(chart, dark) {
+  const highest = Math.max(...chart.points.map((point) => point.value));
+  const maximum = highest > 0 ? highest : 1;
+  const pointRows = chart.points.map((point) => {
+    const value = chart.kind === 'cost' ? `$${point.value.toFixed(3)}` : point.value.toFixed(chart.kind === 'speed' ? 0 : 1);
+    const path = `../../InfoHub/Assets.xcassets/arena-${point.provider}.imageset/${point.provider === 'moonshot' && dark ? 'logo-dark.svg' : 'logo.svg'}`;
+    const monochrome = ['openai', 'meta', 'xai'].includes(point.provider);
+    const logo = point.provider === 'anthropic'
+      ? `<span class="model-logo colored" style="--logo-image:url('${path}');--provider-color:${point.color}" aria-hidden="true"></span>`
+      : `<img class="model-logo${monochrome ? ' monochrome' : ''}" src="${path}" alt="">`;
+    const width = (100 * point.value / maximum).toFixed(2);
+    return `<div class="benchmark-row" role="img" aria-label="${point.name} ${point.variant}，${chart.title} ${value}"><div class="model-label">${logo}<span><span class="model-name">${point.name}</span><span class="model-variant">${point.variant}</span></span></div><div class="bar-track" aria-hidden="true"><div class="bar-fill${point.color === '#171717' ? ' monochrome' : ''}" style="width:${width}%;background:${point.color}"></div></div><span class="benchmark-value">${value}</span></div>`;
+  }).join('');
+  return `<section class="benchmark"><h3>${chart.title}</h3><p class="benchmark-subtitle">${chart.subtitle}</p><div class="benchmark-rows">${pointRows}</div></section>`;
+}
+
+const analysisRail = `<div class="channel-rail" aria-hidden="true"><span class="channel"><img src="../../InfoHub/Assets.xcassets/channel-github.imageset/logo.svg" alt="">GitHub</span><span class="channel active"><img src="../../InfoHub/Assets.xcassets/channel-artificialAnalysis.imageset/logo.svg" alt="">AI Analysis</span><span class="channel">${sourceMarks.v2ex}V2EX</span><span class="channel more">···</span></div>`;
+
+document.querySelectorAll('.analysis-preview').forEach((preview) => {
+  const screen = preview.querySelector('.analysis-screen');
+  const dark = screen.dataset.theme === 'dark';
+  screen.innerHTML = `${status}${analysisRail}<div class="analysis-content" tabindex="0" aria-label="AI Analysis 示例图表"><div class="analysis-heading"><div><h2>AI Model Benchmark</h2><p>来自 Artificial Analysis · 智能、速度与成本</p></div><img src="../../InfoHub/Assets.xcassets/channel-artificialAnalysis.imageset/logo.svg" alt=""></div><div class="analysis-panels">${benchmarkCharts.map((chart) => benchmarkPanel(chart, dark)).join('')}</div></div>${makeFooter('discover')}`;
+  const playerButton = preview.querySelector('.player-control');
+  playerButton.addEventListener('click', () => {
+    const visible = screen.classList.toggle('has-player');
+    playerButton.setAttribute('aria-pressed', String(visible));
+    playerButton.textContent = visible ? '隐藏播放栏' : '显示播放栏';
+  });
+});
+
+document.querySelectorAll('.preview').forEach((preview) => {
+  const screen = preview.querySelector('.screen');
+  const theme = screen.dataset.theme === 'dark' ? '深色' : '浅色';
+  screen.innerHTML = `${status}${rail}<div class="feed" tabindex="0" aria-label="${theme} RSS 示例内容"><div class="feed-items">${rows}</div></div><div class="floating-actions"><button class="back-to-top" type="button" aria-label="回到顶部" hidden>${icon('top')}</button><button class="view-toggle" type="button" aria-label="切换列表视图" title="切换列表视图">${icon('list')}</button></div>${footer}`;
+  const feed = screen.querySelector('.feed');
+  const topButton = screen.querySelector('.back-to-top');
+  const viewButton = screen.querySelector('.view-toggle');
+  const playerButton = preview.querySelector('.player-control');
+
+  feed.addEventListener('scroll', () => { topButton.hidden = feed.scrollTop < 120; }, { passive: true });
+  topButton.addEventListener('click', () => feed.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }));
+  viewButton.addEventListener('click', () => {
+    const feedTop = feed.getBoundingClientRect().top;
+    const visible = [...feed.querySelectorAll('.entry')].find((entry) => entry.getBoundingClientRect().bottom > feedTop);
+    const previousTop = visible?.getBoundingClientRect().top;
+    const isList = screen.classList.toggle('list');
+    if (visible && previousTop !== undefined) feed.scrollTop += visible.getBoundingClientRect().top - previousTop;
+    viewButton.innerHTML = icon(isList ? 'card' : 'list');
+    const label = isList ? '切换卡片视图' : '切换列表视图';
+    viewButton.setAttribute('aria-label', label);
+    viewButton.title = label;
+    preview.querySelector('.mode-label').textContent = isList ? '· 列表' : '· 卡片';
+  });
+  playerButton.addEventListener('click', () => {
+    const visible = screen.classList.toggle('has-player');
+    playerButton.setAttribute('aria-pressed', String(visible));
+    playerButton.textContent = visible ? '隐藏播放栏' : '显示播放栏';
+  });
+});
+</script>
+</body>
+</html>

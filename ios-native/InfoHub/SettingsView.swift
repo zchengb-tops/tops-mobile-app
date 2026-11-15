@@ -160,9 +160,9 @@ struct SettingsView: View {
             Text("跟随系统").tag("system"); Text("浅色").tag("light"); Text("深色").tag("dark")
         }.accessibilityIdentifier("appearance-picker")
         ReadingPreference("阅读字号", illustration: "settings-reading",
-                          value: store.readingSize == "system" ? "跟随系统" : store.readingSize == "large" ? "大" : "小",
+                          value: store.readingSize == "system" ? "标准" : store.readingSize == "large" ? "大" : "小",
                           selection: $store.readingSize, compact: compact) {
-            Text("跟随系统").tag("system"); Text("小").tag("small"); Text("大").tag("large")
+            Text("标准").tag("system"); Text("小").tag("small"); Text("大").tag("large")
         }.accessibilityIdentifier("reading-size-picker")
     }
 }
@@ -355,7 +355,9 @@ private struct ReadingPreference<Selection: Hashable, Options: View>: View {
     }
     private var preferenceIcon: some View {
         Image(illustration).renderingMode(.template).resizable().scaledToFit().foregroundStyle(.secondary)
-            .frame(width: symbolSize, height: symbolSize).accessibilityHidden(true)
+            .frame(width: symbolSize, height: symbolSize)
+            // The illustrations include transparent margins; align their visible edges with the labels.
+            .offset(x: -symbolSize * 0.23).accessibilityHidden(true)
     }
     private var preferenceLabel: some View {
         VStack(alignment: .leading, spacing: 6) {
