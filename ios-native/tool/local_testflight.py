@@ -7,6 +7,7 @@ import json
 import os
 import plistlib
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -181,13 +182,26 @@ def run_contract_tests(source, directory):
         raise RuntimeError(f"Could not create a compatible test simulator: {created.stderr.strip()}")
     simulator = created.stdout.strip()
     try:
-        run_command([
-            "xcodebuild", "-project", str(source / "ios-native/InfoHub.xcodeproj"),
-            "-scheme", "InfoHub", "-destination", f"platform=iOS Simulator,id={simulator}",
-            "-derivedDataPath", str(directory / "TestDerivedData"), "-parallel-testing-enabled", "NO",
-            "-collect-test-diagnostics", "never", "-only-testing:InfoHubTests",
-            "CODE_SIGNING_ALLOWED=NO", "test", "-quiet",
-        ])
+        result = directory / "ContractTests.xcresult"
+        try:
+            run_command([
+                "xcodebuild", "-project", str(source / "ios-native/InfoHub.xcodeproj"),
+                "-scheme", "InfoHub", "-destination", f"platform=iOS Simulator,id={simulator}",
+                "-derivedDataPath", str(directory / "TestDerivedData"), "-parallel-testing-enabled", "NO",
+                "-resultBundlePath", str(result), "-collect-test-diagnostics", "never", "-only-testing:InfoHubTests",
+                "CODE_SIGNING_ALLOWED=NO", "test", "-quiet",
+            ])
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            if result.exists():
+                try:
+                    failures = STATE / "failed-test-results"
+                    failures.mkdir(parents=True, exist_ok=True)
+                    destination = failures / f"{directory.name}.xcresult"
+                    shutil.move(str(result), str(destination))
+                    print(f"Saved failing test results: {destination}", flush=True)
+                except OSError as error:
+                    print(f"Could not save failing test results: {error}", file=sys.stderr, flush=True)
+            raise
         print("Contract tests passed.", flush=True)
     finally:
         subprocess.run(["xcrun", "simctl", "delete", simulator], env=clean_environment(), check=True, timeout=60)

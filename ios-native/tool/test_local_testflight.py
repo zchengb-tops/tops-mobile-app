@@ -105,6 +105,9 @@ with record.open("a") as f:
 if event["action"] == "archive" and os.environ.get("FAKE_XCODE_DELAY"):
     time.sleep(float(os.environ["FAKE_XCODE_DELAY"]))
 if event["action"] == "test" and os.environ.get("FAKE_TEST_FAIL"):
+    result = pathlib.Path(args[args.index("-resultBundlePath") + 1])
+    result.mkdir()
+    (result / "failure.txt").write_text("test failure details")
     sys.exit(1)
 if event["action"] == "export" and os.environ.get("FAKE_EXPORT_FAIL"):
     sys.exit(1)
@@ -179,7 +182,11 @@ print("Fake xcodebuild completed")
     def test_failed_contract_tests_stop_before_archive_and_upload(self):
         self.env["FAKE_TEST_FAIL"] = "1"
         self.assertEqual(self.push().returncode, 0)
-        self.wait_for_log("Local TestFlight failed:")
+        log = self.wait_for_log("Local TestFlight failed:")
+        self.assertIn("Saved failing test results:", log)
+        results = list((self.repo / "ios-native/build/local-testflight/failed-test-results").glob("*.xcresult"))
+        self.assertEqual(len(results), 1)
+        self.assertEqual((results[0] / "failure.txt").read_text(), "test failure details")
         self.assertEqual([event["action"] for event in self.events()], ["test"])
         self.assertTrue(Path(self.env["FAKE_XCODE_RECORD"] + ".deleted").exists())
 

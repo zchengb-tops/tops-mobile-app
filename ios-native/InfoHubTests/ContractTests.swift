@@ -231,7 +231,8 @@ final class ContractTests: XCTestCase {
         }
     }
     func testSettingsIllustrationsAreBundled() {
-        for name in ["account", "appearance", "reading", "sync", "feedback", "website", "terms", "privacy", "version"] {
+        // The account row uses the original system icon, not a settings illustration.
+        for name in ["appearance", "reading", "sync", "feedback", "website", "terms", "privacy", "version"] {
             XCTAssertNotNil(UIImage(named: "settings-\(name)"), "Missing settings illustration: \(name)")
         }
     }

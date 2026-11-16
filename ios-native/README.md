@@ -132,8 +132,10 @@ Fastlane job's TestFlight testing notes. Local logs are under
 An upload failure does not undo the push. Run
 `python3 ios-native/tool/local_testflight.py retry [commit]` to retry a pushed
 commit, or `verify [commit]` to test and export without uploading. The archive
-and export are temporary; only logs and upload markers are retained. Already
-uploaded commits are skipped. `uninstall` removes this worktree's hook setting;
+and export are temporary. Failed XCTest result bundles are retained under
+`ios-native/build/local-testflight/failed-test-results` and linked in the log;
+logs and upload markers are also retained. Already uploaded commits are skipped.
+`uninstall` removes this worktree's hook setting;
 it leaves the added tracking refspec in place.
 
 Pushes to `main` retain the React Native/Expo GitHub release. The native GitHub
