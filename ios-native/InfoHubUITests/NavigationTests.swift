@@ -591,35 +591,41 @@ final class NavigationTests: XCTestCase {
     func testRSSRecommendationDirectSubscriptionAndLayout() {
         for appearance in ["light", "dark", "accessibility"] {
             let app = launchRSSFixture(appearance: appearance)
-            app.buttons["添加 RSS 频道"].tap()
+            let toolbar = app.navigationBars["资讯订阅"]
+            let add = toolbar.buttons["添加 RSS 频道"]
+            add.tap()
             XCTAssertTrue(app.textFields["rss-editor-name"].waitForExistence(timeout: 5))
             XCTAssertFalse(app.staticTexts["精选订阅"].exists)
             XCTAssertFalse(app.buttons["rss-subscribe-fixture-one"].exists)
             app.buttons["取消"].tap()
-            let entry = app.buttons["rss-recommendations-entry"]
+            let entry = toolbar.buttons["rss-recommendations-entry"]
             waitUntilHittable(entry)
             XCTAssertEqual(entry.label, "精选 RSS")
-            XCTAssertGreaterThanOrEqual(entry.frame.height, 64)
-            XCTAssertGreaterThanOrEqual(entry.frame.width, 44)
+            XCTAssertEqual(entry.frame.midY, add.frame.midY, accuracy: 1)
+            XCTAssertLessThan(entry.frame.midX, add.frame.midX)
+            XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "我的频道 ·")).firstMatch.exists)
             capture(app, "RSS-recommendations-entry-\(appearance)")
             entry.tap()
-            let first = app.buttons["rss-subscribe-fixture-one"]
+            let recommendations = app.collectionViews["rss-recommendations-list"]
+            let first = recommendations.buttons["rss-subscribe-fixture-one"]
             waitUntilHittable(first)
+            let close = app.buttons["rss-recommendations-close"]
+            XCTAssertTrue(close.isHittable)
+            XCTAssertGreaterThan(close.frame.minY, app.frame.minY + app.frame.height * 0.2,
+                                 "Recommendations open partway up the screen")
             XCTAssertFalse(app.textFields["rss-editor-name"].exists)
             XCTAssertFalse(app.buttons["保存"].exists)
             XCTAssertGreaterThanOrEqual(first.frame.height, 44)
             XCTAssertGreaterThanOrEqual(first.frame.width, 44)
-            XCTAssertEqual(first.frame.height, 44, accuracy: 0.5, "Keep the touch target without native bordered-button padding")
-            XCTAssertEqual(first.frame.width, 76, accuracy: 0.5)
-            let second = app.buttons["rss-subscribe-fixture-two"]
+            let second = recommendations.buttons["rss-subscribe-fixture-two"]
             XCTAssertGreaterThanOrEqual(second.frame.minY - first.frame.minY, 64)
-            let title = app.staticTexts["测试来源一"]
-            let description = app.staticTexts["独立推荐列表，点击即可订阅"]
+            let title = recommendations.staticTexts["测试来源一"]
+            let description = recommendations.staticTexts["独立推荐列表，点击即可订阅"]
             if title.frame.height <= 30 {
                 XCTAssertLessThanOrEqual(second.frame.minY - first.frame.minY, 76, "Standard-size recommendation rows should remain compact")
             }
             XCTAssertLessThanOrEqual(title.frame.maxX, first.frame.minX - 8)
-            XCTAssertLessThanOrEqual(description.frame.maxY, app.staticTexts["测试来源二"].frame.minY - 8,
+            XCTAssertLessThanOrEqual(description.frame.maxY, recommendations.staticTexts["测试来源二"].frame.minY - 8,
                                      "Larger descriptions must not overlap the next recommendation")
             let originalSize = first.frame.size
             capture(app, "RSS-independent-recommendations-\(appearance)")
@@ -631,7 +637,8 @@ final class NavigationTests: XCTestCase {
             waitForRSSSubscription(second, title: "测试来源二")
             XCTAssertTrue(app.navigationBars["精选推荐"].exists, "Stay in recommendations to add more sources")
             capture(app, "RSS-recommendations-subscribed-\(appearance)")
-            app.navigationBars["精选推荐"].buttons.firstMatch.tap()
+            close.tap()
+            XCTAssertTrue(close.waitForNonExistence(timeout: 5))
             let added = app.switches.matching(identifier: "订阅 测试来源二").firstMatch
             waitUntilHittable(added)
             XCTAssertEqual(added.value as? String, "1")
@@ -677,7 +684,7 @@ final class NavigationTests: XCTestCase {
         empty.buttons["rss-recommendations-entry"].tap()
         XCTAssertTrue(empty.staticTexts["暂无精选推荐"].waitForExistence(timeout: 5))
         capture(empty, "RSS-recommendations-empty")
-        empty.navigationBars["精选推荐"].buttons.firstMatch.tap()
+        empty.buttons["rss-recommendations-close"].tap()
         empty.buttons["添加 RSS 频道"].tap()
         let name = empty.textFields["rss-editor-name"]
         XCTAssertTrue(name.waitForExistence(timeout: 5))
@@ -1225,6 +1232,26 @@ final class NavigationTests: XCTestCase {
         capture(app, "Login-six-digits-edited")
         app.buttons["login-close"].tap()
     }
+    func testWeiboLongHeadlineStaysOnOneLine() {
+        let app = XCUIApplication()
+        app.launchEnvironment["INFOHUB_UI_TEST_RSS"] = "success"
+        app.launchEnvironment["INFOHUB_UI_TEST_WEIBO"] = "1"
+        app.launchArguments = ["-native.selectedChannel", "sina", "-native.readingSize", "large", "-native.syncEnabled", "NO"]
+        app.launch()
+
+        let longTitle = app.staticTexts["sina-title-0"].firstMatch
+        let shortTitle = app.staticTexts["sina-title-1"].firstMatch
+        let heat = app.staticTexts["sina-heat-0"].firstMatch
+        waitUntilHittable(longTitle)
+        XCTAssertTrue(shortTitle.exists)
+        XCTAssertTrue(heat.exists)
+        XCTAssertTrue(longTitle.label.hasSuffix("热度数字完整保留在右侧"), "Keep the full headline available to VoiceOver")
+        XCTAssertEqual(longTitle.frame.height, shortTitle.frame.height, accuracy: 1)
+        XCTAssertLessThan(longTitle.frame.maxX, heat.frame.minX)
+        XCTAssertEqual(longTitle.frame.midY, heat.frame.midY, accuracy: 1)
+        capture(app, "Weibo-one-line-headline")
+    }
+
     func testWeiboEditorialHierarchyAndBottomClearance() {
         let app = XCUIApplication()
         for (appearance, size, contentSize, density) in [("light", "system", "", "standard"), ("dark", "system", "", "standard"), ("light", "large", "", "standard"), ("dark", "system", "UICTContentSizeCategoryAccessibilityXXXL", "standard"), ("light", "system", "", "compact"), ("light", "system", "", "spacious")] {

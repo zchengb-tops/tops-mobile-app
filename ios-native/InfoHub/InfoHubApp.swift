@@ -224,11 +224,41 @@ private struct GlassSurface<S: Shape>: ViewModifier {
 struct Artwork: View {
     var url: URL?
     var symbol = "newspaper"
+    var showsLoadingSkeleton = false
+
     var body: some View {
         AsyncImage(url: url) { phase in
-            if let image = phase.image { image.resizable().scaledToFill() }
-            else { Rectangle().fill(.quaternary).overlay { Image(systemName: symbol).foregroundStyle(.secondary) } }
+            switch phase {
+            case .success(let image):
+                image.resizable().scaledToFill()
+            case .empty where showsLoadingSkeleton && url != nil:
+                ArtworkSkeleton()
+            default:
+                Rectangle().fill(.quaternary).overlay { Image(systemName: symbol).foregroundStyle(.secondary) }
+            }
         }.clipped().accessibilityHidden(true)
+    }
+}
+
+private struct ArtworkSkeleton: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        Rectangle().fill(.quaternary)
+            .overlay {
+                if !reduceMotion {
+                    GeometryReader { geometry in
+                        LinearGradient(colors: [.clear, .white.opacity(colorScheme == .dark ? 0.18 : 0.55), .clear],
+                                       startPoint: .leading, endPoint: .trailing)
+                            .phaseAnimator([-1.0, 1.0]) { highlight, phase in
+                                highlight.offset(x: phase * geometry.size.width)
+                            } animation: { phase in
+                                phase > 0 ? .linear(duration: 1.3) : nil
+                            }
+                    }
+                }
+            }
     }
 }
 

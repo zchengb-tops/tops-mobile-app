@@ -1,3 +1,4 @@
+import CoreText
 import SwiftUI
 import UIKit
 
@@ -157,7 +158,7 @@ struct ChannelFeed: View {
           GeometryReader { viewport in
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(spacing: 0) { feedContent(viewportHeight: viewport.size.height) }
+                    LazyVStack(spacing: 0) { feedContent(viewportSize: viewport.size) }
                         .background(FeedScrollAnchor(controller: scrollController).frame(width: 0, height: 0))
                         .padding(.top, channel.code == "history" ? 20 : 4).padding(.bottom, channel.code == "stock" ? 0 : 24)
                         .id("feed-top-\(channel.id)")
@@ -219,7 +220,7 @@ struct ChannelFeed: View {
           rssShowsTime = rssItemsShareDay(store.items(for: channel))
       }
     }
-    @ViewBuilder private func feedContent(viewportHeight: CGFloat) -> some View {
+    @ViewBuilder private func feedContent(viewportSize: CGSize) -> some View {
         if channel.code == "featured", !channel.isRSS {
             FeaturedContent()
         } else if channel.code == "github", !channel.isRSS {
@@ -258,7 +259,7 @@ struct ChannelFeed: View {
                     StockMap(items: items).padding(.horizontal, 16)
                 }
                 // The measured footer already includes its top inset; reserve only the feed's top clearance.
-                .frame(height: max(0, viewportHeight - footerHeight - 4))
+                .frame(height: max(0, viewportSize.height - footerHeight - 4))
             } else {
                 if channel.code == "tiobe" {
                     TiobeRow(item: nil).padding(.horizontal, 20).padding(.vertical, 12)
@@ -266,15 +267,16 @@ struct ChannelFeed: View {
                 }
                 ForEach(items) { item in
                     if channel.isRSS {
-                        feedRow(item, showsTime: rssShowsTime).onGeometryChange(for: Bool.self) { geometry in
-                            let frame = geometry.frame(in: .named("feed-scroll-\(channel.id)"))
-                            // Include the feed's 4pt top inset when identifying the first row.
-                            return frame.minY <= 5 && frame.maxY > 5
-                        } action: { isVisibleAtTop in
-                            if isVisibleAtTop { scrollController.visibleRSSItemID = item.id }
-                        }
+                        feedRow(item, showsTime: rssShowsTime, viewportWidth: viewportSize.width)
+                            .onGeometryChange(for: Bool.self) { geometry in
+                                let frame = geometry.frame(in: .named("feed-scroll-\(channel.id)"))
+                                // Include the feed's 4pt top inset when identifying the first row.
+                                return frame.minY <= 5 && frame.maxY > 5
+                            } action: { isVisibleAtTop in
+                                if isVisibleAtTop { scrollController.visibleRSSItemID = item.id }
+                            }
                     } else {
-                        feedRow(item, showsTime: rssShowsTime)
+                        feedRow(item, showsTime: rssShowsTime, viewportWidth: viewportSize.width)
                     }
                     if !channel.isRSS, ["zhihu", "sspai", "nnGroup", "tiobe", "arena"].contains(channel.code), item.id != items.last?.id {
                         Divider().opacity(0.45).padding(.horizontal, 20)
@@ -287,10 +289,11 @@ struct ChannelFeed: View {
             }
         }
     }
-    @ViewBuilder private func feedRow(_ item: NewsItem, showsTime: Bool) -> some View {
+    @ViewBuilder private func feedRow(_ item: NewsItem, showsTime: Bool, viewportWidth: CGFloat) -> some View {
         if channel.isRSS && rssViewMode == "card" {
-            RSSCard(item: item, feedURL: store.rss[channel.rssURL]["originLink"].text.nilIfEmpty ?? channel.rssURL, showsTime: showsTime)
-                .padding(.horizontal, 16).padding(.vertical, 5)
+            RSSCard(item: item, feedURL: store.rss[channel.rssURL]["originLink"].text.nilIfEmpty ?? channel.rssURL,
+                    showsTime: showsTime, viewportWidth: viewportWidth)
+                .padding(.horizontal, RSSCard.horizontalInset).padding(.vertical, 5)
                 .accessibilityIdentifier("rss-card-\(channel.id)-\(item.index)")
         } else {
             NewsRow(item: item, channel: channel.isRSS ? "rss" : channel.code, density: density, rssShowsTime: showsTime)
@@ -378,40 +381,111 @@ private func rssPublicationText(_ date: Date?, showsTime: Bool) -> String {
 }
 
 private struct RSSCard: View {
+    static let horizontalInset: CGFloat = 16
+    private let contentInset: CGFloat = 12
+
     let item: NewsItem
     let feedURL: String
     let showsTime: Bool
+    let viewportWidth: CGFloat
     @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         NavigationLink(value: item) {
-            HStack(alignment: .top, spacing: 12) {
+            let thumbnail = item.rssThumbnail(feedURL: feedURL)
+            HStack(spacing: 14) {
+                if let thumbnail {
+                    Color.clear
+                        .aspectRatio(1.5, contentMode: .fit)
+                        .containerRelativeFrame(.horizontal) { width, _ in
+                            min(168, max(0, width - 2 * (Self.horizontalInset + contentInset)) * 0.4)
+                        }
+                        .overlay {
+                            Artwork(url: thumbnail, symbol: "photo", showsLoadingSkeleton: true)
+                        }
+                        .clipShape(.rect(cornerRadius: 8, style: .continuous))
+                }
                 let parts = item.rssTitleParts
                 let date = rssPublicationText(item.publicationDate, showsTime: showsTime)
                 let summary = item.rssCardSummary
                 VStack(alignment: .leading, spacing: 6) {
-                    if parts.topic != nil || !date.isEmpty {
+                    if let topic = parts.topic {
                         HStack(spacing: 6) {
-                            if let topic = parts.topic { Text(topic).lineLimit(1) }
-                            if !date.isEmpty { Text(date).monospacedDigit().fixedSize().layoutPriority(1) }
+                            Circle().fill(.orange).frame(width: 5, height: 5).accessibilityHidden(true)
+                            Text(topic).lineLimit(1)
                         }.channelText(11, lineHeight: 14).foregroundStyle(.secondary)
                     }
-                    Text(parts.headline).channelText(15, lineHeight: 22)
-                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    if thumbnail == nil, !date.isEmpty {
+                        RSSHeadlineWithTimestamp(headline: parts.headline, date: date,
+                                                 width: viewportWidth - 2 * (Self.horizontalInset + contentInset))
+                    } else {
+                        Text(parts.headline).channelText(15, lineHeight: 22)
+                            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    }
                     if !summary.isEmpty {
                         Text(summary).channelText(12, lineHeight: 17).foregroundStyle(.secondary)
-                            .lineLimit(1)
+                            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if thumbnail != nil, !date.isEmpty {
+                        Label(date, systemImage: "clock").channelText(11, lineHeight: 14)
+                            .monospacedDigit().foregroundStyle(.secondary)
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
-                if let image = item.rssThumbnail(feedURL: feedURL) {
-                    Artwork(url: image, symbol: "photo").frame(width: 72, height: 72)
-                        .clipShape(.rect(cornerRadius: 10, style: .continuous))
-                }
-            }.padding(12).frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+            }.padding(contentInset).frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
                 .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
                 .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08), lineWidth: 1) }
                 .contentShape(Rectangle())
         }.buttonStyle(.plain)
             .contextMenu { if let url = item.url { ShareLink(item: url, subject: Text(item.title)); Link("在浏览器打开", destination: url) } }
+    }
+}
+
+private struct RSSHeadlineWithTimestamp: View {
+    let headline: String
+    let date: String
+    let width: CGFloat
+    @Environment(AppStore.self) private var store
+    @ScaledMetric(relativeTo: .body) private var headlineSize = 15.0
+    @ScaledMetric(relativeTo: .body) private var tagSize = 11.0
+    private let tagSpacing: CGFloat = 8
+    private let tagInset: CGFloat = 6
+
+    var body: some View {
+        let title = headline.split(whereSeparator: \.isNewline).joined(separator: " ")
+        let scale: CGFloat = store.readingSize == "small" ? 0.8 : store.readingSize == "large" ? 1.2 : 1
+        let font = UIFont.systemFont(ofSize: headlineSize * scale)
+        let tagFont = UIFont.monospacedDigitSystemFont(ofSize: tagSize * scale, weight: .regular)
+        let reservedWidth = (date as NSString).size(withAttributes: [.font: tagFont]).width + 2 * tagInset + tagSpacing
+        let lines = headlineLines(title, font: font, reservedWidth: reservedWidth)
+
+        VStack(alignment: .leading, spacing: max(0, font.pointSize * 22 / 15 - font.lineHeight)) {
+            if !lines.first.isEmpty {
+                Text(verbatim: lines.first).font(.system(size: font.pointSize)).lineLimit(1)
+            }
+            HStack(alignment: .center, spacing: tagSpacing) {
+                if !lines.last.isEmpty {
+                    Text(verbatim: lines.last).font(.system(size: font.pointSize)).lineLimit(1)
+                }
+                Text(date).font(.system(size: tagFont.pointSize)).monospacedDigit()
+                    .foregroundStyle(.secondary).fixedSize()
+                    .padding(.horizontal, tagInset).padding(.vertical, 2)
+                    .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: "\(headline), \(date)"))
+    }
+
+    private func headlineLines(_ title: String, font: UIFont, reservedWidth: CGFloat) -> (first: String, last: String) {
+        let text = NSAttributedString(string: title, attributes: [.font: font])
+        let typesetter = CTTypesetterCreateWithAttributedString(text)
+        let taggedLineLength = CTTypesetterSuggestLineBreak(typesetter, 0, max(1, width - reservedWidth - 1))
+        if taggedLineLength == text.length { return ("", title) }
+
+        // Keep text on the tagged line even when the headline fits by itself on one line.
+        let fullLineLength = CTTypesetterSuggestLineBreak(typesetter, 0, max(1, width - 1))
+        let splitOffset = fullLineLength < text.length ? fullLineLength : taggedLineLength
+        let split = String.Index(utf16Offset: splitOffset, in: title)
+        return (title[..<split].trimmingCharacters(in: .whitespaces), title[split...].trimmingCharacters(in: .whitespaces))
     }
 }
 
@@ -531,13 +605,14 @@ struct NewsRow: View {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 5) {
                     rank
-                    title.fixedSize(horizontal: false, vertical: true)
+                    title.lineLimit(isOverview ? nil : 1).fixedSize(horizontal: false, vertical: true)
                     sinaHeat
                 }.frame(maxWidth: .infinity, alignment: .leading)
             } else {
+                let headlineLimit = isOverview ? (density == .spacious ? nil : density == .compact ? 2 : 3) : 1
                 HStack(alignment: .center, spacing: 12) {
                     rank
-                    title.lineLimit(density == .spacious ? nil : density == .compact ? 2 : 3)
+                    title.lineLimit(headlineLimit).truncationMode(.tail)
                         .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
                     sinaHeat.fixedSize(horizontal: true, vertical: false)
                 }.frame(minHeight: 44)

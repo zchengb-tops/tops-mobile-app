@@ -144,7 +144,7 @@ private actor RSSUITestAPI {
         switch path {
         case "rss-recommendations":
             recommendationAttempts += 1
-            if scenario == "load-error", recommendationAttempts <= 2 { throw APIError.message("测试推荐加载失败") }
+            if scenario == "load-error", recommendationAttempts == 1 { throw APIError.message("测试推荐加载失败") }
             response = scenario == "empty" ? "[]" : #"[{"id":"fixture-one","title":"测试来源一","rssUrl":"https://example.org/one.xml","description":"独立推荐列表，点击即可订阅","iconUrl":""},{"id":"fixture-two","title":"测试来源二","rssUrl":"https://example.org/two.xml","description":"无需填写 RSS 创建表单","iconUrl":""}]"#
         case "rss-resource":
             resourceAttempts += 1
@@ -168,6 +168,8 @@ private actor RSSUITestAPI {
             return fixtureUserInfo()
         case "normal-news" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_PLAYER"] == "1":
             response = #"{"xiaoyuzhou":[{"title":"测试播客","author":"测试频道","mediaUrl":"https://audio.invalid/episode.mp3","duration":3600}]}"#
+        case "normal-news" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_WEIBO"] == "1":
+            response = #"{"sina":[{"title":"这是一条很长的微博热搜标题，用于确认列表只显示一行，并且热度数字完整保留在右侧","link":"https://example.org/weibo-1","properties":{"viewers":2014000}},{"title":"短标题","link":"https://example.org/weibo-2","properties":{"viewers":959000}}]}"#
         case "news/artificial-analysis" where ProcessInfo.processInfo.environment["INFOHUB_UI_TEST_ANALYSIS"] == "1":
             let labels = ["Claude Opus 5.5 (max with fallback)", "GPT-6 Astra (max)", "Gemini 4 Carbon (high)",
                           "GPT-6.1 Sol (max)", "Kimi K3.1 Pro (max)", "Claude Fable 5.1 (max with fallback)",

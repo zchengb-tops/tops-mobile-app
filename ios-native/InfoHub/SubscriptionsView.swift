@@ -6,39 +6,12 @@ struct SubscriptionsView: View {
     @State private var recommendationsPresented = false
     @State private var firstChannelBeforeAdding: String?
     @State private var editing: Channel?
-    @State private var recommendationPreview: [JSON] = []
-    @State private var recommendationResult: [JSON]?
+    private let horizontalInset: CGFloat = 24
+
     var body: some View {
         @Bindable var store = store
         ScrollViewReader { proxy in
         List {
-            Section {
-                Button {
-                    firstChannelBeforeAdding = store.channels.first?.id
-                    recommendationsPresented = true
-                } label: {
-                    HStack(spacing: 10) {
-                        Image("RSSIcon").resizable().scaledToFit().frame(width: 21, height: 21)
-                            .accessibilityHidden(true)
-                        Text("精选 RSS").channelText(15, weight: .semibold)
-                        Spacer()
-                        HStack(spacing: 6) {
-                            ForEach(Array(recommendationPreview.enumerated()), id: \.offset) { _, recommendation in
-                                AsyncImage(url: webURL(recommendation["iconUrl"].text)) { phase in
-                                    if let image = phase.image { image.resizable().scaledToFit() }
-                                    else { Image("RSSIcon").resizable().scaledToFit() }
-                                }.frame(width: 20, height: 20)
-                            }
-                        }.accessibilityHidden(true)
-                        Image(systemName: "chevron.right").font(.footnote).foregroundStyle(.secondary)
-                    }.padding(.horizontal, 13).frame(minHeight: 64).contentShape(Rectangle())
-                        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
-                        .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.08), lineWidth: 1) }
-                }.buttonStyle(.plain).listRowBackground(Color.clear).listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 2, trailing: 16))
-                    .accessibilityIdentifier("rss-recommendations-entry")
-                    .accessibilityHint("浏览推荐来源并直接订阅")
-            }
             Section {
                 ForEach($store.channels.filter { $0.wrappedValue.visibleInMobile }) { $channel in
                     HStack(spacing: 12) {
@@ -53,6 +26,7 @@ struct SubscriptionsView: View {
                         Toggle("订阅 \(channel.title)", isOn: $channel.enabled).labelsHidden().disabled(!channel.supported)
                             .onChange(of: channel.enabled) { _, _ in store.channelsChanged() }
                     }.padding(.vertical, 6)
+                        .listRowInsets(EdgeInsets(top: 12, leading: horizontalInset, bottom: 12, trailing: horizontalInset))
                         .listRowBackground(Color.clear)
                         .swipeActions {
                             if channel.isRSS {
@@ -68,7 +42,7 @@ struct SubscriptionsView: View {
                     // Keep excluded legacy channels in the sync payload, not in the mobile menu.
                     store.channels = visible + store.channels.filter { !$0.visibleInMobile }; store.channelsChanged()
                 }
-            } header: { Text("我的频道 · \(store.enabledChannels.count) 个已订阅") }
+            }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
@@ -79,22 +53,25 @@ struct SubscriptionsView: View {
         .navigationTitle("资讯订阅").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) { EditButton() }
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button("精选 RSS", systemImage: "sparkles") {
+                    firstChannelBeforeAdding = store.channels.first?.id
+                    recommendationsPresented = true
+                }
+                .labelStyle(.iconOnly)
+                .accessibilityIdentifier("rss-recommendations-entry")
+                .accessibilityHint("浏览推荐来源并直接订阅")
                 Button("添加 RSS 频道", systemImage: "plus") {
                     firstChannelBeforeAdding = store.channels.first?.id
                     adding = true
                 }
             }
         }
-        .navigationDestination(isPresented: $recommendationsPresented) { RSSRecommendationsView(preloaded: recommendationResult) }
-        .task(id: recommendationsPresented) {
-            if !recommendationsPresented {
-                recommendationResult = nil
-                await loadRecommendationPreview()
-            }
-        }
-        .onChange(of: recommendationsPresented) { _, presented in
-            if !presented { revealNewRSS(using: proxy) }
+        .sheet(isPresented: $recommendationsPresented, onDismiss: { revealNewRSS(using: proxy) }) {
+            RSSRecommendationsView()
+                .presentationDetents([.fraction(0.65), .large])
+                .presentationDragIndicator(.visible)
+                .presentationContentInteraction(.scrolls)
         }
         .sheet(isPresented: $adding, onDismiss: { revealNewRSS(using: proxy) }) {
             RSSEditor().environment(\.appFooterHeight, 0)
@@ -102,33 +79,38 @@ struct SubscriptionsView: View {
         .sheet(item: $editing) { channel in RSSEditor(editing: channel).environment(\.appFooterHeight, 0) }
         }
     }
+
     private func revealNewRSS(using proxy: ScrollViewProxy) {
         if let first = store.channels.first, first.isRSS, first.id != firstChannelBeforeAdding {
             proxy.scrollTo(first.id, anchor: .top)
-        }
-    }
-    private func loadRecommendationPreview() async {
-        guard recommendationResult == nil else { return }
-        do {
-            let recommendations = try await store.api.request("rss-recommendations").array
-            guard !Task.isCancelled else { return }
-            recommendationPreview = Array(recommendations.filter { webURL($0["iconUrl"].text) != nil }.prefix(3))
-            recommendationResult = recommendations
-        } catch {
-            if !Task.isCancelled { recommendationPreview = [] }
         }
     }
 }
 
 struct RSSRecommendationsView: View {
     @Environment(AppStore.self) private var store
-    let preloaded: [JSON]?
+    @Environment(\.dismiss) private var dismiss
     @State private var recommendations: [JSON] = []
     @State private var loading = true
     @State private var loadError: String?
     @State private var subscribingURLs: Set<String> = []
     @State private var subscriptionErrors: [String: String] = [:]
     var body: some View {
+        NavigationStack {
+            recommendationList
+                .navigationTitle("精选推荐")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { dismiss() } label: { Image(systemName: "xmark") }
+                            .accessibilityLabel("关闭")
+                            .accessibilityIdentifier("rss-recommendations-close")
+                    }
+                }
+        }
+    }
+
+    private var recommendationList: some View {
         List {
             if loading && recommendations.isEmpty {
                 ProgressView("加载精选推荐…").frame(maxWidth: .infinity, minHeight: 120).listRowSeparator(.hidden)
@@ -151,15 +133,8 @@ struct RSSRecommendationsView: View {
         }
         .listStyle(.plain).scrollContentBackground(.hidden)
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
-        .avoidsAppFooter().ignoresSafeArea(.container, edges: .bottom)
-        .navigationTitle("精选推荐").navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("rss-recommendations-list")
-        .task {
-            if let preloaded {
-                recommendations = preloaded
-                loading = false
-            } else { await loadRecommendations() }
-        }
+        .task { await loadRecommendations() }
         .refreshable { if !loading { await loadRecommendations() } }
     }
     private func recommendationRow(_ recommendation: JSON) -> some View {
@@ -200,7 +175,7 @@ struct RSSRecommendationsView: View {
                     .frame(width: 76, height: 30)
                     .background(subscribed ? Color.clear : Color.primary.opacity(0.045), in: Capsule())
                     .overlay { Capsule().strokeBorder(Color.primary.opacity(subscribed ? 0 : 0.12), lineWidth: 0.75) }
-                    .frame(minHeight: 44).contentShape(Rectangle())
+                    .frame(minHeight: 46).contentShape(Rectangle())
             }.buttonStyle(.plain)
                 .disabled(subscribed || busy)
                 .accessibilityLabel("\(subscribed ? "已订阅" : "订阅") \(title)")
