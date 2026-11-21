@@ -236,7 +236,7 @@ final class ContractTests: XCTestCase {
             XCTAssertNotNil(UIImage(named: "settings-\(name)"), "Missing settings illustration: \(name)")
         }
     }
-    @MainActor func testWeiboRowsTightenPaddingWithoutShrinkingTouchTargets() throws {
+    @MainActor func testWeiboTabUsesSingleLineRowsWithFullTouchTargets() throws {
         let store = AppStore()
         let player = PodcastPlayer()
         let originalSize = store.readingSize
@@ -256,12 +256,15 @@ final class ContractTests: XCTestCase {
                     }
                     let overview = try render(overview: true)
                     let full = try render(overview: false)
-                    XCTAssertGreaterThanOrEqual(overview.size.height, 44, "Keep the original 44pt content/touch target")
-                    XCTAssertEqual(full.size.height - overview.size.height, 4, accuracy: 0.5,
-                                   "The complete Weibo tab adds only 2pt above and below each unchanged row")
-                    if headline == "微博热榜" { XCTAssertEqual(full.size.height, 48, accuracy: 0.5) }
+                    XCTAssertEqual(full.size.height, 48, accuracy: 0.5,
+                                   "The Weibo tab keeps one line in a 44pt touch target with 2pt of padding on each side")
+                    if headline == "微博热榜" {
+                        XCTAssertEqual(overview.size.height, 44, accuracy: 0.5)
+                    } else {
+                        XCTAssertGreaterThan(overview.size.height, 44, "Long headlines still wrap in the overview")
+                    }
                     let attachment = XCTAttachment(image: full)
-                    attachment.name = "Weibo-tight-row-\(scheme)-\(readingSize)-\(headline == "微博热榜" ? "single" : "wrapped")"
+                    attachment.name = "Weibo-tight-row-\(scheme)-\(readingSize)-\(headline == "微博热榜" ? "short" : "long")"
                     attachment.lifetime = .keepAlways
                     add(attachment)
                 }
